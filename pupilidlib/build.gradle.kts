@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
@@ -72,6 +74,16 @@ kotlin {
         androidTest.dependsOn(commonTest)
         nativeTest.dependsOn(commonTest)
     }
+
+    XCFramework().let {
+        ios {
+            binaries.framework {
+                baseName = "PupilIdKMM"
+                it.add(this)
+            }
+        }
+    }
+
 }
 
 android {
@@ -82,3 +94,5 @@ android {
         targetSdk = 31
     }
 }
+
+
