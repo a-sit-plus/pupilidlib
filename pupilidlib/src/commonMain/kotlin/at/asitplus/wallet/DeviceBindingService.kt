@@ -1,4 +1,6 @@
-package at.asitplus
+@file:UseSerializers(ByteArrayBase64Serializer::class)
+
+package at.asitplus.wallet
 
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -6,7 +8,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 
 class DeviceBindingService(
     private val extAuthNonce: String,
@@ -44,7 +46,7 @@ class DeviceBindingService(
         }.body<BindingCsrResponse>()
         deviceAdapter.storeCertificate(bindingCsrResponse.certificate)
         val bindingConfirmRequest = BindingConfirmRequest(true)
-        val bindingConfirmResponse = client.post("$serverAddress/binding/create") {
+        val bindingConfirmResponse = client.post("$serverAddress/binding/confirm") {
             contentType(ContentType.Application.Json)
             headers {
                 append("X-Auth-Token", xAuthToken)
@@ -61,7 +63,6 @@ class DeviceBindingService(
 
 }
 
-// TODO turn into expect class?
 interface DeviceAdapter {
     suspend fun createKeyCsr(challenge: ByteArray): ByteArray
     fun loadAttestationCerts(): List<ByteArray>
@@ -69,36 +70,5 @@ interface DeviceAdapter {
     val deviceName: String
 }
 
-@Serializable
-data class BindingParamsRequest(
-    val deviceName: String,
-)
-
-@Serializable
-data class BindingParamsResponse(
-    val challenge: ByteArray,
-)
-
-@Serializable
-data class BindingCsrRequest(
-    val challenge: ByteArray,
-    val csr: ByteArray,
-    val deviceName: String,
-    val attestationCerts: List<ByteArray>,
-)
-
-@Serializable
-data class BindingCsrResponse(
-    val certificate: ByteArray,
-    val attestedPublicKey: ByteArray,
-)
-
-@Serializable
-data class BindingConfirmRequest(
-    val success: Boolean
-)
-
-@Serializable
-data class BindingConfirmResponse(
-    val success: Boolean
-)
+// TODO activate
+//expect class DefaultDeviceAdapter : DeviceAdapter
