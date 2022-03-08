@@ -8,14 +8,17 @@ plugins {
 }
 
 /* required for maven publication */
-group = "at.asitplus"
-version = "0.1"
+group = "at.asitplus.wallet"
+version = "0.1.0-SNAPSHOT"
 
 kotlin {
     iosX64()
     iosArm64()
     iosSimulatorArm64()
-    android()
+    jvm()
+    android {
+        publishLibraryVariants("release", "debug")
+    }
 
     sourceSets {
         /* Main source sets */
@@ -95,4 +98,51 @@ android {
     }
 }
 
+val gitLabPrivateToken: String? by extra
+val gitLabProjectId: String by extra
+val gitLabGroupId: String by extra
 
+repositories {
+    mavenLocal()
+    if (System.getenv("CI_JOB_TOKEN") != null || gitLabPrivateToken != null) {
+        maven {
+            name = "gitlab"
+            url = uri("https://gitlab.iaik.tugraz.at/api/v4/groups/$gitLabGroupId/-/packages/maven")
+            if (gitLabPrivateToken != null) {
+                credentials(HttpHeaderCredentials::class) {
+                    name = "Private-Token"
+                    value = gitLabPrivateToken
+                }
+            } else if (System.getenv("CI_JOB_TOKEN") != null) {
+                credentials(HttpHeaderCredentials::class) {
+                    name = "Job-Token"
+                    value = System.getenv("CI_JOB_TOKEN")
+                }
+            }
+            authentication {
+                create<HttpHeaderAuthentication>("header")
+            }
+        }
+    }
+    mavenCentral()
+}
+
+
+publishing {
+    repositories {
+        mavenLocal()
+        if (System.getenv("CI_JOB_TOKEN") != null) {
+            maven {
+                name = "gitlab"
+                url = uri("https://gitlab.iaik.tugraz.at/api/v4/projects/$gitLabProjectId/packages/maven")
+                credentials(HttpHeaderCredentials::class) {
+                    name = "Job-Token"
+                    value = System.getenv("CI_JOB_TOKEN")
+                }
+                authentication {
+                    create<HttpHeaderAuthentication>("header")
+                }
+            }
+        }
+    }
+}
