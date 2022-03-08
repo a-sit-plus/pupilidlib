@@ -1,0 +1,120 @@
+variables:
+  LC_ALL: "en_US.UTF-8"
+  LANG: "en_US.UTF-8"
+  LANGUAGE: "en_US"
+  LIB_NAME: "pupilidlib"
+  GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.console=plain -Dmaven.repo.local=${CI_PROJECT_DIR}/.m2/repository"
+  SECURE_LOG_LEVEL: "debug"
+  SAST_JAVA_VERSION: 11
+  SECRET_DETECTION_EXCLUDED_PATHS: ".gradle,gradle,.m2"
+  SAST_EXPERIMENTAL_FEATURES: "true"
+  MOBSF_API_KEY: key
+
+include:
+  - template: Dependency-Scanning.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Secret-Detection.gitlab-ci.yml
+
+default:
+  image: gitlab.iaik.tugraz.at:5050/oe-gv-at/meta/ci/androidsdk31:latest
+  tags:
+    - docker
+
+stages:
+  - assemble
+  - test
+  - package
+  - release
+
+cache:
+  paths:
+    - ".gradle/wrapper"
+    - ".gradle/caches"
+    - ".m2/repository"
+
+assembleAndroid:
+  stage: assemble
+  image: gitlab.iaik.tugraz.at:5050/oe-gv-at/meta/ci/androidsdk31:latest
+  except:
+    - tags
+  script: |
+    ./gradlew --continue clean test
+  artifacts:
+    when: always
+    reports:
+      junit: "pupilidlib/build/test-results/testDebugUnitTest/TEST-*.xml"
+
+assembleJdk11:
+  stage: assemble
+  except:
+    - tags
+  script: |
+    ./gradlew --continue clean jvmTest
+  artifacts:
+    when: always
+    reports:
+      junit: "pupilidlib/build/test-results/jvmTest/TEST-*.xml"
+
+assembleIos:
+  stage: assemble
+  allow_failure: true
+  except:
+    - tags
+  tags:
+    - ios
+  script: |
+    ./gradlew --continue clean iosX64Test
+  artifacts:
+    when: always
+    reports:
+      junit: "pupilidlib/build/test-results/iosX64Test/TEST-*.xml"
+
+publish:
+  stage: package
+  except:
+    - tags
+  only:
+    - master
+    - develop
+    - /^release.*$/
+  script: |
+    export VERSION=$(./gradlew properties | grep "^version: " | grep -Po "\d+\.\d+\.\d+((-\w*)+)?")
+    echo "Publishing version $VERSION for $LIB_NAME"
+    ./gradlew --continue clean assemble publish
+    echo "VERSION=$VERSION" >> variables.env
+  artifacts:
+    when: always
+    reports:
+      dotenv: variables.env
+
+publishSnapshot:
+  stage: package
+  except:
+    - tags
+  when: manual
+  script: |
+    export VERSION=$(./gradlew properties | grep "^version: " | grep -Po "\d+\.\d+\.\d+((-\w*)+)?")
+    echo "Publishing version $VERSION for $LIB_NAME"
+    ./gradlew --continue clean assemble publish
+    echo "VERSION=$VERSION" >> variables.env
+  artifacts:
+    when: always
+    reports:
+      dotenv: variables.env
+
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: publish
+      artifacts: true
+  when: manual
+  only:
+    - master
+    - /^release.*$/
+  script: |
+    echo "Releasing version $VERSION of $LIB_NAME"
+    release-cli create --name "$VERSION" --tag-name "v$VERSION" --ref "$CI_COMMIT_SHA" --description "$(cat README.md)" \
+        --assets-link "{\"name\":\"$LIB_NAME-$VERSION.pom\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven/at/asitplus/wallet/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.pom\"}" \
+        --assets-link "{\"name\":\"$LIB_NAME-$VERSION.jar\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven/at/asitplus/wallet/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.jar\"}"
