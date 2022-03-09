@@ -1,5 +1,3 @@
-@file:UseSerializers(ByteArrayBase64Serializer::class)
-
 package at.asitplus.wallet
 
 import io.ktor.client.*
@@ -8,7 +6,6 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.UseSerializers
 
 class DeviceBindingService(
     private val extAuthNonce: String,
