@@ -1,0 +1,4 @@
+# PupilIdLib
+
+This is a Kotlin Multiplatform Library implementing features to use the PupilId in Apps and on the Backend.
+

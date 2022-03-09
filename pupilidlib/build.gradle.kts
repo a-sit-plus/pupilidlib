@@ -8,8 +8,9 @@ plugins {
 }
 
 /* required for maven publication */
+val artifactVersion: String by extra
 group = "at.asitplus.wallet"
-version = "0.1.0-SNAPSHOT"
+version = "$artifactVersion"
 
 kotlin {
     iosX64()
