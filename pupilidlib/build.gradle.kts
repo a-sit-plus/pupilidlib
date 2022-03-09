@@ -4,7 +4,7 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     id("com.android.library")
-    `maven-publish`
+    id("maven-publish")
 }
 
 /* required for maven publication */
@@ -15,9 +15,32 @@ kotlin {
     iosX64()
     iosArm64()
     iosSimulatorArm64()
-    jvm()
+
     android {
         publishLibraryVariants("release", "debug")
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "1.8"
+                freeCompilerArgs = listOf(
+                    "-Xjsr305=strict"
+                )
+            }
+        }
+    }
+
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "1.8"
+                freeCompilerArgs = listOf(
+                    "-Xjsr305=strict"
+                )
+            }
+        }
+
+        testRuns["test"].executionTask.configure {
+            useJUnitPlatform()
+        }
     }
 
     sourceSets {
@@ -47,6 +70,11 @@ kotlin {
             }
         }
         val nativeMain by creating
+        val jvmMain by getting {
+            dependencies {
+                implementation("io.swagger.core.v3:swagger-annotations:2.1.12")
+            }
+        }
 
         /* Main hierarchy */
         iosMain.dependsOn(nativeMain)
@@ -55,6 +83,7 @@ kotlin {
         iosSimulatorArm64Main.dependsOn(iosMain)
         androidMain.dependsOn(commonMain)
         nativeMain.dependsOn(commonMain)
+        jvmMain.dependsOn(commonMain)
 
         /* Test source sets */
         val commonTest by getting {
