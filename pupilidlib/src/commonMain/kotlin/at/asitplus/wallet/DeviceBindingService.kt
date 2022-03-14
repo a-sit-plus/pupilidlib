@@ -11,6 +11,7 @@ class DeviceBindingService(
     private val extAuthNonce: String,
     private val serverAddress: String,
     private val deviceAdapter: DeviceAdapter,
+    private val asn1Service: Asn1Service,
 ) {
 
     private val client = HttpClient() {
@@ -31,7 +32,7 @@ class DeviceBindingService(
         val bindingParamsResponse = post.body<BindingParamsResponse>()
         val xAuthToken = post.headers["X-Auth-Token"].toString()
         val challenge = bindingParamsResponse.challenge
-        val csr = deviceAdapter.createKeyCsr(challenge)
+        val csr = asn1Service.signAndCreateCsr(deviceAdapter.createKeyGetPublicKeyEncoded())
         val bindingCsrRequest =
             BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, deviceAdapter.loadAttestationCerts())
         val bindingCsrResponse = client.post("$serverAddress/binding/create") {
@@ -60,10 +61,15 @@ class DeviceBindingService(
 
 }
 
+
 interface DeviceAdapter {
-    suspend fun createKeyCsr(challenge: ByteArray): ByteArray
     fun loadAttestationCerts(): List<ByteArray>
     fun storeCertificate(certificate: ByteArray)
+    fun createKeyGetPublicKeyEncoded(): ByteArray
+
+    // TODO Algorithms and so on ... is now expected to be SHA256 with ECDSA
+    suspend fun sign(input: ByteArray): ByteArray
+
     val deviceName: String
 }
 
