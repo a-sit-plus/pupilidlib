@@ -61,25 +61,25 @@ class Asn1ServiceTest {
 
     @Test
     fun testCsrEncodingEcSha256() = runBlocking {
-        val subject = "CN=foo,O=Stage Q"
+        val subject = "CN=randomFoo,O=Stage Q"
         val keyAlg = KeyAlgorithm.EC
         val ecKeyPair = KeyPairGenerator.getInstance("EC").generateKeyPair()
         val deviceAdapter = InMemoryDeviceAdapter(ecKeyPair)
 
-        doit(ecKeyPair, deviceAdapter, subject, keyAlg)
+        compareBouncycastleWithService(ecKeyPair, deviceAdapter, subject, keyAlg)
     }
 
     @Test
     fun testCsrEncodingRsaSha256() = runBlocking {
-        val subject = "CN=foo,O=Stage Q"
+        val subject = "CN=fooRandom,O=Stage T"
         val keyAlg = KeyAlgorithm.RSA
         val rsaKeyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair()
         val deviceAdapter = InMemoryDeviceAdapter(rsaKeyPair)
 
-        doit(rsaKeyPair, deviceAdapter, subject, keyAlg)
+        compareBouncycastleWithService(rsaKeyPair, deviceAdapter, subject, keyAlg)
     }
 
-    private fun doit(
+    private fun compareBouncycastleWithService(
         ecKeyPair: KeyPair,
         deviceAdapter: InMemoryDeviceAdapter,
         subject: String,
@@ -91,7 +91,7 @@ class Asn1ServiceTest {
         val contentVerifierProvider = JcaContentVerifierProviderBuilder().build(ecKeyPair.public)
         val bcEncoded =
             JcaPKCS10CertificationRequestBuilder(X500Name(subject), ecKeyPair.public).build(contentSigner).encoded
-        val libEncoded = service.signAndCreateCsr(deviceAdapter.createKeyGetPublicKeyEncoded(keyAlg), subject, keyAlg)
+        val libEncoded = service.signAndCreateCsr(deviceAdapter.getPublicKeyEncoded(), subject, keyAlg)
 
         println(Hex.encode(bcEncoded).decodeToString())
         println(Hex.encode(libEncoded).decodeToString())
@@ -117,11 +117,14 @@ class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
         //
     }
 
-    override fun createKeyGetPublicKeyEncoded(key: KeyAlgorithm) = keyPair.public.encoded
+    override fun createKey(key: KeyAlgorithm, challenge: ByteArray) {
+        // key has been created
+    }
 
-    override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm) =
+    override fun getPublicKeyEncoded(): ByteArray = keyPair.public.encoded
+
+    override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): ByteArray =
         createSignature(keyPair.private, getJcaSignatureName(key, hash), input)
-
 
     override val deviceName = "Unit Test"
 

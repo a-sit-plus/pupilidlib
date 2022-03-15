@@ -64,6 +64,7 @@ class Asn1Service(
             Asn1Object.Oid("1.2.840.10045.2.1"),
             Asn1Object.Oid("1.2.840.10045.3.1.7"),
         )
+        // TODO Handle RSA Keys from iOS
         return if (publicKey.size > 2 && publicKey[0] == 0x00.toByte() && publicKey[1] == 0x04.toByte()) {
             // Encoded Public Key is "raw", i.e. starts with 0x0004 ... and needs to be wrapped with algorithms
             val publicKeyAsn1 = Asn1Object.BitString(publicKey)

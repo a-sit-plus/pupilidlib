@@ -35,7 +35,10 @@ open class BindingParamsRequest(
 @Serializable
 open class BindingParamsResponse(
     val challenge: ByteArray,
+    val subject: String,
+    val keyType: String,
 ) {
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
@@ -43,16 +46,21 @@ open class BindingParamsResponse(
         other as BindingParamsResponse
 
         if (!challenge.contentEquals(other.challenge)) return false
+        if (subject != other.subject) return false
+        if (keyType != other.keyType) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return challenge.contentHashCode()
+        var result = challenge.contentHashCode()
+        result = 31 * result + subject.hashCode()
+        result = 31 * result + keyType.hashCode()
+        return result
     }
 
     override fun toString(): String {
-        return "BindingParamsResponse(challenge=${challenge.encodeBase64()})"
+        return "BindingParamsResponse(challenge=${challenge.encodeBase64()}, subject='$subject', keyType='$keyType')"
     }
 
 }

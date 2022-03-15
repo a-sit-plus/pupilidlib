@@ -9,7 +9,7 @@ class BindingParamsRequestJ(
     deviceName: String,
 ) : BindingParamsRequest(deviceName)
 
-@Schema(name = "BindingParamsResponse", description = "List of registered mobile devices")
+@Schema(name = "BindingParamsResponse", description = "Response containing parameters for a new binding")
 class BindingParamsResponseJ(
     @Schema(
         description = "Random challenge to be included in the next request",
@@ -17,7 +17,19 @@ class BindingParamsResponseJ(
         nullable = false,
     )
     challenge: ByteArray,
-) : BindingParamsResponse(challenge)
+    @Schema(
+        description = "Subject to be set in the CSR of the client",
+        example = "CN=0iar5aae,O=wallet.a-sit.at",
+        nullable = false,
+    )
+    subject: String,
+    @Schema(
+        description = "Key type to create on the client",
+        example = "EC",
+        nullable = false,
+    )
+    keyType: String,
+) : BindingParamsResponse(challenge, subject, keyType)
 
 @Schema(name = "BindingCsrRequest", description = "Request to sign a public key")
 class BindingCsrRequestJ(
