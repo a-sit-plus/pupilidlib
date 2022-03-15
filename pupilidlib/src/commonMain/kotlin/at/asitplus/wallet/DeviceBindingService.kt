@@ -32,8 +32,9 @@ class DeviceBindingService(
         val bindingParamsResponse = post.body<BindingParamsResponse>()
         val xAuthToken = post.headers["X-Auth-Token"].toString()
         val challenge = bindingParamsResponse.challenge
-        // TODO Subject
-        val csr = asn1Service.signAndCreateCsr(deviceAdapter.createKeyGetPublicKeyEncoded(), "CN=foo")
+        // TODO Subject, Key, Algorithm
+        val key = KeyAlgorithm.EC
+        val csr = asn1Service.signAndCreateCsr(deviceAdapter.createKeyGetPublicKeyEncoded(key), "CN=foo", key)
         val bindingCsrRequest =
             BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, deviceAdapter.loadAttestationCerts())
         val bindingCsrResponse = client.post("$serverAddress/binding/create") {
@@ -66,12 +67,20 @@ class DeviceBindingService(
 interface DeviceAdapter {
     fun loadAttestationCerts(): List<ByteArray>
     fun storeCertificate(certificate: ByteArray)
-    fun createKeyGetPublicKeyEncoded(): ByteArray
-
-    // TODO Algorithms and so on ... is now expected to be SHA256 with ECDSA
-    suspend fun sign(input: ByteArray): ByteArray
-
+    fun createKeyGetPublicKeyEncoded(key: KeyAlgorithm): ByteArray
+    suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): ByteArray
     val deviceName: String
+}
+
+enum class HashAlgorithm {
+    SHA1,
+    SHA256,
+    SHA512,
+}
+
+enum class KeyAlgorithm {
+    EC,
+    RSA,
 }
 
 // TODO activate
