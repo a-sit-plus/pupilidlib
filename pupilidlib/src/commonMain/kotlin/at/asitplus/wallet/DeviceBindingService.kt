@@ -32,7 +32,8 @@ class DeviceBindingService(
         val bindingParamsResponse = post.body<BindingParamsResponse>()
         val xAuthToken = post.headers["X-Auth-Token"].toString()
         val challenge = bindingParamsResponse.challenge
-        val csr = asn1Service.signAndCreateCsr(deviceAdapter.createKeyGetPublicKeyEncoded())
+        // TODO Subject
+        val csr = asn1Service.signAndCreateCsr(deviceAdapter.createKeyGetPublicKeyEncoded(), "CN=foo")
         val bindingCsrRequest =
             BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, deviceAdapter.loadAttestationCerts())
         val bindingCsrResponse = client.post("$serverAddress/binding/create") {
