@@ -8,7 +8,6 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder
 import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder
-import org.bouncycastle.util.encoders.Hex
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.PrivateKey
@@ -19,7 +18,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertTrue
 
 
-class Asn1ServiceTest {
+class Asn1ServiceTestJvm {
 
     @Test
     fun oidEncoding() {
@@ -91,10 +90,8 @@ class Asn1ServiceTest {
         val contentVerifierProvider = JcaContentVerifierProviderBuilder().build(ecKeyPair.public)
         val bcEncoded =
             JcaPKCS10CertificationRequestBuilder(X500Name(subject), ecKeyPair.public).build(contentSigner).encoded
-        val libEncoded = service.signAndCreateCsr(deviceAdapter.getPublicKeyEncoded(), subject, keyAlg)
-
-        println(Hex.encode(bcEncoded).decodeToString())
-        println(Hex.encode(libEncoded).decodeToString())
+        val publicKeyEncoded = deviceAdapter.getPublicKeyEncoded()
+        val libEncoded = service.signAndCreateCsr(publicKeyEncoded, subject, keyAlg)
 
         // Strip signatures before comparing, as ECDSA signatures contain random values, i.e. are never the same
         // also remove first 3 bytes, because they encode the length of the whole structure,
@@ -134,6 +131,7 @@ class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
             it.update(input)
         }.sign()
 }
+
 
 fun getJcaSignatureName(key: KeyAlgorithm, hash: HashAlgorithm) = when (key) {
     KeyAlgorithm.EC -> when (hash) {
