@@ -70,6 +70,7 @@ assembleIos:
 
 publish:
   stage: package
+  image: gitlab.iaik.tugraz.at:5050/oe-gv-at/meta/ci/androidsdk31:latest
   except:
     - tags
   only:
@@ -122,6 +123,7 @@ publishIos:
 
 publishSnapshot:
   stage: package
+  image: gitlab.iaik.tugraz.at:5050/oe-gv-at/meta/ci/androidsdk31:latest
   except:
     - tags
   when: manual
