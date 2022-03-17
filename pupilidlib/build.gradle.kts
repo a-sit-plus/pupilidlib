@@ -96,6 +96,11 @@ kotlin {
         val iosArm64Test by getting
         val iosSimulatorArm64Test by getting
         val androidTest by getting
+        val jvmTest by getting {
+            dependencies {
+                implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
+            }
+        }
         val iosTest by creating
         val nativeTest by creating
 

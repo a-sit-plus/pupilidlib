@@ -6,11 +6,13 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.*
 
 class DeviceBindingService(
     private val extAuthNonce: String,
     private val serverAddress: String,
     private val deviceAdapter: DeviceAdapter,
+    private val asn1Service: Asn1Service,
 ) {
 
     private val client = HttpClient() {
@@ -31,7 +33,10 @@ class DeviceBindingService(
         val bindingParamsResponse = post.body<BindingParamsResponse>()
         val xAuthToken = post.headers["X-Auth-Token"].toString()
         val challenge = bindingParamsResponse.challenge
-        val csr = deviceAdapter.createKeyCsr(challenge)
+        val subject = bindingParamsResponse.subject
+        val keyType = KeyAlgorithm.parse(bindingParamsResponse.keyType)
+        deviceAdapter.createKey(keyType, challenge)
+        val csr = asn1Service.signAndCreateCsr(deviceAdapter.getPublicKeyEncoded(), subject, keyType)
         val bindingCsrRequest =
             BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, deviceAdapter.loadAttestationCerts())
         val bindingCsrResponse = client.post("$serverAddress/binding/create") {
@@ -60,11 +65,33 @@ class DeviceBindingService(
 
 }
 
+
 interface DeviceAdapter {
-    suspend fun createKeyCsr(challenge: ByteArray): ByteArray
     fun loadAttestationCerts(): List<ByteArray>
     fun storeCertificate(certificate: ByteArray)
+    fun createKey(key: KeyAlgorithm, challenge: ByteArray)
+    fun getPublicKeyEncoded(): ByteArray
+    suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): ByteArray
     val deviceName: String
+}
+
+enum class HashAlgorithm {
+    SHA1,
+    SHA256,
+    SHA512,
+}
+
+enum class KeyAlgorithm {
+    EC,
+    RSA;
+
+    companion object {
+        fun parse(it: String): KeyAlgorithm {
+            if ("rsa".equals(it.toLowerCasePreservingASCIIRules()))
+                return RSA
+            return EC
+        }
+    }
 }
 
 // TODO activate
