@@ -22,40 +22,44 @@ class DeviceBindingService(
     }
 
     suspend fun createDeviceBinding(): Result {
-        val bindingParamsRequest = BindingParamsRequest(deviceAdapter.deviceName)
-        val post = client.post("$serverAddress/binding/start") {
-            contentType(ContentType.Application.Json)
-            headers {
-                append("X-Auth-ExtNonce", extAuthNonce)
+        try {
+            val bindingParamsRequest = BindingParamsRequest(deviceAdapter.deviceName)
+            val post = client.post("$serverAddress/binding/start") {
+                contentType(ContentType.Application.Json)
+                headers {
+                    append("X-Auth-ExtNonce", extAuthNonce)
+                }
+                setBody(bindingParamsRequest)
             }
-            setBody(bindingParamsRequest)
+            val bindingParamsResponse = post.body<BindingParamsResponse>()
+            val xAuthToken = post.headers["X-Auth-Token"].toString()
+            val challenge = bindingParamsResponse.challenge
+            val subject = bindingParamsResponse.subject
+            val keyType = KeyAlgorithm.parse(bindingParamsResponse.keyType)
+            deviceAdapter.createKey(keyType, challenge)
+            val csr = asn1Service.signAndCreateCsr(deviceAdapter.getPublicKeyEncoded(), subject, keyType)
+            val bindingCsrRequest =
+                BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, deviceAdapter.loadAttestationCerts())
+            val bindingCsrResponse = client.post("$serverAddress/binding/create") {
+                contentType(ContentType.Application.Json)
+                headers {
+                    append("X-Auth-Token", xAuthToken)
+                }
+                setBody(bindingCsrRequest)
+            }.body<BindingCsrResponse>()
+            deviceAdapter.storeCertificate(bindingCsrResponse.certificate)
+            val bindingConfirmRequest = BindingConfirmRequest(true)
+            val bindingConfirmResponse = client.post("$serverAddress/binding/confirm") {
+                contentType(ContentType.Application.Json)
+                headers {
+                    append("X-Auth-Token", xAuthToken)
+                }
+                setBody(bindingConfirmRequest)
+            }.body<BindingConfirmResponse>()
+            return Result.Success(bindingConfirmResponse.success)
+        } catch (e: Throwable) {
+            return Result.ErrorFromServer(e.message ?: "Error")
         }
-        val bindingParamsResponse = post.body<BindingParamsResponse>()
-        val xAuthToken = post.headers["X-Auth-Token"].toString()
-        val challenge = bindingParamsResponse.challenge
-        val subject = bindingParamsResponse.subject
-        val keyType = KeyAlgorithm.parse(bindingParamsResponse.keyType)
-        deviceAdapter.createKey(keyType, challenge)
-        val csr = asn1Service.signAndCreateCsr(deviceAdapter.getPublicKeyEncoded(), subject, keyType)
-        val bindingCsrRequest =
-            BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, deviceAdapter.loadAttestationCerts())
-        val bindingCsrResponse = client.post("$serverAddress/binding/create") {
-            contentType(ContentType.Application.Json)
-            headers {
-                append("X-Auth-Token", xAuthToken)
-            }
-            setBody(bindingCsrRequest)
-        }.body<BindingCsrResponse>()
-        deviceAdapter.storeCertificate(bindingCsrResponse.certificate)
-        val bindingConfirmRequest = BindingConfirmRequest(true)
-        val bindingConfirmResponse = client.post("$serverAddress/binding/confirm") {
-            contentType(ContentType.Application.Json)
-            headers {
-                append("X-Auth-Token", xAuthToken)
-            }
-            setBody(bindingConfirmRequest)
-        }.body<BindingConfirmResponse>()
-        return Result.Success(bindingConfirmResponse.success)
     }
 
     sealed class Result {

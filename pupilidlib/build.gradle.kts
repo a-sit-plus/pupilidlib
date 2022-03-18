@@ -48,7 +48,7 @@ kotlin {
         /* Main source sets */
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-native-mt")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
                 implementation("io.github.aakira:napier:2.3.0")
                 implementation("io.ktor:ktor-client-core:2.0.0-beta-1")
