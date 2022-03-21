@@ -107,7 +107,7 @@ publishIos:
     curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" "${PACKAGE_REMOTE_ZIP}"
     cd ..
     rm -rf swift-package-pupilid-kmm-lib
-    git clone --branch remotebinary "https://gitlab-ci-token:${SWIFT_REPO_ACCESS_TOKEN}@gitlab.iaik.tugraz.at/wallet/swift-package-pupilid-kmm-lib.git"
+    git clone --branch development "https://gitlab-ci-token:${SWIFT_REPO_ACCESS_TOKEN}@gitlab.iaik.tugraz.at/wallet/swift-package-pupilid-kmm-lib.git"
     cd swift-package-pupilid-kmm-lib
     sed -i.bak "s|url: \".*\"|url: \"${PACKAGE_REMOTE_ZIP}\"|" Package.swift && rm Package.swift.bak
     sed -i.bak "s|checksum: \".*\"|checksum: \"${CHECKSUM}\"|" Package.swift && rm Package.swift.bak
@@ -154,7 +154,7 @@ publishSnapshotIos:
     curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" "${PACKAGE_REMOTE_ZIP}"
     cd ..
     rm -rf swift-package-pupilid-kmm-lib
-    git clone --branch remotebinary "https://gitlab-ci-token:${SWIFT_REPO_ACCESS_TOKEN}@gitlab.iaik.tugraz.at/wallet/swift-package-pupilid-kmm-lib.git"
+    git clone --branch development "https://gitlab-ci-token:${SWIFT_REPO_ACCESS_TOKEN}@gitlab.iaik.tugraz.at/wallet/swift-package-pupilid-kmm-lib.git"
     cd swift-package-pupilid-kmm-lib
     sed -i.bak "s|url: \".*\"|url: \"${PACKAGE_REMOTE_ZIP}\"|" Package.swift && rm Package.swift.bak
     sed -i.bak "s|checksum: \".*\"|checksum: \"${CHECKSUM}\"|" Package.swift && rm Package.swift.bak
