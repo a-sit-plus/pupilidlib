@@ -4,11 +4,13 @@ class Asn1Service(
     private val deviceAdapter: DeviceAdapter,
 ) {
 
-    suspend fun signAndCreateCsr(publicKeyEncoded: ByteArray, subject: String, key: KeyAlgorithm): ByteArray {
+    suspend fun signAndCreateCsr(publicKeyEncoded: ByteArray, subject: String, key: KeyAlgorithm): Result<ByteArray> {
         val csrTbs = buildCsrTbs(subject, publicKeyEncoded, key)
         val hash = HashAlgorithm.SHA256
-        val csrTbsSigned = deviceAdapter.sign(csrTbs, key, hash)
-        return buildCsr(csrTbs, csrTbsSigned, key, hash)
+        val csrTbsSigned = deviceAdapter.sign(csrTbs, key, hash).getOrElse {
+            return Result.failure(it)
+        }
+        return Result.success(buildCsr(csrTbs, csrTbsSigned, key, hash))
     }
 
     private fun buildCsr(

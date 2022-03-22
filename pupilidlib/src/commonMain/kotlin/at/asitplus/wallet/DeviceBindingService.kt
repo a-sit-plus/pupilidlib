@@ -7,6 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
+import io.ktor.utils.io.errors.*
 
 class DeviceBindingService(
     private val extAuthNonce: String,
@@ -37,9 +38,17 @@ class DeviceBindingService(
             val subject = bindingParamsResponse.subject
             val keyType = KeyAlgorithm.parse(bindingParamsResponse.keyType)
             deviceAdapter.createKey(keyType, challenge)
-            val csr = asn1Service.signAndCreateCsr(deviceAdapter.getPublicKeyEncoded(), subject, keyType)
+            val publicKeyEncoded = deviceAdapter.getPublicKeyEncoded().getOrElse {
+                return Result.ErrorFromNativeCode(it)
+            }
+            val csr = asn1Service.signAndCreateCsr(publicKeyEncoded, subject, keyType).getOrElse {
+                return Result.ErrorFromNativeCode(it)
+            }
+            val attestationCerts = deviceAdapter.loadAttestationCerts().getOrElse {
+                return Result.ErrorFromNativeCode(it)
+            }
             val bindingCsrRequest =
-                BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, deviceAdapter.loadAttestationCerts())
+                BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
             val bindingCsrResponse = client.post("$serverAddress/binding/create") {
                 contentType(ContentType.Application.Json)
                 headers {
@@ -57,25 +66,28 @@ class DeviceBindingService(
                 setBody(bindingConfirmRequest)
             }.body<BindingConfirmResponse>()
             return Result.Success(bindingConfirmResponse.success)
+        } catch (e: IOException) {
+            return Result.ErrorFromNetwork(e.message ?: "Error")
         } catch (e: Throwable) {
-            return Result.ErrorFromServer(e.message ?: "Error")
+            return Result.ErrorFromNativeCode(e)
         }
     }
 
     sealed class Result {
         data class Success(val success: Boolean) : Result()
-        data class ErrorFromServer(val error: String) : Result()
+        data class ErrorFromNetwork(val error: String) : Result()
+        data class ErrorFromNativeCode(val throwable: Any?): Result()
     }
 
 }
 
 
 interface DeviceAdapter {
-    fun loadAttestationCerts(): List<ByteArray>
-    fun storeCertificate(certificate: ByteArray)
-    fun createKey(key: KeyAlgorithm, challenge: ByteArray)
-    fun getPublicKeyEncoded(): ByteArray
-    suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): ByteArray
+    suspend fun loadAttestationCerts(): Result<List<ByteArray>>
+    fun storeCertificate(certificate: ByteArray): Result<Boolean>
+    suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): Result<Boolean>
+    suspend fun getPublicKeyEncoded(): Result<ByteArray>
+    suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): Result<ByteArray>
     val deviceName: String
 }
 

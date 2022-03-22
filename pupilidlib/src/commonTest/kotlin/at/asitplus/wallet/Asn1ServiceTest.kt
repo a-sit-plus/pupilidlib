@@ -124,24 +124,24 @@ class Asn1ServiceTest {
 }
 
 object NoopDeviceAdapter : DeviceAdapter {
-    override fun loadAttestationCerts(): List<ByteArray> {
-        return listOf()
+    override suspend fun loadAttestationCerts(): Result<List<ByteArray>> {
+        return Result.success(listOf())
     }
 
-    override fun storeCertificate(certificate: ByteArray) {
-
+    override fun storeCertificate(certificate: ByteArray): Result<Boolean> {
+        return Result.success(true)
     }
 
-    override fun createKey(key: KeyAlgorithm, challenge: ByteArray) {
-
+    override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): Result<Boolean> {
+        return Result.success(true)
     }
 
-    override fun getPublicKeyEncoded(): ByteArray {
-        return byteArrayOf()
+    override suspend fun getPublicKeyEncoded(): Result<ByteArray> {
+        return Result.success(byteArrayOf())
     }
 
-    override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): ByteArray {
-        return byteArrayOf()
+    override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): Result<ByteArray> {
+        return Result.success(byteArrayOf())
     }
 
     override val deviceName = "Unit Test"
