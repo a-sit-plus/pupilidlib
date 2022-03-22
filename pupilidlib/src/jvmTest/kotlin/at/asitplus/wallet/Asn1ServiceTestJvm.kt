@@ -64,8 +64,9 @@ class Asn1ServiceTestJvm {
         val keyAlg = KeyAlgorithm.EC
         val ecKeyPair = KeyPairGenerator.getInstance("EC").generateKeyPair()
         val deviceAdapter = InMemoryDeviceAdapter(ecKeyPair)
+        val asn1Adapter = InMemoryAsn1CryptoAdapter(ecKeyPair)
 
-        compareBouncycastleWithService(ecKeyPair, deviceAdapter, subject, keyAlg)
+        compareBouncycastleWithService(ecKeyPair, deviceAdapter, asn1Adapter, subject, keyAlg)
     }
 
     @Test
@@ -74,17 +75,19 @@ class Asn1ServiceTestJvm {
         val keyAlg = KeyAlgorithm.RSA
         val rsaKeyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair()
         val deviceAdapter = InMemoryDeviceAdapter(rsaKeyPair)
+        val asn1Adapter = InMemoryAsn1CryptoAdapter(rsaKeyPair)
 
-        compareBouncycastleWithService(rsaKeyPair, deviceAdapter, subject, keyAlg)
+        compareBouncycastleWithService(rsaKeyPair, deviceAdapter, asn1Adapter, subject, keyAlg)
     }
 
     private fun compareBouncycastleWithService(
         ecKeyPair: KeyPair,
         deviceAdapter: InMemoryDeviceAdapter,
+        asn1Adapter: Asn1Service.CryptoAdapter,
         subject: String,
         keyAlg: KeyAlgorithm
     ) = runBlocking {
-        val service = Asn1Service(deviceAdapter)
+        val service = Asn1Service(asn1Adapter)
         val contentSigner =
             JcaContentSignerBuilder(getJcaSignatureName(keyAlg, HashAlgorithm.SHA256)).build(ecKeyPair.private)
         val contentVerifierProvider = JcaContentVerifierProviderBuilder().build(ecKeyPair.public)
@@ -120,10 +123,14 @@ class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
 
     override suspend fun getPublicKeyEncoded(): Result<ByteArray> = Result.success(keyPair.public.encoded)
 
+    override val deviceName = "Unit Test"
+
+}
+
+class InMemoryAsn1CryptoAdapter(private val keyPair: KeyPair) : Asn1Service.CryptoAdapter {
+
     override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): Result<ByteArray> =
         Result.success(createSignature(keyPair.private, getJcaSignatureName(key, hash), input))
-
-    override val deviceName = "Unit Test"
 
     private fun createSignature(privateKey: PrivateKey, signatureAlg: String, input: ByteArray) =
         Signature.getInstance(signatureAlg).also {

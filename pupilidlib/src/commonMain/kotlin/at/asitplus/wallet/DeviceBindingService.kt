@@ -87,7 +87,6 @@ interface DeviceAdapter {
     fun storeCertificate(certificate: ByteArray): Result<Boolean>
     suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): Result<Boolean>
     suspend fun getPublicKeyEncoded(): Result<ByteArray>
-    suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): Result<ByteArray>
     val deviceName: String
 }
 
