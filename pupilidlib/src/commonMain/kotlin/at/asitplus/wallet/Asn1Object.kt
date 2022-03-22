@@ -37,9 +37,9 @@ sealed class Asn1Object(
 }
 
 fun byteArrayOfInts(vararg ints: Int) = ByteArray(ints.size) { pos -> ints[pos].toByte() }
-fun Sequence<ByteArray>.concat(): ByteArray = reduce { acc, bytes -> acc + bytes }
-fun List<ByteArray>.concat(): ByteArray = reduce { acc, bytes -> acc + bytes }
-fun Array<out ByteArray>.concat() = this.reduce { acc, bytes -> acc + bytes }
+fun Sequence<ByteArray>.concat(): ByteArray = fold(byteArrayOf()) { acc, bytes -> acc + bytes }
+fun List<ByteArray>.concat(): ByteArray = fold(byteArrayOf()) { acc, bytes -> acc + bytes }
+fun Array<out ByteArray>.concat() = fold(byteArrayOf()) { acc, bytes -> acc + bytes }
 
 private fun String.encodeToOid(): ByteArray {
     val numbers = this.split(".").mapNotNull { it.toIntOrNull() }
