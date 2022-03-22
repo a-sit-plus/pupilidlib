@@ -90,6 +90,7 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation("io.ktor:ktor-client-mock:2.0.0-beta-1")
             }
         }
         val iosX64Test by getting 

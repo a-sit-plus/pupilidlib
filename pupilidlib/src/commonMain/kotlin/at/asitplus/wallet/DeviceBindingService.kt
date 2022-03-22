@@ -2,6 +2,7 @@ package at.asitplus.wallet
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -9,14 +10,18 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import io.ktor.utils.io.errors.*
 
+/**
+ * @param engine should be `CIO.create()`
+ */
 class DeviceBindingService(
     private val extAuthNonce: String,
     private val serverAddress: String,
     private val deviceAdapter: DeviceAdapter,
     private val asn1Service: Asn1Service,
+    engine: HttpClientEngine,
 ) {
 
-    private val client = HttpClient() {
+    private val client = HttpClient(engine) {
         install(ContentNegotiation) {
             json()
         }
@@ -66,7 +71,7 @@ class DeviceBindingService(
                 setBody(bindingConfirmRequest)
             }.body<BindingConfirmResponse>()
             return Result.Success(bindingConfirmResponse.success)
-        } catch (e: IOException) {
+        } catch (e: ResponseException) {
             return Result.ErrorFromNetwork(e.message ?: "Error")
         } catch (e: Throwable) {
             return Result.ErrorFromNativeCode(e)
@@ -76,7 +81,7 @@ class DeviceBindingService(
     sealed class Result {
         data class Success(val success: Boolean) : Result()
         data class ErrorFromNetwork(val error: String) : Result()
-        data class ErrorFromNativeCode(val throwable: Any?): Result()
+        data class ErrorFromNativeCode(val throwable: Any?) : Result()
     }
 
 }
@@ -102,7 +107,7 @@ enum class KeyAlgorithm {
 
     companion object {
         fun parse(it: String): KeyAlgorithm {
-            if ("rsa".equals(it.toLowerCasePreservingASCIIRules()))
+            if ("rsa" == it.toLowerCasePreservingASCIIRules())
                 return RSA
             return EC
         }
