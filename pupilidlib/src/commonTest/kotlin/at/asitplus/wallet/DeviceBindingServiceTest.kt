@@ -151,7 +151,7 @@ class DeviceBindingServiceTest {
             return Result.success(true)
         }
 
-        override suspend fun getPublicKeyEncoded(): Result<ByteArray> {
+        override fun getPublicKeyEncoded(): Result<ByteArray> {
             return Result.success(byteArrayOf())
         }
 
@@ -171,7 +171,7 @@ class DeviceBindingServiceTest {
             return Result.failure(IllegalArgumentException())
         }
 
-        override suspend fun getPublicKeyEncoded(): Result<ByteArray> {
+        override fun getPublicKeyEncoded(): Result<ByteArray> {
             return Result.failure(IllegalArgumentException())
         }
 

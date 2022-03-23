@@ -121,7 +121,7 @@ class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
         return Result.success(true)
     }
 
-    override suspend fun getPublicKeyEncoded(): Result<ByteArray> = Result.success(keyPair.public.encoded)
+    override fun getPublicKeyEncoded(): Result<ByteArray> = Result.success(keyPair.public.encoded)
 
     override val deviceName = "Unit Test"
 
