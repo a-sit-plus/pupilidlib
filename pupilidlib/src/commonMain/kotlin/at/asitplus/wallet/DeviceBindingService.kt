@@ -91,7 +91,7 @@ interface DeviceAdapter {
     suspend fun loadAttestationCerts(): Result<List<ByteArray>>
     fun storeCertificate(certificate: ByteArray): Result<Boolean>
     suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): Result<Boolean>
-    suspend fun getPublicKeyEncoded(): Result<ByteArray>
+    fun getPublicKeyEncoded(): Result<ByteArray>
     val deviceName: String
 }
 
