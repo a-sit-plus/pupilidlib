@@ -8,20 +8,25 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
-import io.ktor.utils.io.errors.*
 
 /**
- * @param engine should be `CIO.create()`
+ * @param engine can be passed to enable mocks in unit tests, to use the default engine, pass null
  */
 class DeviceBindingService(
     private val extAuthNonce: String,
     private val serverAddress: String,
     private val deviceAdapter: DeviceAdapter,
     private val asn1Service: Asn1Service,
-    engine: HttpClientEngine,
+    engine: HttpClientEngine? = null
 ) {
 
-    private val client = HttpClient(engine) {
+    private val client: HttpClient = engine?.let {
+        HttpClient(it) {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+    } ?: HttpClient {
         install(ContentNegotiation) {
             json()
         }
