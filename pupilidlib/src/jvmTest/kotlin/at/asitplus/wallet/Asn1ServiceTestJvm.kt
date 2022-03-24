@@ -129,8 +129,8 @@ class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
 
 class InMemoryAsn1CryptoAdapter(private val keyPair: KeyPair) : Asn1Service.CryptoAdapter {
 
-    override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): Result<ByteArray> =
-        Result.success(createSignature(keyPair.private, getJcaSignatureName(key, hash), input))
+    override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): KmmResult<ByteArray> =
+        KmmResult.success(createSignature(keyPair.private, getJcaSignatureName(key, hash), input))
 
     private fun createSignature(privateKey: PrivateKey, signatureAlg: String, input: ByteArray) =
         Signature.getInstance(signatureAlg).also {

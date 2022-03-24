@@ -118,7 +118,7 @@ class Asn1Service(
     }
 
     interface CryptoAdapter {
-        suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): Result<ByteArray>
+        suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): KmmResult<ByteArray>
     }
 
 }
