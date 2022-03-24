@@ -93,10 +93,10 @@ class DeviceBindingService(
 
 
 interface DeviceAdapter {
-    suspend fun loadAttestationCerts(): Result<List<ByteArray>>
-    fun storeCertificate(certificate: ByteArray): Result<Boolean>
-    suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): Result<Boolean>
-    fun getPublicKeyEncoded(): Result<ByteArray>
+    suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>>
+    fun storeCertificate(certificate: ByteArray): KmmResult<Boolean>
+    suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean>
+    fun getPublicKeyEncoded(): KmmResult<ByteArray>
     val deviceName: String
 }
 

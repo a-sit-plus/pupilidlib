@@ -139,40 +139,40 @@ class DeviceBindingServiceTest {
     }
 
     object DummyDeviceAdapter : DeviceAdapter {
-        override suspend fun loadAttestationCerts(): Result<List<ByteArray>> {
-            return Result.success(listOf())
+        override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> {
+            return KmmResult.success(listOf())
         }
 
-        override fun storeCertificate(certificate: ByteArray): Result<Boolean> {
-            return Result.success(true)
+        override fun storeCertificate(certificate: ByteArray): KmmResult<Boolean> {
+            return KmmResult.success(true)
         }
 
-        override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): Result<Boolean> {
-            return Result.success(true)
+        override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean> {
+            return KmmResult.success(true)
         }
 
-        override fun getPublicKeyEncoded(): Result<ByteArray> {
-            return Result.success(byteArrayOf())
+        override fun getPublicKeyEncoded(): KmmResult<ByteArray> {
+            return KmmResult.success(byteArrayOf())
         }
 
         override val deviceName = "Unit Test"
     }
 
     object ErrorThrowingDeviceAdapter : DeviceAdapter {
-        override suspend fun loadAttestationCerts(): Result<List<ByteArray>> {
-            return Result.failure(IllegalArgumentException())
+        override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> {
+            return KmmResult.failure(IllegalArgumentException())
         }
 
-        override fun storeCertificate(certificate: ByteArray): Result<Boolean> {
-            return Result.failure(IllegalArgumentException())
+        override fun storeCertificate(certificate: ByteArray): KmmResult<Boolean> {
+            return KmmResult.failure(IllegalArgumentException())
         }
 
-        override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): Result<Boolean> {
-            return Result.failure(IllegalArgumentException())
+        override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean> {
+            return KmmResult.failure(IllegalArgumentException())
         }
 
-        override fun getPublicKeyEncoded(): Result<ByteArray> {
-            return Result.failure(IllegalArgumentException())
+        override fun getPublicKeyEncoded(): KmmResult<ByteArray> {
+            return KmmResult.failure(IllegalArgumentException())
         }
 
         override val deviceName = "Unit Test"

@@ -109,19 +109,19 @@ class Asn1ServiceTestJvm {
 }
 
 class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
-    override suspend fun loadAttestationCerts(): Result<List<ByteArray>> {
-        return Result.success(listOf())
+    override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> {
+        return KmmResult.success(listOf())
     }
 
-    override fun storeCertificate(certificate: ByteArray): Result<Boolean> {
-        return Result.success(true)
+    override fun storeCertificate(certificate: ByteArray): KmmResult<Boolean> {
+        return KmmResult.success(true)
     }
 
-    override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): Result<Boolean> {
-        return Result.success(true)
+    override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean> {
+        return KmmResult.success(true)
     }
 
-    override fun getPublicKeyEncoded(): Result<ByteArray> = Result.success(keyPair.public.encoded)
+    override fun getPublicKeyEncoded(): KmmResult<ByteArray> = KmmResult.success(keyPair.public.encoded)
 
     override val deviceName = "Unit Test"
 

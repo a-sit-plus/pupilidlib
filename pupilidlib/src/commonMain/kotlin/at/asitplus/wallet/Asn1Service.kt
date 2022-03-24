@@ -4,13 +4,17 @@ class Asn1Service(
     private val cryptoAdapter: CryptoAdapter,
 ) {
 
-    suspend fun signAndCreateCsr(publicKeyEncoded: ByteArray, subject: String, key: KeyAlgorithm): Result<ByteArray> {
+    suspend fun signAndCreateCsr(
+        publicKeyEncoded: ByteArray,
+        subject: String,
+        key: KeyAlgorithm
+    ): KmmResult<ByteArray> {
         val csrTbs = buildCsrTbs(subject, publicKeyEncoded, key)
         val hash = HashAlgorithm.SHA256
         val csrTbsSigned = cryptoAdapter.sign(csrTbs, key, hash).getOrElse {
-            return Result.failure(it)
+            return KmmResult.failure(it)
         }
-        return Result.success(buildCsr(csrTbs, csrTbsSigned, key, hash))
+        return KmmResult.success(buildCsr(csrTbs, csrTbsSigned, key, hash))
     }
 
     private fun buildCsr(
