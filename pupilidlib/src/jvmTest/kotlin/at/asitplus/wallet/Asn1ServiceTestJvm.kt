@@ -64,8 +64,9 @@ class Asn1ServiceTestJvm {
         val keyAlg = KeyAlgorithm.EC
         val ecKeyPair = KeyPairGenerator.getInstance("EC").generateKeyPair()
         val deviceAdapter = InMemoryDeviceAdapter(ecKeyPair)
+        val asn1Adapter = InMemoryAsn1CryptoAdapter(ecKeyPair)
 
-        compareBouncycastleWithService(ecKeyPair, deviceAdapter, subject, keyAlg)
+        compareBouncycastleWithService(ecKeyPair, deviceAdapter, asn1Adapter, subject, keyAlg)
     }
 
     @Test
@@ -74,24 +75,26 @@ class Asn1ServiceTestJvm {
         val keyAlg = KeyAlgorithm.RSA
         val rsaKeyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair()
         val deviceAdapter = InMemoryDeviceAdapter(rsaKeyPair)
+        val asn1Adapter = InMemoryAsn1CryptoAdapter(rsaKeyPair)
 
-        compareBouncycastleWithService(rsaKeyPair, deviceAdapter, subject, keyAlg)
+        compareBouncycastleWithService(rsaKeyPair, deviceAdapter, asn1Adapter, subject, keyAlg)
     }
 
     private fun compareBouncycastleWithService(
         ecKeyPair: KeyPair,
         deviceAdapter: InMemoryDeviceAdapter,
+        asn1Adapter: Asn1Service.CryptoAdapter,
         subject: String,
         keyAlg: KeyAlgorithm
     ) = runBlocking {
-        val service = Asn1Service(deviceAdapter)
+        val service = Asn1Service(asn1Adapter)
         val contentSigner =
             JcaContentSignerBuilder(getJcaSignatureName(keyAlg, HashAlgorithm.SHA256)).build(ecKeyPair.private)
         val contentVerifierProvider = JcaContentVerifierProviderBuilder().build(ecKeyPair.public)
         val bcEncoded =
             JcaPKCS10CertificationRequestBuilder(X500Name(subject), ecKeyPair.public).build(contentSigner).encoded
-        val publicKeyEncoded = deviceAdapter.getPublicKeyEncoded()
-        val libEncoded = service.signAndCreateCsr(publicKeyEncoded, subject, keyAlg)
+        val publicKeyEncoded = deviceAdapter.getPublicKeyEncoded().getOrThrow()
+        val libEncoded = service.signAndCreateCsr(publicKeyEncoded, subject, keyAlg).getOrThrow()
 
         // Strip signatures before comparing, as ECDSA signatures contain random values, i.e. are never the same
         // also remove first 3 bytes, because they encode the length of the whole structure,
@@ -106,24 +109,28 @@ class Asn1ServiceTestJvm {
 }
 
 class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
-    override fun loadAttestationCerts(): List<ByteArray> {
-        return listOf()
+    override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> {
+        return KmmResult.success(listOf())
     }
 
-    override fun storeCertificate(certificate: ByteArray) {
-        //
+    override fun storeCertificate(certificate: ByteArray): KmmResult<Boolean> {
+        return KmmResult.success(true)
     }
 
-    override fun createKey(key: KeyAlgorithm, challenge: ByteArray) {
-        // key has been created
+    override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean> {
+        return KmmResult.success(true)
     }
 
-    override fun getPublicKeyEncoded(): ByteArray = keyPair.public.encoded
-
-    override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): ByteArray =
-        createSignature(keyPair.private, getJcaSignatureName(key, hash), input)
+    override fun getPublicKeyEncoded(): KmmResult<ByteArray> = KmmResult.success(keyPair.public.encoded)
 
     override val deviceName = "Unit Test"
+
+}
+
+class InMemoryAsn1CryptoAdapter(private val keyPair: KeyPair) : Asn1Service.CryptoAdapter {
+
+    override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): KmmResult<ByteArray> =
+        KmmResult.success(createSignature(keyPair.private, getJcaSignatureName(key, hash), input))
 
     private fun createSignature(privateKey: PrivateKey, signatureAlg: String, input: ByteArray) =
         Signature.getInstance(signatureAlg).also {

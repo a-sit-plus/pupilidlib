@@ -24,7 +24,7 @@ class Asn1ServiceTest {
             0xE5, 0xC2, 0x0F, 0xB4, 0xE3, 0x2B, 0x9B, 0xA2, 0xEC, 0xF4, 0x90
         )
 
-        val service = Asn1Service(NoopDeviceAdapter)
+        val service = Asn1Service(NoopCryptoAdapter)
         val wrappedKey = service.wrapPublicKey(rawPublicKey, KeyAlgorithm.EC).encoded
         assertContentEquals(expectedWrappedKey, wrappedKey)
     }
@@ -39,7 +39,7 @@ class Asn1ServiceTest {
             0x80, 0xD3, 0x09, 0xD4, 0xC2, 0xAC, 0xFA, 0x10, 0xAB, 0x04, 0x4A, 0x22, 0x14, 0x07, 0x3F, 0x1D,
             0xE5, 0xC2, 0x0F, 0xB4, 0xE3, 0x2B, 0x9B, 0xA2, 0xEC, 0xF4, 0x90
         )
-        val service = Asn1Service(NoopDeviceAdapter)
+        val service = Asn1Service(NoopCryptoAdapter)
         val wrappedKey = service.wrapPublicKey(encodedPublicKey, KeyAlgorithm.EC).encoded
 
         assertContentEquals(encodedPublicKey, wrappedKey)
@@ -88,7 +88,7 @@ class Asn1ServiceTest {
             0xc6, 0x74, 0x74, 0xa3, 0x6b, 0xec, 0xee, 0x2e, 0xb8, 0x2b, 0x21, 0x29, 0x01, 0x7a, 0x54, 0xb9,
             0xa1, 0x02, 0x03, 0x01, 0x00, 0x01
         )
-        val service = Asn1Service(NoopDeviceAdapter)
+        val service = Asn1Service(NoopCryptoAdapter)
         val wrappedKey = service.wrapPublicKey(rawPublicKey, KeyAlgorithm.RSA).encoded
         assertContentEquals(expectedWrappedKey, wrappedKey)
     }
@@ -116,34 +116,17 @@ class Asn1ServiceTest {
             0xc6, 0x74, 0x74, 0xa3, 0x6b, 0xec, 0xee, 0x2e, 0xb8, 0x2b, 0x21, 0x29, 0x01, 0x7a, 0x54, 0xb9,
             0xa1, 0x02, 0x03, 0x01, 0x00, 0x01
         )
-        val service = Asn1Service(NoopDeviceAdapter)
+        val service = Asn1Service(NoopCryptoAdapter)
         val wrappedKey = service.wrapPublicKey(encodedWrappedKey, KeyAlgorithm.RSA).encoded
         assertContentEquals(encodedWrappedKey, wrappedKey)
     }
 
+    object NoopCryptoAdapter : Asn1Service.CryptoAdapter {
+
+        override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): KmmResult<ByteArray> {
+            return KmmResult.success(byteArrayOf())
+        }
+
+    }
 }
 
-object NoopDeviceAdapter : DeviceAdapter {
-    override fun loadAttestationCerts(): List<ByteArray> {
-        return listOf()
-    }
-
-    override fun storeCertificate(certificate: ByteArray) {
-
-    }
-
-    override fun createKey(key: KeyAlgorithm, challenge: ByteArray) {
-
-    }
-
-    override fun getPublicKeyEncoded(): ByteArray {
-        return byteArrayOf()
-    }
-
-    override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): ByteArray {
-        return byteArrayOf()
-    }
-
-    override val deviceName = "Unit Test"
-
-}

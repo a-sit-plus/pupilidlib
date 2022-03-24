@@ -1,14 +1,20 @@
 package at.asitplus.wallet
 
 class Asn1Service(
-    private val deviceAdapter: DeviceAdapter,
+    private val cryptoAdapter: CryptoAdapter,
 ) {
 
-    suspend fun signAndCreateCsr(publicKeyEncoded: ByteArray, subject: String, key: KeyAlgorithm): ByteArray {
+    suspend fun signAndCreateCsr(
+        publicKeyEncoded: ByteArray,
+        subject: String,
+        key: KeyAlgorithm
+    ): KmmResult<ByteArray> {
         val csrTbs = buildCsrTbs(subject, publicKeyEncoded, key)
         val hash = HashAlgorithm.SHA256
-        val csrTbsSigned = deviceAdapter.sign(csrTbs, key, hash)
-        return buildCsr(csrTbs, csrTbsSigned, key, hash)
+        val csrTbsSigned = cryptoAdapter.sign(csrTbs, key, hash).getOrElse {
+            return KmmResult.failure(it)
+        }
+        return KmmResult.success(buildCsr(csrTbs, csrTbsSigned, key, hash))
     }
 
     private fun buildCsr(
@@ -111,5 +117,8 @@ class Asn1Service(
         }
     }
 
+    interface CryptoAdapter {
+        suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): KmmResult<ByteArray>
+    }
 
 }

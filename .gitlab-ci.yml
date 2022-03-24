@@ -8,6 +8,7 @@ variables:
   SECURE_LOG_LEVEL: "debug"
   SAST_JAVA_VERSION: 11
   SECRET_DETECTION_EXCLUDED_PATHS: ".gradle,gradle,.m2"
+  SAST_EXPERIMENTAL_FEATURES: "true"
 
 include:
   - template: Dependency-Scanning.gitlab-ci.yml
@@ -15,7 +16,7 @@ include:
   - template: Secret-Detection.gitlab-ci.yml
 
 default:
-  image: maven:3.6-jdk-11
+  image: gitlab.iaik.tugraz.at:5050/oe-gv-at/meta/ci/androidsdk31:latest
   tags:
     - docker
 
@@ -33,7 +34,6 @@ cache:
 
 assembleAndroid:
   stage: assemble
-  image: gitlab.iaik.tugraz.at:5050/oe-gv-at/meta/ci/androidsdk31:latest
   except:
     - tags
   script: |
@@ -45,6 +45,7 @@ assembleAndroid:
 
 assembleJdk11:
   stage: assemble
+  image: maven:3.6-jdk-11
   except:
     - tags
   script: |
@@ -70,7 +71,6 @@ assembleIos:
 
 publish:
   stage: package
-  image: gitlab.iaik.tugraz.at:5050/oe-gv-at/meta/ci/androidsdk31:latest
   except:
     - tags
   only:
@@ -123,7 +123,6 @@ publishIos:
 
 publishSnapshot:
   stage: package
-  image: gitlab.iaik.tugraz.at:5050/oe-gv-at/meta/ci/androidsdk31:latest
   except:
     - tags
   when: manual
