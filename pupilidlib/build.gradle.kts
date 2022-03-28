@@ -50,11 +50,12 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
-                implementation("io.github.aakira:napier:2.3.0")
+                implementation("io.github.aakira:napier:2.4.0")
                 implementation("io.ktor:ktor-client-core:2.0.0-beta-1")
                 implementation("io.ktor:ktor-client-serialization:2.0.0-beta-1")
                 implementation("io.ktor:ktor-client-content-negotiation:2.0.0-beta-1")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:2.0.0-beta-1")
+                implementation("at.asitplus.wallet:vclib:1.0.0-SNAPSHOT")
             }
         }
         val iosX64Main by getting 

@@ -1,5 +1,6 @@
 package at.asitplus.wallet
 
+import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
@@ -78,8 +79,10 @@ class DeviceBindingService(
             return Result.Success(bindingConfirmResponse.success)
         } catch (e: ResponseException) {
             return Result.ErrorFromNetwork(e.message ?: "Error")
+                .also { Napier.w("Error from network", throwable = e) }
         } catch (e: Throwable) {
             return Result.ErrorFromNativeCode(e)
+                .also { Napier.w("Error from native code", throwable = e) }
         }
     }
 
