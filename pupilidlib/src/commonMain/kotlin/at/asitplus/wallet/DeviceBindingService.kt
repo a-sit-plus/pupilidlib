@@ -34,7 +34,7 @@ class DeviceBindingService(
         }
     }
 
-    suspend fun createDeviceBinding(): Result {
+    suspend fun createDeviceBinding(): ServiceResult {
         try {
             val bindingParamsRequest = BindingParamsRequest(deviceAdapter.deviceName)
             val post = client.post("$serverAddress/binding/start") {
@@ -71,20 +71,14 @@ class DeviceBindingService(
                 }
                 setBody(bindingConfirmRequest)
             }.body<BindingConfirmResponse>()
-            return Result.Success(bindingConfirmResponse.success)
+            return ServiceResult.Success(bindingConfirmResponse.success.toString())
         } catch (e: ResponseException) {
-            return Result.ErrorFromNetwork(e.message ?: "Error")
+            return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
                 .also { Napier.w("Error from network", throwable = e) }
         } catch (e: Throwable) {
-            return Result.ErrorFromNativeCode(e)
+            return ServiceResult.ErrorFromNativeCode(e)
                 .also { Napier.w("Error from native code", throwable = e) }
         }
-    }
-
-    sealed class Result {
-        data class Success(val success: Boolean) : Result()
-        data class ErrorFromNetwork(val error: String) : Result()
-        data class ErrorFromNativeCode(val throwable: Any?) : Result()
     }
 
 }

@@ -37,7 +37,7 @@ class PupilIdIssuingService(
         }
     }
 
-    suspend fun issueCredentials(message: String): Result {
+    suspend fun issueCredentials(message: String): ServiceResult {
         try {
             val initialPost = client.post("$serverAddress/pupilid/issue") {
                 contentType(ContentType.Text.Plain)
@@ -68,24 +68,18 @@ class PupilIdIssuingService(
             }
             val response = secondPost.body<String>()
 
-            return Result.Success(response)
+            return ServiceResult.Success(response)
         } catch (e: ResponseException) {
-            return Result.ErrorFromNetwork(e.message ?: "Error")
+            return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
                 .also { Napier.w("Error from network", throwable = e) }
         } catch (e: Throwable) {
-            return Result.ErrorFromNativeCode(e)
+            return ServiceResult.ErrorFromNativeCode(e)
                 .also { Napier.w("Error from native code", throwable = e) }
         }
     }
 
     interface CryptoAdapter {
         fun getCertificateChain(): KmmResult<Array<ByteArray>>
-    }
-
-    sealed class Result {
-        data class Success(val message: String) : Result()
-        data class ErrorFromNetwork(val error: String) : Result()
-        data class ErrorFromNativeCode(val throwable: Any?) : Result()
     }
 
 }

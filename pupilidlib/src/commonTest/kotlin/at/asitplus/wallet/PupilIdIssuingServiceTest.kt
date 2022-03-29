@@ -52,11 +52,11 @@ class PupilIdIssuingServiceTest {
         }
     }
 
-    private fun assertSuccess(result: PupilIdIssuingService.Result) {
+    private fun assertSuccess(result: ServiceResult) {
         when (result) {
-            is PupilIdIssuingService.Result.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
-            is PupilIdIssuingService.Result.ErrorFromNetwork -> fail(result.error)
-            is PupilIdIssuingService.Result.Success -> assertTrue(true)
+            is ServiceResult.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
+            is ServiceResult.ErrorFromNetwork -> fail(result.error)
+            is ServiceResult.Success -> assertTrue(true)
         }
     }
 }

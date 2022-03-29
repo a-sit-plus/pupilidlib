@@ -72,13 +72,13 @@ class DeviceBindingPupilIdIssuingServiceTest {
         }
     }
 
-    private fun assertSuccess(result: DeviceBindingPupilIdIssuingService.Result) {
+    private fun assertSuccess(result: ServiceResult) {
         when (result) {
-            is DeviceBindingPupilIdIssuingService.Result.ErrorFromNativeCode -> fail(
+            is ServiceResult.ErrorFromNativeCode -> fail(
                 result.throwable?.toString() ?: "NULL ERROR"
             )
-            is DeviceBindingPupilIdIssuingService.Result.ErrorFromNetwork -> fail(result.error)
-            is DeviceBindingPupilIdIssuingService.Result.Success -> assertTrue(true)
+            is ServiceResult.ErrorFromNetwork -> fail(result.error)
+            is ServiceResult.Success -> assertTrue(true)
         }
     }
 }

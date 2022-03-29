@@ -130,27 +130,27 @@ class DeviceBindingServiceTest {
         }
     }
 
-    private fun assertErrorFromNativeCode(result: DeviceBindingService.Result) {
+    private fun assertErrorFromNativeCode(result: ServiceResult) {
         when (result) {
-            is DeviceBindingService.Result.ErrorFromNativeCode -> assertTrue(true)
-            is DeviceBindingService.Result.ErrorFromNetwork -> fail(result.error)
-            is DeviceBindingService.Result.Success -> fail("Unexpected success")
+            is ServiceResult.ErrorFromNativeCode -> assertTrue(true)
+            is ServiceResult.ErrorFromNetwork -> fail(result.error)
+            is ServiceResult.Success -> fail("Unexpected success")
         }
     }
 
-    private fun assertErrorFromNetwork(result: DeviceBindingService.Result) {
+    private fun assertErrorFromNetwork(result: ServiceResult) {
         when (result) {
-            is DeviceBindingService.Result.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
-            is DeviceBindingService.Result.ErrorFromNetwork -> assertTrue(true)
-            is DeviceBindingService.Result.Success -> fail("Unexpected success")
+            is ServiceResult.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
+            is ServiceResult.ErrorFromNetwork -> assertTrue(true)
+            is ServiceResult.Success -> fail("Unexpected success")
         }
     }
 
-    private fun assertSuccess(result: DeviceBindingService.Result) {
+    private fun assertSuccess(result: ServiceResult) {
         when (result) {
-            is DeviceBindingService.Result.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
-            is DeviceBindingService.Result.ErrorFromNetwork -> fail(result.error)
-            is DeviceBindingService.Result.Success -> assertTrue(true)
+            is ServiceResult.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
+            is ServiceResult.ErrorFromNetwork -> fail(result.error)
+            is ServiceResult.Success -> assertTrue(true)
         }
     }
 }
