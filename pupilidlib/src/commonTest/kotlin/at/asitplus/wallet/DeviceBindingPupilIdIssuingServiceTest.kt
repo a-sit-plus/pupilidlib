@@ -1,6 +1,5 @@
 package at.asitplus.wallet
 
-import at.asitplus.wallet.lib.KmmResult
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
@@ -19,7 +18,7 @@ class DeviceBindingPupilIdIssuingServiceTest {
         val xAuthExtNonce = Random.nextInt().toString(16)
         val randomResponse = Random.nextInt().toString(16)
         val mockEngine = MockEngine { request ->
-            val headers = headersOf(
+            val jsonHeadersWithXAuthToken = headersOf(
                 HttpHeaders.ContentType to listOf("application/json"),
                 HeaderNames.X_AUTH_TOKEN to listOf(xAuthToken)
             )
@@ -28,21 +27,21 @@ class DeviceBindingPupilIdIssuingServiceTest {
                     respond(
                         Json.encodeToString(BindingParamsResponse(byteArrayOf(), "subject", "EC")),
                         HttpStatusCode.OK,
-                        headers
+                        jsonHeadersWithXAuthToken
                     )
                 }
                 request.url.encodedPath.endsWith("/binding/create") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
                     respond(
                         Json.encodeToString(BindingCsrResponse(byteArrayOf(), "attested-public-key")),
                         HttpStatusCode.OK,
-                        headers
+                        jsonHeadersWithXAuthToken
                     )
                 }
                 request.url.encodedPath.endsWith("/binding/confirm") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
                     respond(
                         Json.encodeToString(BindingConfirmResponse(true)),
                         HttpStatusCode.OK,
-                        headers
+                        jsonHeadersWithXAuthToken
                     )
                 }
                 request.url.encodedPath.endsWith("/pupilid/issue") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {

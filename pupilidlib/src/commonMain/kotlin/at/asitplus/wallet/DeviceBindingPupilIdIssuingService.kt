@@ -31,45 +31,20 @@ class DeviceBindingPupilIdIssuingService(
             json()
         }
     }
+    private val deviceBindingService = DeviceBindingService(
+        extAuthNonce = extAuthNonce,
+        serverAddress = serverAddress,
+        deviceAdapter = deviceAdapter,
+        asn1Service = asn1Service,
+        engine = engine
+    )
 
     suspend fun createDeviceBindingAndIssueCredentials(): ServiceResult {
         try {
-            val bindingParamsRequest = BindingParamsRequest(deviceAdapter.deviceName)
-            val post = client.post("$serverAddress/binding/start") {
-                contentType(ContentType.Application.Json)
-                headers {
-                    append(HeaderNames.X_AUTH_EXT_NONCE, extAuthNonce)
-                }
-                setBody(bindingParamsRequest)
-            }
-            val bindingParamsResponse = post.body<BindingParamsResponse>()
-            val xAuthToken = post.headers[HeaderNames.X_AUTH_TOKEN].toString()
-            val challenge = bindingParamsResponse.challenge
-            val subject = bindingParamsResponse.subject
-            val keyType = KeyAlgorithm.parse(bindingParamsResponse.keyType)
-            deviceAdapter.createKey(keyType, challenge)
-            val publicKeyEncoded = deviceAdapter.getPublicKeyEncoded().getOrThrow()
-            val csr = asn1Service.signAndCreateCsr(publicKeyEncoded, subject, keyType).getOrThrow()
-            val attestationCerts = deviceAdapter.loadAttestationCerts().getOrThrow()
-            val bindingCsrRequest =
-                BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
-            val bindingCsrResponse = client.post("$serverAddress/binding/create") {
-                contentType(ContentType.Application.Json)
-                headers {
-                    append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
-                }
-                setBody(bindingCsrRequest)
-            }.body<BindingCsrResponse>()
-            deviceAdapter.storeCertificate(bindingCsrResponse.certificate)
-            val bindingConfirmRequest = BindingConfirmRequest(true)
-            val bindingConfirmResponse = client.post("$serverAddress/binding/confirm") {
-                contentType(ContentType.Application.Json)
-                headers {
-                    append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
-                }
-                setBody(bindingConfirmRequest)
-            }.body<BindingConfirmResponse>()
-            if (!bindingConfirmResponse.success) {
+            val deviceBindingResponse = deviceBindingService.getDeviceBindingResponse()
+            val xAuthToken = deviceBindingResponse.headers[HeaderNames.X_AUTH_TOKEN].toString()
+            val bindingConfirmBody = deviceBindingResponse.body<BindingConfirmResponse>()
+            if (!bindingConfirmBody.success) {
                 return ServiceResult.ErrorFromNetwork("No success for binding/confirm message")
             }
 
