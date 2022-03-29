@@ -40,12 +40,12 @@ class DeviceBindingService(
             val post = client.post("$serverAddress/binding/start") {
                 contentType(ContentType.Application.Json)
                 headers {
-                    append("X-Auth-ExtNonce", extAuthNonce)
+                    append(HeaderNames.X_AUTH_EXT_NONCE, extAuthNonce)
                 }
                 setBody(bindingParamsRequest)
             }
             val bindingParamsResponse = post.body<BindingParamsResponse>()
-            val xAuthToken = post.headers["X-Auth-Token"].toString()
+            val xAuthToken = post.headers[HeaderNames.X_AUTH_TOKEN].toString()
             val challenge = bindingParamsResponse.challenge
             val subject = bindingParamsResponse.subject
             val keyType = KeyAlgorithm.parse(bindingParamsResponse.keyType)
@@ -58,7 +58,7 @@ class DeviceBindingService(
             val bindingCsrResponse = client.post("$serverAddress/binding/create") {
                 contentType(ContentType.Application.Json)
                 headers {
-                    append("X-Auth-Token", xAuthToken)
+                    append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
                 }
                 setBody(bindingCsrRequest)
             }.body<BindingCsrResponse>()
@@ -67,7 +67,7 @@ class DeviceBindingService(
             val bindingConfirmResponse = client.post("$serverAddress/binding/confirm") {
                 contentType(ContentType.Application.Json)
                 headers {
-                    append("X-Auth-Token", xAuthToken)
+                    append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
                 }
                 setBody(bindingConfirmRequest)
             }.body<BindingConfirmResponse>()
