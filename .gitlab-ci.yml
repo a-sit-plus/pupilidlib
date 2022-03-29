@@ -6,7 +6,7 @@ variables:
   GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.console=plain -Dmaven.repo.local=${CI_PROJECT_DIR}/.m2/repository"
   SECURE_LOG_LEVEL: "debug"
-  SAST_JAVA_VERSION: 11
+  SAST_JAVA_VERSION: "11"
   SECRET_DETECTION_EXCLUDED_PATHS: ".gradle,gradle,.m2"
   SAST_EXPERIMENTAL_FEATURES: "true"
 
@@ -100,7 +100,7 @@ publishIos:
   script: |
     export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
     echo "Publishing version $VERSION for $LIB_NAME"
-    ./gradlew --continue assembleDebugXCFramework
+    ./gradlew --continue assembleDebugXCFramework assemble publish
     (cd "$LIB_NAME/build/XCFrameworks/debug/"; zip -r "$LIB_NAME.zip" "$LIB_NAME.xcframework")
     export CHECKSUM=$(shasum -a 256 "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" | cut -d' ' -f1)
     export PACKAGE_REMOTE_ZIP=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.zip
@@ -146,7 +146,7 @@ publishSnapshotIos:
   script: |
     export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
     echo "Publishing version $VERSION for $LIB_NAME"
-    ./gradlew --continue assembleDebugXCFramework
+    ./gradlew --continue assembleDebugXCFramework assemble publish
     (cd "$LIB_NAME/build/XCFrameworks/debug/"; zip -r "$LIB_NAME.zip" "$LIB_NAME.xcframework")
     export CHECKSUM=$(shasum -a 256 "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" | cut -d' ' -f1)
     export PACKAGE_REMOTE_ZIP=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.zip
