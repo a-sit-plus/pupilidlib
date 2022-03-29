@@ -1,5 +1,7 @@
 package at.asitplus.wallet
 
+import at.asitplus.wallet.lib.KmmResult
+
 class Asn1Service(
     private val cryptoAdapter: CryptoAdapter,
 ) {

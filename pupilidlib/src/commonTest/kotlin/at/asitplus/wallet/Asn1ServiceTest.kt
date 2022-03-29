@@ -1,5 +1,6 @@
 package at.asitplus.wallet
 
+import at.asitplus.wallet.lib.KmmResult
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
@@ -123,9 +124,8 @@ class Asn1ServiceTest {
 
     object NoopCryptoAdapter : Asn1Service.CryptoAdapter {
 
-        override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): KmmResult<ByteArray> {
-            return KmmResult.success(byteArrayOf())
-        }
+        override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): KmmResult<ByteArray> =
+            KmmResult.success(byteArrayOf())
 
     }
 }

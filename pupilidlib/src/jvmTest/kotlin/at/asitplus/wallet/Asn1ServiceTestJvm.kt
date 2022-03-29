@@ -1,5 +1,6 @@
 package at.asitplus.wallet
 
+import at.asitplus.wallet.lib.KmmResult
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.asn1.ASN1Integer
 import org.bouncycastle.asn1.ASN1ObjectIdentifier
@@ -109,20 +110,13 @@ class Asn1ServiceTestJvm {
 }
 
 class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
-    override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> {
-        return KmmResult.success(listOf())
-    }
-
-    override fun storeCertificate(certificate: ByteArray): KmmResult<Boolean> {
-        return KmmResult.success(true)
-    }
-
-    override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean> {
-        return KmmResult.success(true)
-    }
+    override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> = KmmResult.success(listOf())
+    override fun storeCertificate(certificate: ByteArray): KmmResult<Boolean> = KmmResult.success(true)
+    override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean> =
+        KmmResult.success(true)
 
     override fun getPublicKeyEncoded(): KmmResult<ByteArray> = KmmResult.success(keyPair.public.encoded)
-
+    override fun getIssuingMessage(): String? = null
     override val deviceName = "Unit Test"
 
 }

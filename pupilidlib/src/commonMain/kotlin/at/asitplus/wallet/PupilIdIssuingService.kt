@@ -1,9 +1,9 @@
 package at.asitplus.wallet
 
+import at.asitplus.wallet.lib.KmmResult
 import at.asitplus.wallet.lib.agent.CryptoService
 import at.asitplus.wallet.lib.data.jsonSerializer
 import at.asitplus.wallet.lib.jws.DefaultJwsService
-import at.asitplus.wallet.lib.jws.JwsContentType
 import at.asitplus.wallet.lib.jws.JwsHeader
 import io.github.aakira.napier.Napier
 import io.ktor.client.*

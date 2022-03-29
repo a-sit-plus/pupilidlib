@@ -1,5 +1,6 @@
 package at.asitplus.wallet
 
+import at.asitplus.wallet.lib.KmmResult
 import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -49,15 +50,9 @@ class DeviceBindingService(
             val subject = bindingParamsResponse.subject
             val keyType = KeyAlgorithm.parse(bindingParamsResponse.keyType)
             deviceAdapter.createKey(keyType, challenge)
-            val publicKeyEncoded = deviceAdapter.getPublicKeyEncoded().getOrElse {
-                return Result.ErrorFromNativeCode(it)
-            }
-            val csr = asn1Service.signAndCreateCsr(publicKeyEncoded, subject, keyType).getOrElse {
-                return Result.ErrorFromNativeCode(it)
-            }
-            val attestationCerts = deviceAdapter.loadAttestationCerts().getOrElse {
-                return Result.ErrorFromNativeCode(it)
-            }
+            val publicKeyEncoded = deviceAdapter.getPublicKeyEncoded().getOrThrow()
+            val csr = asn1Service.signAndCreateCsr(publicKeyEncoded, subject, keyType).getOrThrow()
+            val attestationCerts = deviceAdapter.loadAttestationCerts().getOrThrow()
             val bindingCsrRequest =
                 BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
             val bindingCsrResponse = client.post("$serverAddress/binding/create") {
@@ -100,6 +95,8 @@ interface DeviceAdapter {
     fun storeCertificate(certificate: ByteArray): KmmResult<Boolean>
     suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean>
     fun getPublicKeyEncoded(): KmmResult<ByteArray>
+    fun getIssuingMessage(): String?
+
     val deviceName: String
 }
 

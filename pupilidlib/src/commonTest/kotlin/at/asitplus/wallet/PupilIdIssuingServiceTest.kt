@@ -1,5 +1,6 @@
 package at.asitplus.wallet
 
+import at.asitplus.wallet.lib.KmmResult
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
@@ -35,9 +36,7 @@ class PupilIdIssuingServiceTest {
             }
         }
         val cryptoAdapter = object : PupilIdIssuingService.CryptoAdapter {
-            override fun getCertificateChain(): KmmResult<Array<ByteArray>> {
-                return KmmResult.success(arrayOf())
-            }
+            override fun getCertificateChain(): KmmResult<Array<ByteArray>> = KmmResult.success(arrayOf())
         }
         val service = PupilIdIssuingService(
             serverAddress = "http://localhost/",
