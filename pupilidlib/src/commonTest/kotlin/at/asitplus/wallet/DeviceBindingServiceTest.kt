@@ -1,6 +1,5 @@
 package at.asitplus.wallet
 
-import at.asitplus.wallet.lib.KmmResult
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
@@ -129,37 +128,6 @@ class DeviceBindingServiceTest {
 
             assertErrorFromNativeCode(result)
         }
-    }
-
-    object NoopCryptoAdapter : Asn1Service.CryptoAdapter {
-        override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm) =
-            KmmResult.success(byteArrayOf())
-    }
-
-    object DummyDeviceAdapter : DeviceAdapter {
-        override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> = KmmResult.success(listOf())
-        override fun storeCertificate(certificate: ByteArray): KmmResult<Boolean> = KmmResult.success(true)
-        override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean> =
-            KmmResult.success(true)
-
-        override fun getPublicKeyEncoded(): KmmResult<ByteArray> = KmmResult.success(byteArrayOf())
-        override fun getIssuingMessage(): String? = null
-        override val deviceName = "Unit Test"
-    }
-
-    object ErrorThrowingDeviceAdapter : DeviceAdapter {
-        override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> =
-            KmmResult.failure(IllegalArgumentException())
-
-        override fun storeCertificate(certificate: ByteArray): KmmResult<Boolean> =
-            KmmResult.failure(IllegalArgumentException())
-
-        override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean> =
-            KmmResult.failure(IllegalArgumentException())
-
-        override fun getPublicKeyEncoded(): KmmResult<ByteArray> = KmmResult.failure(IllegalArgumentException())
-        override fun getIssuingMessage(): String? = null
-        override val deviceName = "Unit Test"
     }
 
     private fun assertErrorFromNativeCode(result: DeviceBindingService.Result) {
