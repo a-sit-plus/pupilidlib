@@ -4,3 +4,5 @@ This is a Kotlin Multiplatform Library implementing features to use the PupilId 
 
 Implemented features:
  - Device Binding process
+ - PupilId Issuing process
+ - Combination of Device Binding and PupilId Issuing

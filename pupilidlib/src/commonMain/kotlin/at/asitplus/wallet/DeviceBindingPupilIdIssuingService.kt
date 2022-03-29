@@ -32,7 +32,7 @@ class DeviceBindingPupilIdIssuingService(
         }
     }
 
-    suspend fun createDeviceBinding(): Result {
+    suspend fun createDeviceBindingAndIssueCredentials(): Result {
         try {
             val bindingParamsRequest = BindingParamsRequest(deviceAdapter.deviceName)
             val post = client.post("$serverAddress/binding/start") {
