@@ -15,7 +15,6 @@ version = "$artifactVersion"
 kotlin {
     iosX64()
     iosArm64()
-    iosSimulatorArm64()
 
     android {
         publishLibraryVariants("release", "debug")
@@ -60,7 +59,6 @@ kotlin {
         }
         val iosX64Main by getting 
         val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
         val androidMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-okhttp:2.0.0-beta-1")
@@ -82,7 +80,6 @@ kotlin {
         iosMain.dependsOn(nativeMain)
         iosX64Main.dependsOn(iosMain)
         iosArm64Main.dependsOn(iosMain)
-        iosSimulatorArm64Main.dependsOn(iosMain)
         androidMain.dependsOn(commonMain)
         nativeMain.dependsOn(commonMain)
         jvmMain.dependsOn(commonMain)
@@ -96,7 +93,6 @@ kotlin {
         }
         val iosX64Test by getting 
         val iosArm64Test by getting
-        val iosSimulatorArm64Test by getting
         val androidTest by getting
         val jvmTest by getting {
             dependencies {
@@ -110,7 +106,6 @@ kotlin {
         iosTest.dependsOn(nativeTest)
         iosX64Test.dependsOn(iosTest)
         iosArm64Test.dependsOn(iosTest)
-        iosSimulatorArm64Test.dependsOn(iosTest)
         androidTest.dependsOn(commonTest)
         nativeTest.dependsOn(commonTest)
     }
