@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization")
+    kotlin("plugin.serialization") version Versions.kotlin
     id("com.android.library")
     id("maven-publish")
 }
@@ -20,7 +20,7 @@ kotlin {
         publishLibraryVariants("release", "debug")
         compilations.all {
             kotlinOptions {
-                jvmTarget = "1.8"
+                jvmTarget = Versions.Jvm.target
                 freeCompilerArgs = listOf(
                     "-Xjsr305=strict"
                 )
@@ -31,7 +31,7 @@ kotlin {
     jvm {
         compilations.all {
             kotlinOptions {
-                jvmTarget = "1.8"
+                jvmTarget = Versions.Jvm.target
                 freeCompilerArgs = listOf(
                     "-Xjsr305=strict"
                 )
@@ -47,32 +47,32 @@ kotlin {
         /* Main source sets */
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
-                implementation("io.github.aakira:napier:2.4.0")
-                implementation("io.ktor:ktor-client-core:2.0.0-beta-1")
-                implementation("io.ktor:ktor-client-serialization:2.0.0-beta-1")
-                implementation("io.ktor:ktor-client-content-negotiation:2.0.0-beta-1")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:2.0.0-beta-1")
-                implementation("at.asitplus.wallet:vclib:1.0.0-SNAPSHOT")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.`serialization-json`}")
+                implementation("io.github.aakira:napier:${Versions.napier}")
+                implementation("io.ktor:ktor-client-core:${Versions.ktor}")
+                implementation("io.ktor:ktor-client-serialization:${Versions.ktor}")
+                implementation("io.ktor:ktor-client-content-negotiation:${Versions.ktor}")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:${Versions.ktor}")
+                implementation("at.asitplus.wallet:vclib:${Versions.vclib}")
             }
         }
         val iosX64Main by getting 
         val iosArm64Main by getting
         val androidMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-okhttp:2.0.0-beta-1")
+                implementation("io.ktor:ktor-client-okhttp:${Versions.ktor}")
             }
         }
         val iosMain by creating {
             dependencies {
-                implementation("io.ktor:ktor-client-darwin:2.0.0-beta-1")
+                implementation("io.ktor:ktor-client-darwin:${Versions.ktor}")
             }
         }
         val nativeMain by creating
         val jvmMain by getting {
             dependencies {
-                implementation("io.swagger.core.v3:swagger-annotations:2.1.12")
+                implementation("io.swagger.core.v3:swagger-annotations:${Versions.Jvm.swagger}")
             }
         }
 
@@ -88,7 +88,7 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("io.ktor:ktor-client-mock:2.0.0-beta-1")
+                implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
             }
         }
         val iosX64Test by getting 
@@ -96,7 +96,7 @@ kotlin {
         val androidTest by getting
         val jvmTest by getting {
             dependencies {
-                implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
+                implementation("org.bouncycastle:bcpkix-jdk15on:${Versions.Jvm.bouncycastle}")
             }
         }
         val iosTest by creating
@@ -122,11 +122,11 @@ kotlin {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = Versions.Android.compileSDK
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
-        minSdk = 21
-        targetSdk = 31
+        minSdk = Versions.Android.minSDK
+        targetSdk = Versions.Android.targetSDK
     }
 }
 
