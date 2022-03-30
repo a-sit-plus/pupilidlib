@@ -20,12 +20,6 @@ default:
   tags:
     - docker
 
-stages:
-  - assemble
-  - test
-  - package
-  - release
-
 cache:
   paths:
     - ".gradle/wrapper"
@@ -33,7 +27,6 @@ cache:
     - ".m2/repository"
 
 assembleAndroid:
-  stage: assemble
   except:
     - tags
   script: |
@@ -44,7 +37,6 @@ assembleAndroid:
       junit: "pupilidlib/build/test-results/testDebugUnitTest/TEST-*.xml"
 
 assembleJdk11:
-  stage: assemble
   image: maven:3.6-jdk-11
   except:
     - tags
@@ -56,8 +48,6 @@ assembleJdk11:
       junit: "pupilidlib/build/test-results/jvmTest/TEST-*.xml"
 
 assembleIos:
-  stage: assemble
-  allow_failure: true
   except:
     - tags
   tags:
@@ -70,33 +60,16 @@ assembleIos:
       junit: "pupilidlib/build/test-results/iosX64Test/TEST-*.xml"
 
 publish:
-  stage: package
-  except:
-    - tags
-  only:
-    - master
-    - development
-    - /^release.*$/
-  script: |
-    export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
-    echo "Publishing version $VERSION for $LIB_NAME"
-    ./gradlew --continue clean assemble publish
-    echo "VERSION=$VERSION" >> variables.env
-  artifacts:
-    when: always
-    reports:
-      dotenv: variables.env
-
-publishIos:
-  stage: package
-  except:
-    - tags
-  only:
-    - master
-    - development
-    - /^release.*$/
+  needs:
+    - assembleAndroid
+    - assembleJdk11
+    - assembleIos
   tags:
     - ios
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development"'
+    - if: '$CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/'
+      when: manual
   script: |
     export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
     echo "Publishing version $VERSION for $LIB_NAME"
@@ -104,63 +77,18 @@ publishIos:
     (cd "$LIB_NAME/build/XCFrameworks/debug/"; zip -r "$LIB_NAME.zip" "$LIB_NAME.xcframework")
     export CHECKSUM=$(shasum -a 256 "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" | cut -d' ' -f1)
     export PACKAGE_REMOTE_ZIP=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.zip
-    curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" "${PACKAGE_REMOTE_ZIP}"
-    cd ..
+    curl --http1.1 --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" "${PACKAGE_REMOTE_ZIP}"
+    pushd ..
     rm -rf swift-package-pupilid-kmm-lib
     git clone --branch development "https://gitlab-ci-token:${SWIFT_REPO_ACCESS_TOKEN}@gitlab.iaik.tugraz.at/wallet/swift-package-pupilid-kmm-lib.git"
-    cd swift-package-pupilid-kmm-lib
+    pushd swift-package-pupilid-kmm-lib
     sed -i.bak "s|url: \".*\"|url: \"${PACKAGE_REMOTE_ZIP}\"|" Package.swift && rm Package.swift.bak
     sed -i.bak "s|checksum: \".*\"|checksum: \"${CHECKSUM}\"|" Package.swift && rm Package.swift.bak
     git add Package.swift
-    git commit -m "Update framework from build ${CI_COMMIT_SHORT_SHA} v${VERSION}"
+    git commit -m "Update framework to ${VERSION} from commit ${CI_COMMIT_SHORT_SHA}"
     git push
-    cd ../pupilid-kmm-lib
-    echo "VERSION=$VERSION" >> variables.env
-  artifacts:
-    when: always
-    reports:
-      dotenv: variables.env
-
-publishSnapshot:
-  stage: package
-  except:
-    - tags
-  when: manual
-  script: |
-    export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
-    echo "Publishing version $VERSION for $LIB_NAME"
-    ./gradlew --continue clean assemble publish
-    echo "VERSION=$VERSION" >> variables.env
-  artifacts:
-    when: always
-    reports:
-      dotenv: variables.env
-
-publishSnapshotIos:
-  stage: package
-  except:
-    - tags
-  when: manual
-  tags:
-    - ios
-  script: |
-    export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
-    echo "Publishing version $VERSION for $LIB_NAME"
-    ./gradlew --continue assembleDebugXCFramework assemble publish
-    (cd "$LIB_NAME/build/XCFrameworks/debug/"; zip -r "$LIB_NAME.zip" "$LIB_NAME.xcframework")
-    export CHECKSUM=$(shasum -a 256 "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" | cut -d' ' -f1)
-    export PACKAGE_REMOTE_ZIP=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.zip
-    curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" "${PACKAGE_REMOTE_ZIP}"
-    cd ..
-    rm -rf swift-package-pupilid-kmm-lib
-    git clone --branch development "https://gitlab-ci-token:${SWIFT_REPO_ACCESS_TOKEN}@gitlab.iaik.tugraz.at/wallet/swift-package-pupilid-kmm-lib.git"
-    cd swift-package-pupilid-kmm-lib
-    sed -i.bak "s|url: \".*\"|url: \"${PACKAGE_REMOTE_ZIP}\"|" Package.swift && rm Package.swift.bak
-    sed -i.bak "s|checksum: \".*\"|checksum: \"${CHECKSUM}\"|" Package.swift && rm Package.swift.bak
-    git add Package.swift
-    git commit -m "Update framework from build ${CI_COMMIT_SHORT_SHA}"
-    git push
-    cd ../pupilid-kmm-lib
+    popd
+    popd
     echo "VERSION=$VERSION" >> variables.env
   artifacts:
     when: always
@@ -168,15 +96,13 @@ publishSnapshotIos:
       dotenv: variables.env
 
 release:
-  stage: release
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   needs:
     - job: publish
       artifacts: true
-  when: manual
-  only:
-    - master
-    - /^release.*$/
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME =~ /^release.*$/'
+      when: manual
   script: |
     echo "Releasing version $VERSION of $LIB_NAME"
     release-cli create --name "$VERSION" --tag-name "v$VERSION" --ref "$CI_COMMIT_SHA" --description "$(cat README.md)" \
