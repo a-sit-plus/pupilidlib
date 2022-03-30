@@ -32,12 +32,12 @@ class PupilIdIssuingServiceTest {
             }
         }
     }
+    private val noopCryptoAdapter = object : PupilIdIssuingService.CryptoAdapter {
+        override fun getCertificateChain(): KmmResult<Array<ByteArray>> = KmmResult.success(arrayOf())
+    }
 
     @Test
     fun success() {
-        val noopCryptoAdapter = object : PupilIdIssuingService.CryptoAdapter {
-            override fun getCertificateChain(): KmmResult<Array<ByteArray>> = KmmResult.success(arrayOf())
-        }
         val service = PupilIdIssuingService(
             serverAddress = "http://localhost/",
             cryptoService = DefaultCryptoService(),
@@ -52,6 +52,35 @@ class PupilIdIssuingServiceTest {
         }
     }
 
+    @Test
+    fun unexpectedResponse() {
+        val mockEngine = MockEngine { request ->
+            when {
+                request.url.encodedPath.endsWith("/pupilid/issue") && !request.headers.contains(HttpHeaders.Authorization) -> {
+                    val headers = headersOf(
+                        HttpHeaders.ContentType to listOf("application/text")
+                    )
+                    respond(randomResponse, HttpStatusCode.InternalServerError, headers)
+                }
+                else -> {
+                    error("Unhandled call")
+                }
+            }
+        }
+        val service = PupilIdIssuingService(
+            serverAddress = "http://localhost/",
+            cryptoService = DefaultCryptoService(),
+            cryptoAdapter = noopCryptoAdapter,
+            engine = mockEngine,
+        )
+
+        runBlocking {
+            val result = service.issueCredentials("foo")
+
+            assertErrorFromNetwork(result)
+        }
+    }
+
     private fun assertSuccess(result: ServiceResult) {
         when (result) {
             is ServiceResult.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
@@ -59,4 +88,13 @@ class PupilIdIssuingServiceTest {
             is ServiceResult.Success -> assertTrue(true)
         }
     }
+
+    private fun assertErrorFromNetwork(result: ServiceResult) {
+        when (result) {
+            is ServiceResult.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
+            is ServiceResult.ErrorFromNetwork -> assertTrue(true)
+            is ServiceResult.Success -> fail("Unexpected success")
+        }
+    }
+
 }

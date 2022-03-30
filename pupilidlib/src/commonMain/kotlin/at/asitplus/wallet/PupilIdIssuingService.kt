@@ -11,6 +11,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.encodeToString
@@ -44,7 +45,8 @@ class PupilIdIssuingService(
                 setBody(message)
                 expectSuccess = false
             }
-            val authenticateHeader = initialPost.headers[HttpHeaders.WWWAuthenticate].toString()
+            val authenticateHeader = initialPost.headers[HttpHeaders.WWWAuthenticate]
+                ?: throw ResponseException(initialPost, initialPost.bodyAsText())
             val challenge = authenticateHeader.removePrefix("Challenge ")
             val payload = jsonSerializer.encodeToString(mapOf("challenge" to challenge))
             val certificateChain = cryptoAdapter.getCertificateChain().getOrNull()
