@@ -44,7 +44,7 @@ class PupilIdIssuingService(
                 setBody(message)
                 expectSuccess = false
             }
-            val authenticateHeader = initialPost.headers["WWW-Authenticate"].toString()
+            val authenticateHeader = initialPost.headers[HttpHeaders.WWWAuthenticate].toString()
             val challenge = authenticateHeader.removePrefix("Challenge ")
             val payload = jsonSerializer.encodeToString(mapOf("challenge" to challenge))
             val certificateChain = cryptoAdapter.getCertificateChain().getOrNull()
@@ -62,7 +62,7 @@ class PupilIdIssuingService(
             val secondPost = client.post("$serverAddress/pupilid/issue") {
                 contentType(ContentType.Text.Plain)
                 headers {
-                    append("Authorization", responseHeaderValue)
+                    append(HttpHeaders.Authorization, responseHeaderValue)
                 }
                 setBody(message)
             }
