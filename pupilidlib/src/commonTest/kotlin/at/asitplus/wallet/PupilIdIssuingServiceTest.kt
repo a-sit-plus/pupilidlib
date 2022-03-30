@@ -12,36 +12,36 @@ import kotlin.test.fail
 
 class PupilIdIssuingServiceTest {
 
-    @Test
-    fun success() {
-        var requestCounter = 0
-        val randomResponse = Random.nextInt().toString(16)
-        val mockEngine = MockEngine { request ->
-            when {
-                request.url.encodedPath.endsWith("/pupilid/issue") && requestCounter == 0 -> {
-                    requestCounter++
-                    val headers = headersOf(
-                        HttpHeaders.ContentType to listOf("application/text"),
-                        HttpHeaders.WWWAuthenticate to listOf("Challenge bar")
-                    )
-                    respond(randomResponse, HttpStatusCode.Unauthorized, headers)
-                }
-                request.url.encodedPath.endsWith("/pupilid/issue") && requestCounter == 1 -> {
-                    requestCounter++
-                    respond(randomResponse, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/text"))
-                }
-                else -> {
-                    error("Unhandled call")
-                }
+    private val randomChallenge = Random.nextInt().toString(16)
+    private val randomResponse = Random.nextInt().toString(16)
+    private val mockEngine = MockEngine { request ->
+        when {
+            request.url.encodedPath.endsWith("/pupilid/issue") && !request.headers.contains(HttpHeaders.Authorization) -> {
+                val headers = headersOf(
+                    HttpHeaders.ContentType to listOf("application/text"),
+                    HttpHeaders.WWWAuthenticate to listOf("Challenge $randomChallenge")
+                )
+                respond(randomResponse, HttpStatusCode.Unauthorized, headers)
+            }
+            request.url.encodedPath.endsWith("/pupilid/issue") && request.headers.contains(HttpHeaders.Authorization) -> {
+                val headers = headersOf(HttpHeaders.ContentType, "application/text")
+                respond(randomResponse, HttpStatusCode.OK, headers)
+            }
+            else -> {
+                error("Unhandled call")
             }
         }
-        val cryptoAdapter = object : PupilIdIssuingService.CryptoAdapter {
+    }
+
+    @Test
+    fun success() {
+        val noopCryptoAdapter = object : PupilIdIssuingService.CryptoAdapter {
             override fun getCertificateChain(): KmmResult<Array<ByteArray>> = KmmResult.success(arrayOf())
         }
         val service = PupilIdIssuingService(
             serverAddress = "http://localhost/",
             cryptoService = DefaultCryptoService(),
-            cryptoAdapter = cryptoAdapter,
+            cryptoAdapter = noopCryptoAdapter,
             engine = mockEngine,
         )
 

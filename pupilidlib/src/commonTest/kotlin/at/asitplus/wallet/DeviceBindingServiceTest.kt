@@ -13,30 +13,23 @@ import kotlin.test.fail
 
 class DeviceBindingServiceTest {
 
+    private val jsonHeaders = headersOf(HttpHeaders.ContentType, "application/json")
+
     @Test
     fun success() {
         val mockEngine = MockEngine { request ->
             when {
                 request.url.encodedPath.endsWith("/binding/start") -> {
-                    respond(
-                        Json.encodeToString(BindingParamsResponse(byteArrayOf(), "subject", "EC")),
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, "application/json")
-                    )
+                    val content = Json.encodeToString(BindingParamsResponse(byteArrayOf(), "subject", "EC"))
+                    respond(content, HttpStatusCode.OK, jsonHeaders)
                 }
                 request.url.encodedPath.endsWith("/binding/create") -> {
-                    respond(
-                        Json.encodeToString(BindingCsrResponse(byteArrayOf(), "attested-public-key")),
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, "application/json")
-                    )
+                    val content = Json.encodeToString(BindingCsrResponse(byteArrayOf(), "attested-public-key"))
+                    respond(content, HttpStatusCode.OK, jsonHeaders)
                 }
                 request.url.encodedPath.endsWith("/binding/confirm") -> {
-                    respond(
-                        Json.encodeToString(BindingConfirmResponse(true)),
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, "application/json")
-                    )
+                    val content = Json.encodeToString(BindingConfirmResponse(true))
+                    respond(content, HttpStatusCode.OK, jsonHeaders)
                 }
                 else -> {
                     error("Unhandled call")
@@ -61,11 +54,7 @@ class DeviceBindingServiceTest {
     @Test
     fun unknownResponse() {
         val mockEngine = MockEngine { request ->
-            respond(
-                content = ByteReadChannel("""{"foo":"bar"}"""),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
+            respond(ByteReadChannel("""{"foo":"bar"}"""), HttpStatusCode.OK, jsonHeaders)
         }
         val service = DeviceBindingService(
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
@@ -85,11 +74,7 @@ class DeviceBindingServiceTest {
     @Test
     fun serverErrorResponse() {
         val mockEngine = MockEngine { request ->
-            respond(
-                content = ByteReadChannel("""{"foo":"bar"}"""),
-                status = HttpStatusCode.InternalServerError,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
+            respond(ByteReadChannel("""{"foo":"bar"}"""), HttpStatusCode.InternalServerError, jsonHeaders)
         }
         val service = DeviceBindingService(
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
@@ -109,11 +94,7 @@ class DeviceBindingServiceTest {
     @Test
     fun errorFromNativeCode() {
         val mockEngine = MockEngine { request ->
-            respond(
-                content = ByteReadChannel("""{"foo":"bar"}"""),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
+            respond(ByteReadChannel("""{"foo":"bar"}"""), HttpStatusCode.OK, jsonHeaders)
         }
         val service = DeviceBindingService(
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),

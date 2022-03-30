@@ -24,32 +24,20 @@ class DeviceBindingPupilIdIssuingServiceTest {
             )
             when {
                 request.url.encodedPath.endsWith("/binding/start") && request.headers[HeaderNames.X_AUTH_EXT_NONCE] == xAuthExtNonce -> {
-                    respond(
-                        Json.encodeToString(BindingParamsResponse(byteArrayOf(), "subject", "EC")),
-                        HttpStatusCode.OK,
-                        jsonHeadersWithXAuthToken
-                    )
+                    val content = Json.encodeToString(BindingParamsResponse(byteArrayOf(), "subject", "EC"))
+                    respond(content, HttpStatusCode.OK, jsonHeadersWithXAuthToken)
                 }
                 request.url.encodedPath.endsWith("/binding/create") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
-                    respond(
-                        Json.encodeToString(BindingCsrResponse(byteArrayOf(), "attested-public-key")),
-                        HttpStatusCode.OK,
-                        jsonHeadersWithXAuthToken
-                    )
+                    val content = Json.encodeToString(BindingCsrResponse(byteArrayOf(), "attested-public-key"))
+                    respond(content, HttpStatusCode.OK, jsonHeadersWithXAuthToken)
                 }
                 request.url.encodedPath.endsWith("/binding/confirm") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
-                    respond(
-                        Json.encodeToString(BindingConfirmResponse(true)),
-                        HttpStatusCode.OK,
-                        jsonHeadersWithXAuthToken
-                    )
+                    val content = Json.encodeToString(BindingConfirmResponse(true))
+                    respond(content, HttpStatusCode.OK, jsonHeadersWithXAuthToken)
                 }
                 request.url.encodedPath.endsWith("/pupilid/issue") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
-                    respond(
-                        randomResponse,
-                        HttpStatusCode.OK,
-                        headersOf(HttpHeaders.ContentType, "application/text")
-                    )
+                    val headers = headersOf(HttpHeaders.ContentType, "application/text")
+                    respond(randomResponse, HttpStatusCode.OK, headers)
                 }
                 else -> {
                     error("Unhandled call")
