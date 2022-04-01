@@ -96,8 +96,6 @@ interface DeviceAdapter {
     fun storeCertificate(certificate: ByteArray): KmmResult<Boolean>
     suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean>
     fun getPublicKeyEncoded(): KmmResult<ByteArray>
-    fun getIssuingMessage(): String?
-
     val deviceName: String
 }
 

@@ -1,5 +1,7 @@
 package at.asitplus.wallet
 
+import at.asitplus.wallet.lib.agent.DefaultCryptoService
+import at.asitplus.wallet.lib.agent.InMemorySubjectCredentialStore
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
@@ -49,6 +51,8 @@ class DeviceBindingPupilIdIssuingServiceTest {
             extAuthNonce = xAuthExtNonce,
             deviceAdapter = DummyDeviceAdapter,
             asn1Service = Asn1Service(NoopCryptoAdapter),
+            agentCryptoService = DefaultCryptoService(),
+            subjectCredentialStore = InMemorySubjectCredentialStore(),
             engine = mockEngine,
         )
 

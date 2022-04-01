@@ -116,7 +116,6 @@ class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
         KmmResult.success(true)
 
     override fun getPublicKeyEncoded(): KmmResult<ByteArray> = KmmResult.success(keyPair.public.encoded)
-    override fun getIssuingMessage(): String? = null
     override val deviceName = "Unit Test"
 
 }

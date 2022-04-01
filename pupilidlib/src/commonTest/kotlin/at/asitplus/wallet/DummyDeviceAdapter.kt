@@ -9,6 +9,5 @@ object DummyDeviceAdapter : DeviceAdapter {
         KmmResult.success(true)
 
     override fun getPublicKeyEncoded(): KmmResult<ByteArray> = KmmResult.success(byteArrayOf())
-    override fun getIssuingMessage(): String = "please issue credentials"
     override val deviceName = "Unit Test"
 }

@@ -1,5 +1,11 @@
 package at.asitplus.wallet
 
+import at.asitplus.wallet.lib.agent.Agent
+import at.asitplus.wallet.lib.agent.CryptoService
+import at.asitplus.wallet.lib.agent.IssueCredentialMessenger
+import at.asitplus.wallet.lib.agent.NextMessage
+import at.asitplus.wallet.lib.agent.SubjectCredentialStore
+import at.asitplus.wallet.lib.data.ConstantIndex
 import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -17,6 +23,8 @@ class DeviceBindingPupilIdIssuingService(
     private val serverAddress: String,
     private val deviceAdapter: DeviceAdapter,
     private val asn1Service: Asn1Service,
+    private val agentCryptoService: CryptoService,
+    private val subjectCredentialStore: SubjectCredentialStore,
     engine: HttpClientEngine? = null
 ) {
 
@@ -48,15 +56,20 @@ class DeviceBindingPupilIdIssuingService(
                 return ServiceResult.ErrorFromNetwork("No success for binding/confirm message")
             }
 
-            val message = deviceAdapter.getIssuingMessage()
-                ?: throw IllegalArgumentException("No issuing message from native code")
+            val agent = Agent(cryptoService = agentCryptoService, subjectCredentialStore = subjectCredentialStore)
+            val messenger = IssueCredentialMessenger(agent = agent, credentialScheme = ConstantIndex.PupilId)
+
+            val message = messenger.startDirect()
+            if (message !is NextMessage.Send)
+                throw IllegalArgumentException("No issuing message from native code")
+                    .also { Napier.w("Message from messenger: $message") }
 
             val initialPost = client.post("$serverAddress/pupilid/issue") {
                 contentType(ContentType.Text.Plain)
                 headers {
                     append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
                 }
-                setBody(message)
+                setBody(message.message)
             }
             val response = initialPost.body<String>()
 

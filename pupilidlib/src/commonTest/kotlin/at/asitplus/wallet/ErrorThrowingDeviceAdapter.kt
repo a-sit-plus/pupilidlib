@@ -13,6 +13,5 @@ object ErrorThrowingDeviceAdapter : DeviceAdapter {
         KmmResult.failure(IllegalArgumentException())
 
     override fun getPublicKeyEncoded(): KmmResult<ByteArray> = KmmResult.failure(IllegalArgumentException())
-    override fun getIssuingMessage(): String? = null
     override val deviceName = "Unit Test"
 }
