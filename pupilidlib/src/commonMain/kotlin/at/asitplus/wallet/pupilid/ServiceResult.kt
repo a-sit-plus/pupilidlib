@@ -1,4 +1,4 @@
-package at.asitplus.wallet
+package at.asitplus.wallet.pupilid
 
 sealed class ServiceResult {
     data class Success(val message: String) : ServiceResult()

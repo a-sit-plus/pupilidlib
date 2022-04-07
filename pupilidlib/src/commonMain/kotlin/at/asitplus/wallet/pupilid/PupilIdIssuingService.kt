@@ -1,10 +1,5 @@
-package at.asitplus.wallet
+package at.asitplus.wallet.pupilid
 
-import at.asitplus.wallet.lib.KmmResult
-import at.asitplus.wallet.lib.agent.CryptoService
-import at.asitplus.wallet.lib.data.jsonSerializer
-import at.asitplus.wallet.lib.jws.DefaultJwsService
-import at.asitplus.wallet.lib.jws.JwsHeader
 import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -15,14 +10,20 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
-/**
- * @param engine can be passed to enable mocks in unit tests, to use the default engine, pass null
- */
 class PupilIdIssuingService(
+    /**
+     * Base address of the server to contact, i.e. `https://wallet.a-sit.at/`
+     */
     private val serverAddress: String,
-    private val cryptoService: CryptoService,
-    private val cryptoAdapter: CryptoAdapter,
+    /**
+     * Implementation: Create a signed JWS, containing an `x5c` header with the local device binding certificate
+     */
+    private val createSignedJwsCallback: (String) -> KmmResult<String>,
+    /**
+     * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
+     */
     engine: HttpClientEngine? = null
 ) {
 
@@ -48,17 +49,8 @@ class PupilIdIssuingService(
             val authenticateHeader = initialPost.headers[HttpHeaders.WWWAuthenticate]
                 ?: throw ResponseException(initialPost, initialPost.bodyAsText())
             val challenge = authenticateHeader.removePrefix("Challenge ")
-            val payload = jsonSerializer.encodeToString(mapOf("challenge" to challenge))
-            val certificateChain = cryptoAdapter.getCertificateChain().getOrNull()
-                ?: throw IllegalArgumentException("No certificate chain from native code")
-            val jwsHeader = JwsHeader(
-                algorithm = cryptoService.jwsAlgorithm,
-                keyId = cryptoService.keyId,
-                certificateChain = certificateChain,
-            )
-            val signedJws = DefaultJwsService(cryptoService)
-                .createSignedJws(jwsHeader, payload.encodeToByteArray())
-                ?: throw IllegalArgumentException("No JWS from native code")
+            val payload = Json.encodeToString(mapOf("challenge" to challenge))
+            val signedJws = createSignedJwsCallback(payload).getOrThrow()
             val responseHeaderValue = "Response $signedJws"
 
             val secondPost = client.post("$serverAddress/pupilid/issue") {
@@ -78,10 +70,6 @@ class PupilIdIssuingService(
             return ServiceResult.ErrorFromNativeCode(e)
                 .also { Napier.w("Error from native code", throwable = e) }
         }
-    }
-
-    interface CryptoAdapter {
-        fun getCertificateChain(): KmmResult<Array<ByteArray>>
     }
 
 }

@@ -1,5 +1,11 @@
 package at.asitplus.wallet
 
+import at.asitplus.wallet.pupilid.BindingConfirmResponse
+import at.asitplus.wallet.pupilid.BindingCsrResponse
+import at.asitplus.wallet.pupilid.BindingParamsResponse
+import at.asitplus.wallet.pupilid.DeviceBindingService
+import at.asitplus.wallet.pupilid.KmmResult
+import at.asitplus.wallet.pupilid.ServiceResult
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
@@ -37,10 +43,10 @@ class DeviceBindingServiceTest {
             }
         }
         val service = DeviceBindingService(
-            extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
+            extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             deviceAdapter = DummyDeviceAdapter,
-            asn1Service = Asn1Service(NoopCryptoAdapter),
+            signCallback = { _, _, _ -> KmmResult.success(byteArrayOf()) },
             engine = mockEngine
         )
 
@@ -60,7 +66,7 @@ class DeviceBindingServiceTest {
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
             deviceAdapter = DummyDeviceAdapter,
-            asn1Service = Asn1Service(NoopCryptoAdapter),
+            signCallback = { _, _, _ -> KmmResult.success(byteArrayOf()) },
             engine = mockEngine
         )
 
@@ -80,7 +86,7 @@ class DeviceBindingServiceTest {
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
             deviceAdapter = DummyDeviceAdapter,
-            asn1Service = Asn1Service(NoopCryptoAdapter),
+            signCallback = { _, _, _ -> KmmResult.success(byteArrayOf()) },
             engine = mockEngine
         )
 
@@ -100,7 +106,7 @@ class DeviceBindingServiceTest {
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
             deviceAdapter = ErrorThrowingDeviceAdapter,
-            asn1Service = Asn1Service(NoopCryptoAdapter),
+            signCallback = { _, _, _ -> KmmResult.success(byteArrayOf()) },
             engine = mockEngine
         )
 

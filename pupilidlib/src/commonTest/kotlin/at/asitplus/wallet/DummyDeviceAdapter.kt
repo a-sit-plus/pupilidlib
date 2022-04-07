@@ -1,6 +1,8 @@
 package at.asitplus.wallet
 
-import at.asitplus.wallet.lib.KmmResult
+import at.asitplus.wallet.pupilid.DeviceAdapter
+import at.asitplus.wallet.pupilid.KeyAlgorithm
+import at.asitplus.wallet.pupilid.KmmResult
 
 object DummyDeviceAdapter : DeviceAdapter {
     override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> = KmmResult.success(listOf())

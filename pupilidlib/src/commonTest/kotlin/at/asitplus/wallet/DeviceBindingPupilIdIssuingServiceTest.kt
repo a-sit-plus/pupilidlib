@@ -1,7 +1,12 @@
 package at.asitplus.wallet
 
-import at.asitplus.wallet.lib.agent.DefaultCryptoService
-import at.asitplus.wallet.lib.agent.InMemorySubjectCredentialStore
+import at.asitplus.wallet.pupilid.BindingConfirmResponse
+import at.asitplus.wallet.pupilid.BindingCsrResponse
+import at.asitplus.wallet.pupilid.BindingParamsResponse
+import at.asitplus.wallet.pupilid.DeviceBindingPupilIdIssuingService
+import at.asitplus.wallet.pupilid.HeaderNames
+import at.asitplus.wallet.pupilid.KmmResult
+import at.asitplus.wallet.pupilid.ServiceResult
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
@@ -50,9 +55,8 @@ class DeviceBindingPupilIdIssuingServiceTest {
             serverAddress = "http://localhost/",
             extAuthNonce = xAuthExtNonce,
             deviceAdapter = DummyDeviceAdapter,
-            asn1Service = Asn1Service(NoopCryptoAdapter),
-            agentCryptoService = DefaultCryptoService(),
-            subjectCredentialStore = InMemorySubjectCredentialStore(),
+            signCallback = { _, _, _ -> KmmResult.success(byteArrayOf()) },
+            loadMessageCallback = { KmmResult.success("foo") },
             engine = mockEngine,
         )
 

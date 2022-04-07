@@ -54,7 +54,6 @@ kotlin {
                 implementation("io.ktor:ktor-client-serialization:${Versions.ktor}")
                 implementation("io.ktor:ktor-client-content-negotiation:${Versions.ktor}")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:${Versions.ktor}")
-                implementation("at.asitplus.wallet:vclib:${Versions.vclib}")
             }
         }
         val iosX64Main by getting 

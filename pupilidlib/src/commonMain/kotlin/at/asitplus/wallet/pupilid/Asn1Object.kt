@@ -1,4 +1,4 @@
-package at.asitplus.wallet
+package at.asitplus.wallet.pupilid
 
 
 sealed class Asn1Object(

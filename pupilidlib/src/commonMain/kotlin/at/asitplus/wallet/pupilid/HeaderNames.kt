@@ -1,4 +1,4 @@
-package at.asitplus.wallet
+package at.asitplus.wallet.pupilid
 
 object HeaderNames {
     const val X_AUTH_TOKEN = "X-Auth-Token"

@@ -1,6 +1,5 @@
-package at.asitplus.wallet
+package at.asitplus.wallet.pupilid
 
-import at.asitplus.wallet.lib.KmmResult
 import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -16,12 +15,30 @@ import io.ktor.util.*
  * @param engine can be passed to enable mocks in unit tests, to use the default engine, pass null
  */
 class DeviceBindingService(
-    private val extAuthNonce: String,
+
+    /**
+     * Base address of the server to contact, i.e. `https://wallet.a-sit.at/`
+     */
     private val serverAddress: String,
+    /**
+     * Nonce from scanned QR Code, used for authentication
+     */
+    private val extAuthNonce: String,
+    /**
+     * Needed to load information from native implementations
+     */
     private val deviceAdapter: DeviceAdapter,
-    private val asn1Service: Asn1Service,
+    /**
+     * Implementers: Sign the `ByteArray` with the defined `KeyAlgorithm` and `HashAlgorithm`
+     */
+    signCallback: (ByteArray, KeyAlgorithm, HashAlgorithm) -> KmmResult<ByteArray>,
+    /**
+     * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
+     */
     engine: HttpClientEngine? = null
 ) {
+
+    private val asn1Service = Asn1Service(signCallback)
 
     private val client: HttpClient = engine?.let {
         HttpClient(it) {
@@ -74,18 +91,16 @@ class DeviceBindingService(
         }
     }
 
-    suspend fun createDeviceBinding(): ServiceResult {
-        try {
-            val bindingConfirmResponse = getDeviceBindingResponse()
-            val body = bindingConfirmResponse.body<BindingConfirmResponse>()
-            return ServiceResult.Success(body.success.toString())
-        } catch (e: ResponseException) {
-            return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
-                .also { Napier.w("Error from network", throwable = e) }
-        } catch (e: Throwable) {
-            return ServiceResult.ErrorFromNativeCode(e)
-                .also { Napier.w("Error from native code", throwable = e) }
-        }
+    suspend fun createDeviceBinding(): ServiceResult = try {
+        val bindingConfirmResponse = getDeviceBindingResponse()
+        val body = bindingConfirmResponse.body<BindingConfirmResponse>()
+        ServiceResult.Success(body.success.toString())
+    } catch (e: ResponseException) {
+        ServiceResult.ErrorFromNetwork(e.message ?: "Error")
+            .also { Napier.w("Error from network", throwable = e) }
+    } catch (e: Throwable) {
+        ServiceResult.ErrorFromNativeCode(e)
+            .also { Napier.w("Error from native code", throwable = e) }
     }
 
 }
@@ -117,6 +132,3 @@ enum class KeyAlgorithm {
         }
     }
 }
-
-// TODO activate
-//expect class DefaultDeviceAdapter : DeviceAdapter

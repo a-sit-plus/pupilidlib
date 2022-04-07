@@ -1,4 +1,4 @@
-package at.asitplus.wallet
+package at.asitplus.wallet.pupilid
 
 import io.ktor.util.*
 import kotlinx.serialization.KSerializer

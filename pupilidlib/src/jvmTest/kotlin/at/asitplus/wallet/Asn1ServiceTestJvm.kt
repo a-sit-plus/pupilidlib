@@ -1,6 +1,11 @@
 package at.asitplus.wallet
 
-import at.asitplus.wallet.lib.KmmResult
+import at.asitplus.wallet.pupilid.Asn1Object
+import at.asitplus.wallet.pupilid.Asn1Service
+import at.asitplus.wallet.pupilid.DeviceAdapter
+import at.asitplus.wallet.pupilid.HashAlgorithm
+import at.asitplus.wallet.pupilid.KeyAlgorithm
+import at.asitplus.wallet.pupilid.KmmResult
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.asn1.ASN1Integer
 import org.bouncycastle.asn1.ASN1ObjectIdentifier
@@ -11,7 +16,6 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder
 import java.security.KeyPair
 import java.security.KeyPairGenerator
-import java.security.PrivateKey
 import java.security.Signature
 import kotlin.random.Random
 import kotlin.test.Test
@@ -65,9 +69,8 @@ class Asn1ServiceTestJvm {
         val keyAlg = KeyAlgorithm.EC
         val ecKeyPair = KeyPairGenerator.getInstance("EC").generateKeyPair()
         val deviceAdapter = InMemoryDeviceAdapter(ecKeyPair)
-        val asn1Adapter = InMemoryAsn1CryptoAdapter(ecKeyPair)
 
-        compareBouncycastleWithService(ecKeyPair, deviceAdapter, asn1Adapter, subject, keyAlg)
+        compareBouncycastleWithService(ecKeyPair, deviceAdapter, ecKeyPair, subject, keyAlg)
     }
 
     @Test
@@ -76,19 +79,23 @@ class Asn1ServiceTestJvm {
         val keyAlg = KeyAlgorithm.RSA
         val rsaKeyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair()
         val deviceAdapter = InMemoryDeviceAdapter(rsaKeyPair)
-        val asn1Adapter = InMemoryAsn1CryptoAdapter(rsaKeyPair)
 
-        compareBouncycastleWithService(rsaKeyPair, deviceAdapter, asn1Adapter, subject, keyAlg)
+        compareBouncycastleWithService(rsaKeyPair, deviceAdapter, rsaKeyPair, subject, keyAlg)
     }
 
     private fun compareBouncycastleWithService(
         ecKeyPair: KeyPair,
         deviceAdapter: InMemoryDeviceAdapter,
-        asn1Adapter: Asn1Service.CryptoAdapter,
+        keyPair: KeyPair,
         subject: String,
         keyAlg: KeyAlgorithm
     ) = runBlocking {
-        val service = Asn1Service(asn1Adapter)
+        val service = Asn1Service { bytes: ByteArray, keyAlgorithm: KeyAlgorithm, hashAlgorithm: HashAlgorithm ->
+            KmmResult.success(Signature.getInstance(getJcaSignatureName(keyAlgorithm, hashAlgorithm)).also {
+                it.initSign(keyPair.private)
+                it.update(bytes)
+            }.sign())
+        }
         val contentSigner =
             JcaContentSignerBuilder(getJcaSignatureName(keyAlg, HashAlgorithm.SHA256)).build(ecKeyPair.private)
         val contentVerifierProvider = JcaContentVerifierProviderBuilder().build(ecKeyPair.public)
@@ -118,18 +125,6 @@ class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
     override fun getPublicKeyEncoded(): KmmResult<ByteArray> = KmmResult.success(keyPair.public.encoded)
     override val deviceName = "Unit Test"
 
-}
-
-class InMemoryAsn1CryptoAdapter(private val keyPair: KeyPair) : Asn1Service.CryptoAdapter {
-
-    override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): KmmResult<ByteArray> =
-        KmmResult.success(createSignature(keyPair.private, getJcaSignatureName(key, hash), input))
-
-    private fun createSignature(privateKey: PrivateKey, signatureAlg: String, input: ByteArray) =
-        Signature.getInstance(signatureAlg).also {
-            it.initSign(privateKey)
-            it.update(input)
-        }.sign()
 }
 
 

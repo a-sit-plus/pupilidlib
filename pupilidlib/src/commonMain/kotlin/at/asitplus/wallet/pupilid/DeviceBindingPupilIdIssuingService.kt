@@ -1,11 +1,5 @@
-package at.asitplus.wallet
+package at.asitplus.wallet.pupilid
 
-import at.asitplus.wallet.lib.agent.Agent
-import at.asitplus.wallet.lib.agent.CryptoService
-import at.asitplus.wallet.lib.agent.IssueCredentialMessenger
-import at.asitplus.wallet.lib.agent.NextMessage
-import at.asitplus.wallet.lib.agent.SubjectCredentialStore
-import at.asitplus.wallet.lib.data.ConstantIndex
 import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -15,16 +9,31 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 
-/**
- * @param engine can be passed to enable mocks in unit tests, to use the default engine, pass null
- */
-class DeviceBindingPupilIdIssuingService(
-    private val extAuthNonce: String,
+class DeviceBindingPupilIdIssuingService internal constructor(
+
+    /**
+     * Base address of the server to contact, i.e. `https://wallet.a-sit.at/`
+     */
     private val serverAddress: String,
-    private val deviceAdapter: DeviceAdapter,
-    private val asn1Service: Asn1Service,
-    private val agentCryptoService: CryptoService,
-    private val subjectCredentialStore: SubjectCredentialStore,
+    /**
+     * Nonce from scanned QR Code, used for authentication
+     */
+    extAuthNonce: String,
+    /**
+     * Needed to load information from native implementations
+     */
+    deviceAdapter: DeviceAdapter,
+    /**
+     * Implementers: Sign the `ByteArray` with the defined `KeyAlgorithm` and `HashAlgorithm`
+     */
+    signCallback: (ByteArray, KeyAlgorithm, HashAlgorithm) -> KmmResult<ByteArray>,
+    /**
+     * Implementation: Return the message of `IssueCredentialMessenger.startDirect()`
+     */
+    private val loadMessageCallback: () -> KmmResult<String>,
+    /**
+     * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
+     */
     engine: HttpClientEngine? = null
 ) {
 
@@ -40,10 +49,10 @@ class DeviceBindingPupilIdIssuingService(
         }
     }
     private val deviceBindingService = DeviceBindingService(
-        extAuthNonce = extAuthNonce,
         serverAddress = serverAddress,
+        extAuthNonce = extAuthNonce,
         deviceAdapter = deviceAdapter,
-        asn1Service = asn1Service,
+        signCallback = signCallback,
         engine = engine
     )
 
@@ -56,20 +65,14 @@ class DeviceBindingPupilIdIssuingService(
                 return ServiceResult.ErrorFromNetwork("No success for binding/confirm message")
             }
 
-            val agent = Agent(cryptoService = agentCryptoService, subjectCredentialStore = subjectCredentialStore)
-            val messenger = IssueCredentialMessenger(agent = agent, credentialScheme = ConstantIndex.PupilId)
-
-            val message = messenger.startDirect()
-            if (message !is NextMessage.Send)
-                throw IllegalArgumentException("No issuing message from native code")
-                    .also { Napier.w("Message from messenger: $message") }
+            val message = loadMessageCallback().getOrThrow()
 
             val initialPost = client.post("$serverAddress/pupilid/issue") {
                 contentType(ContentType.Text.Plain)
                 headers {
                     append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
                 }
-                setBody(message.message)
+                setBody(message)
             }
             val response = initialPost.body<String>()
 

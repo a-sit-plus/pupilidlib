@@ -1,7 +1,8 @@
 package at.asitplus.wallet
 
-import at.asitplus.wallet.lib.KmmResult
-import at.asitplus.wallet.lib.agent.DefaultCryptoService
+import at.asitplus.wallet.pupilid.PupilIdIssuingService
+import at.asitplus.wallet.pupilid.ServiceResult
+import at.asitplus.wallet.pupilid.KmmResult
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
@@ -32,16 +33,12 @@ class PupilIdIssuingServiceTest {
             }
         }
     }
-    private val noopCryptoAdapter = object : PupilIdIssuingService.CryptoAdapter {
-        override fun getCertificateChain(): KmmResult<Array<ByteArray>> = KmmResult.success(arrayOf())
-    }
 
     @Test
     fun success() {
         val service = PupilIdIssuingService(
             serverAddress = "http://localhost/",
-            cryptoService = DefaultCryptoService(),
-            cryptoAdapter = noopCryptoAdapter,
+            createSignedJwsCallback = { s: String -> KmmResult.success(s) },
             engine = mockEngine,
         )
 
@@ -69,8 +66,7 @@ class PupilIdIssuingServiceTest {
         }
         val service = PupilIdIssuingService(
             serverAddress = "http://localhost/",
-            cryptoService = DefaultCryptoService(),
-            cryptoAdapter = noopCryptoAdapter,
+            createSignedJwsCallback = { s: String -> KmmResult.success(s) },
             engine = mockEngine,
         )
 

@@ -1,5 +1,7 @@
 package at.asitplus.wallet
 
+import at.asitplus.wallet.pupilid.Asn1Object
+import at.asitplus.wallet.pupilid.byteArrayOfInts
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
