@@ -26,6 +26,10 @@ cache:
     - ".gradle/caches"
     - ".m2/repository"
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
 assembleAndroid:
   except:
     - tags
@@ -70,6 +74,7 @@ publish:
     - if: '$CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development"'
     - if: '$CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/'
       when: manual
+      allow_failure: true
   script: |
     export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
     echo "Publishing version $VERSION for $LIB_NAME"
