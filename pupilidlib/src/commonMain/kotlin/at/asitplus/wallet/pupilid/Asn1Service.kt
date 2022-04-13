@@ -2,10 +2,7 @@ package at.asitplus.wallet.pupilid
 
 
 class Asn1Service(
-    /**
-     * Implementers: Sign the `ByteArray` with the defined `KeyAlgorithm` and `HashAlgorithm`
-     */
-    private val signCallback: (ByteArray, KeyAlgorithm, HashAlgorithm) -> KmmResult<ByteArray>
+    private val cryptoAdapter: CryptoAdapter,
 ) {
 
     suspend fun signAndCreateCsr(
@@ -15,7 +12,7 @@ class Asn1Service(
     ): KmmResult<ByteArray> {
         val csrTbs = buildCsrTbs(subject, publicKeyEncoded, key)
         val hash = HashAlgorithm.SHA256
-        val csrTbsSigned = signCallback(csrTbs, key, hash).getOrElse {
+        val csrTbsSigned = cryptoAdapter.sign(csrTbs, key, hash).getOrElse {
             return KmmResult.failure(it)
         }
         return KmmResult.success(buildCsr(csrTbs, csrTbsSigned, key, hash))
@@ -119,6 +116,13 @@ class Asn1Service(
             val publicKeyAsn1 = Asn1Object.BitString(byteArrayOf(0x00) + publicKey)
             Asn1Object.Sequence(publicKeyInfoType, publicKeyAsn1)
         }
+    }
+
+    interface CryptoAdapter {
+        /**
+         * Implementers: Sign [input] with the defined [key] and [hash], using the private key for the CSR
+         */
+        suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): KmmResult<ByteArray>
     }
 
 }

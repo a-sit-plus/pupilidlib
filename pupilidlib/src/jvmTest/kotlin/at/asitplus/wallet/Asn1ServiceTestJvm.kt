@@ -90,12 +90,14 @@ class Asn1ServiceTestJvm {
         subject: String,
         keyAlg: KeyAlgorithm
     ) = runBlocking {
-        val service = Asn1Service { bytes: ByteArray, keyAlgorithm: KeyAlgorithm, hashAlgorithm: HashAlgorithm ->
-            KmmResult.success(Signature.getInstance(getJcaSignatureName(keyAlgorithm, hashAlgorithm)).also {
-                it.initSign(keyPair.private)
-                it.update(bytes)
-            }.sign())
-        }
+        val service = Asn1Service(object : Asn1Service.CryptoAdapter {
+            override suspend fun sign(input: ByteArray, key: KeyAlgorithm, hash: HashAlgorithm): KmmResult<ByteArray> {
+                return KmmResult.success(Signature.getInstance(getJcaSignatureName(key, hash)).also {
+                    it.initSign(keyPair.private)
+                    it.update(input)
+                }.sign())
+            }
+        })
         val contentSigner =
             JcaContentSignerBuilder(getJcaSignatureName(keyAlg, HashAlgorithm.SHA256)).build(ecKeyPair.private)
         val contentVerifierProvider = JcaContentVerifierProviderBuilder().build(ecKeyPair.public)

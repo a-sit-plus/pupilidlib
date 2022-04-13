@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 
 class DeviceBindingPupilIdIssuingService internal constructor(
-
     /**
      * Base address of the server to contact, i.e. `https://wallet.a-sit.at/`
      */
@@ -24,9 +23,9 @@ class DeviceBindingPupilIdIssuingService internal constructor(
      */
     deviceAdapter: DeviceAdapter,
     /**
-     * Implementers: Sign the `ByteArray` with the defined `KeyAlgorithm` and `HashAlgorithm`
+     * Needed to create signature of the CSR
      */
-    signCallback: (ByteArray, KeyAlgorithm, HashAlgorithm) -> KmmResult<ByteArray>,
+    cryptoAdapter: Asn1Service.CryptoAdapter,
     /**
      * Implementation: Return the message of `IssueCredentialMessenger.startDirect()`
      */
@@ -52,8 +51,8 @@ class DeviceBindingPupilIdIssuingService internal constructor(
         serverAddress = serverAddress,
         extAuthNonce = extAuthNonce,
         deviceAdapter = deviceAdapter,
-        signCallback = signCallback,
-        engine = engine
+        cryptoAdapter = cryptoAdapter,
+        engine = engine,
     )
 
     suspend fun createDeviceBindingAndIssueCredentials(): ServiceResult {

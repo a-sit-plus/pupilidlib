@@ -15,7 +15,6 @@ import io.ktor.util.*
  * @param engine can be passed to enable mocks in unit tests, to use the default engine, pass null
  */
 class DeviceBindingService(
-
     /**
      * Base address of the server to contact, i.e. `https://wallet.a-sit.at/`
      */
@@ -29,16 +28,16 @@ class DeviceBindingService(
      */
     private val deviceAdapter: DeviceAdapter,
     /**
-     * Implementers: Sign the `ByteArray` with the defined `KeyAlgorithm` and `HashAlgorithm`
+     * Needed to create signature of the CSR
      */
-    signCallback: (ByteArray, KeyAlgorithm, HashAlgorithm) -> KmmResult<ByteArray>,
+    cryptoAdapter: Asn1Service.CryptoAdapter,
     /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
      */
     engine: HttpClientEngine? = null
 ) {
 
-    private val asn1Service = Asn1Service(signCallback)
+    private val asn1Service = Asn1Service(cryptoAdapter)
 
     private val client: HttpClient = engine?.let {
         HttpClient(it) {

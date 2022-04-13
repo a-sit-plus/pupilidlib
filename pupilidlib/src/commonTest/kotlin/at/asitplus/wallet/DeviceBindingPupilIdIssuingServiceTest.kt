@@ -55,7 +55,7 @@ class DeviceBindingPupilIdIssuingServiceTest {
             serverAddress = "http://localhost/",
             extAuthNonce = xAuthExtNonce,
             deviceAdapter = DummyDeviceAdapter,
-            signCallback = { _, _, _ -> KmmResult.success(byteArrayOf()) },
+            cryptoAdapter = NoopCryptoAdapter,
             loadMessageCallback = { KmmResult.success("foo") },
             engine = mockEngine,
         )

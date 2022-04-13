@@ -4,7 +4,6 @@ import at.asitplus.wallet.pupilid.BindingConfirmResponse
 import at.asitplus.wallet.pupilid.BindingCsrResponse
 import at.asitplus.wallet.pupilid.BindingParamsResponse
 import at.asitplus.wallet.pupilid.DeviceBindingService
-import at.asitplus.wallet.pupilid.KmmResult
 import at.asitplus.wallet.pupilid.ServiceResult
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
@@ -46,7 +45,7 @@ class DeviceBindingServiceTest {
             serverAddress = "http://localhost/",
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             deviceAdapter = DummyDeviceAdapter,
-            signCallback = { _, _, _ -> KmmResult.success(byteArrayOf()) },
+            cryptoAdapter = NoopCryptoAdapter,
             engine = mockEngine
         )
 
@@ -66,7 +65,7 @@ class DeviceBindingServiceTest {
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
             deviceAdapter = DummyDeviceAdapter,
-            signCallback = { _, _, _ -> KmmResult.success(byteArrayOf()) },
+            cryptoAdapter = NoopCryptoAdapter,
             engine = mockEngine
         )
 
@@ -86,7 +85,7 @@ class DeviceBindingServiceTest {
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
             deviceAdapter = DummyDeviceAdapter,
-            signCallback = { _, _, _ -> KmmResult.success(byteArrayOf()) },
+            cryptoAdapter = NoopCryptoAdapter,
             engine = mockEngine
         )
 
@@ -106,7 +105,7 @@ class DeviceBindingServiceTest {
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
             deviceAdapter = ErrorThrowingDeviceAdapter,
-            signCallback = { _, _, _ -> KmmResult.success(byteArrayOf()) },
+            cryptoAdapter = NoopCryptoAdapter,
             engine = mockEngine
         )
 
