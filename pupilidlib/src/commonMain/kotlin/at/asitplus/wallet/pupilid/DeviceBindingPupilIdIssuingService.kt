@@ -27,9 +27,9 @@ class DeviceBindingPupilIdIssuingService internal constructor(
      */
     cryptoAdapter: Asn1Service.CryptoAdapter,
     /**
-     * Implementation: Return the message of `IssueCredentialMessenger.startDirect()`
+     * Needed to get the message to send from native callers
      */
-    private val loadMessageCallback: () -> KmmResult<String>,
+    private val callback: Callback,
     /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
      */
@@ -64,7 +64,7 @@ class DeviceBindingPupilIdIssuingService internal constructor(
                 return ServiceResult.ErrorFromNetwork("No success for binding/confirm message")
             }
 
-            val message = loadMessageCallback().getOrThrow()
+            val message = callback.loadMessage().getOrThrow()
 
             val initialPost = client.post("$serverAddress/pupilid/issue") {
                 contentType(ContentType.Text.Plain)
@@ -83,6 +83,13 @@ class DeviceBindingPupilIdIssuingService internal constructor(
             return ServiceResult.ErrorFromNativeCode(e)
                 .also { Napier.w("Error from native code", throwable = e) }
         }
+    }
+
+    interface Callback {
+        /**
+         * Implementers: Return the message of `IssueCredentialMessenger.startDirect()`
+         */
+        suspend fun loadMessage(): KmmResult<String>
     }
 
 }

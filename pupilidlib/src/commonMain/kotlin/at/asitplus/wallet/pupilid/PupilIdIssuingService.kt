@@ -18,9 +18,9 @@ class PupilIdIssuingService(
      */
     private val serverAddress: String,
     /**
-     * Implementation: Create a signed JWS, containing an `x5c` header with the local device binding certificate
+     * Needed callback to sign the challenge in an JWS
      */
-    private val createSignedJwsCallback: (String) -> KmmResult<String>,
+    private val jwsAdapter: JwsAdapter,
     /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
      */
@@ -50,7 +50,7 @@ class PupilIdIssuingService(
                 ?: throw ResponseException(initialPost, initialPost.bodyAsText())
             val challenge = authenticateHeader.removePrefix("Challenge ")
             val payload = Json.encodeToString(mapOf("challenge" to challenge))
-            val signedJws = createSignedJwsCallback(payload).getOrThrow()
+            val signedJws = jwsAdapter.createSignedJwsCallback(payload).getOrThrow()
             val responseHeaderValue = "Response $signedJws"
 
             val secondPost = client.post("$serverAddress/pupilid/issue") {
@@ -70,6 +70,14 @@ class PupilIdIssuingService(
             return ServiceResult.ErrorFromNativeCode(e)
                 .also { Napier.w("Error from native code", throwable = e) }
         }
+    }
+
+
+    interface JwsAdapter {
+        /**
+         * Implementers: Create a signed JWS, containing an `x5c` header with the local device binding certificate
+         */
+        suspend fun createSignedJwsCallback(payload: String): KmmResult<String>
     }
 
 }
