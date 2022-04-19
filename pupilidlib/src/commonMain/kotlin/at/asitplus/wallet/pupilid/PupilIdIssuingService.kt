@@ -77,7 +77,7 @@ class PupilIdIssuingService(
     }
 
 
-    interface JwsAdapter {
+    fun interface JwsAdapter {
         /**
          * Implementers: Create a signed JWS, containing an `x5c` header with the local device binding certificate
          */
