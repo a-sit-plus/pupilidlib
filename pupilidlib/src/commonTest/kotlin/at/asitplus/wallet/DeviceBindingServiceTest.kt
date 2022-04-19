@@ -58,7 +58,7 @@ class DeviceBindingServiceTest {
 
     @Test
     fun unknownResponse() {
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine {
             respond(ByteReadChannel("""{"foo":"bar"}"""), HttpStatusCode.OK, jsonHeaders)
         }
         val service = DeviceBindingService(
@@ -78,7 +78,7 @@ class DeviceBindingServiceTest {
 
     @Test
     fun serverErrorResponse() {
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine {
             respond(ByteReadChannel("""{"foo":"bar"}"""), HttpStatusCode.InternalServerError, jsonHeaders)
         }
         val service = DeviceBindingService(
@@ -97,8 +97,37 @@ class DeviceBindingServiceTest {
     }
 
     @Test
+    fun springBootErrorResponse() {
+        val mockEngine = MockEngine {
+            respond("""
+                {
+                 "timestamp": 1500597044204,
+                 "status": 400,
+                 "error": "Bad Request",
+                 "exception": "org.springframework.http.converter.HttpMessageNotReadableException",
+                 "message": "JSON parse error",
+                 "path": "/foo"
+                }
+            """.trimIndent(), HttpStatusCode.BadRequest, jsonHeaders)
+        }
+        val service = DeviceBindingService(
+            extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
+            serverAddress = "http://localhost/",
+            deviceAdapter = DummyDeviceAdapter,
+            cryptoAdapter = NoopCryptoAdapter,
+            engine = mockEngine
+        )
+
+        runBlocking {
+            val result = service.createDeviceBinding()
+
+            assertErrorFromNetwork(result)
+        }
+    }
+
+    @Test
     fun errorFromNativeCode() {
-        val mockEngine = MockEngine { request ->
+        val mockEngine = MockEngine {
             respond(ByteReadChannel("""{"foo":"bar"}"""), HttpStatusCode.OK, jsonHeaders)
         }
         val service = DeviceBindingService(
