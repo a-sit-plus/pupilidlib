@@ -1,12 +1,6 @@
-package at.asitplus.wallet
+package at.asitplus.wallet.pupilid
 
 
-import at.asitplus.wallet.pupilid.BindingConfirmRequest
-import at.asitplus.wallet.pupilid.BindingConfirmResponse
-import at.asitplus.wallet.pupilid.BindingCsrRequest
-import at.asitplus.wallet.pupilid.BindingCsrResponse
-import at.asitplus.wallet.pupilid.BindingParamsRequest
-import at.asitplus.wallet.pupilid.BindingParamsResponse
 import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(name = "BindingParamsRequest", description = "Request to get parameters for a new binding")
