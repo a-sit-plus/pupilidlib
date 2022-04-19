@@ -54,7 +54,7 @@ class DeviceBindingService(
     @Throws(ResponseException::class, Throwable::class)
     internal suspend fun getDeviceBindingResponse(): HttpResponse {
         val bindingParamsRequest = BindingParamsRequest(deviceAdapter.deviceName)
-        val post = client.post("$serverAddress/binding/start") {
+        val post = client.post(URLBuilder(serverAddress).appendPathSegments("binding", "start").buildString()) {
             contentType(ContentType.Application.Json)
             headers {
                 append(HeaderNames.X_AUTH_EXT_NONCE, extAuthNonce)
@@ -72,7 +72,7 @@ class DeviceBindingService(
         val attestationCerts = deviceAdapter.loadAttestationCerts().getOrThrow()
         val bindingCsrRequest =
             BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
-        val bindingCsrResponse = client.post("$serverAddress/binding/create") {
+        val bindingCsrResponse = client.post(URLBuilder(serverAddress).appendPathSegments("binding", "create").buildString()) {
             contentType(ContentType.Application.Json)
             headers {
                 append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
@@ -81,7 +81,7 @@ class DeviceBindingService(
         }.body<BindingCsrResponse>()
         deviceAdapter.storeCertificate(bindingCsrResponse.certificate)
         val bindingConfirmRequest = BindingConfirmRequest(true)
-        return client.post("$serverAddress/binding/confirm") {
+        return client.post(URLBuilder(serverAddress).appendPathSegments("binding", "confirm").buildString()) {
             contentType(ContentType.Application.Json)
             headers {
                 append(HeaderNames.X_AUTH_TOKEN, xAuthToken)

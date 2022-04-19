@@ -22,6 +22,10 @@ class PupilIdIssuingService(
      */
     private val jwsAdapter: JwsAdapter,
     /**
+     * Path of the endpoint for issuing credentials, defaults to `listOf("pupilid", "issue")`
+     */
+    private val serverIssuePath: List<String> = listOf("pupilid", "issue"),
+    /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
      */
     engine: HttpClientEngine? = null
@@ -41,7 +45,8 @@ class PupilIdIssuingService(
 
     suspend fun issueCredentials(message: String): ServiceResult {
         try {
-            val initialPost = client.post("$serverAddress/pupilid/issue") {
+            val url = URLBuilder(serverAddress).appendPathSegments(serverIssuePath).buildString()
+            val initialPost = client.post(url) {
                 contentType(ContentType.Text.Plain)
                 setBody(message)
                 expectSuccess = false
@@ -52,8 +57,7 @@ class PupilIdIssuingService(
             val payload = Json.encodeToString(mapOf("challenge" to challenge))
             val signedJws = jwsAdapter.createSignedJwsCallback(payload).getOrThrow()
             val responseHeaderValue = "Response $signedJws"
-
-            val secondPost = client.post("$serverAddress/pupilid/issue") {
+            val secondPost = client.post(url) {
                 contentType(ContentType.Text.Plain)
                 headers {
                     append(HttpHeaders.Authorization, responseHeaderValue)

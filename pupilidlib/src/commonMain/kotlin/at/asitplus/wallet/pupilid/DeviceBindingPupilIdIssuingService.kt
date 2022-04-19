@@ -31,6 +31,10 @@ class DeviceBindingPupilIdIssuingService internal constructor(
      */
     private val callback: Callback,
     /**
+     * Path of the endpoint for issuing credentials, defaults to `listOf("pupilid", "issue")`
+     */
+    private val serverIssuePath: List<String> = listOf("pupilid", "issue"),
+    /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
      */
     engine: HttpClientEngine? = null
@@ -57,6 +61,7 @@ class DeviceBindingPupilIdIssuingService internal constructor(
 
     suspend fun createDeviceBindingAndIssueCredentials(): ServiceResult {
         try {
+            val url = URLBuilder(serverAddress).appendPathSegments(serverIssuePath).buildString()
             val deviceBindingResponse = deviceBindingService.getDeviceBindingResponse()
             val xAuthToken = deviceBindingResponse.headers[HeaderNames.X_AUTH_TOKEN].toString()
             val bindingConfirmBody = deviceBindingResponse.body<BindingConfirmResponse>()
@@ -66,7 +71,7 @@ class DeviceBindingPupilIdIssuingService internal constructor(
 
             val message = callback.loadMessage().getOrThrow()
 
-            val initialPost = client.post("$serverAddress/pupilid/issue") {
+            val initialPost = client.post(url) {
                 contentType(ContentType.Text.Plain)
                 headers {
                     append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
