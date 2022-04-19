@@ -28,7 +28,7 @@ cache:
 
 workflow:
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development" || $CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/
 
 assembleAndroid:
   except:
@@ -72,7 +72,7 @@ publish:
     - ios
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development"'
-    - if: '$CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/'
+    - if: '$CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/ || $CI_PIPELINE_SOURCE == "merge_request_event"'
       when: manual
       allow_failure: true
   script: |
