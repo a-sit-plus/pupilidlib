@@ -56,9 +56,7 @@ class DeviceBindingPupilIdIssuingServiceTest {
             extAuthNonce = xAuthExtNonce,
             deviceAdapter = DummyDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
-            callback = object : DeviceBindingPupilIdIssuingService.Callback {
-                override suspend fun loadMessage() = KmmResult.success("foo")
-            },
+            callback = { KmmResult.success("foo") },
             engine = mockEngine,
         )
 

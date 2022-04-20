@@ -38,10 +38,7 @@ class PupilIdIssuingServiceTest {
     fun success() {
         val service = PupilIdIssuingService(
             serverAddress = "http://localhost/",
-            jwsAdapter = object : PupilIdIssuingService.JwsAdapter {
-                override suspend fun createSignedJwsCallback(payload: String) =
-                    KmmResult.success(payload)
-            },
+            jwsAdapter = { payload -> KmmResult.success(payload) },
             engine = mockEngine,
         )
 
@@ -69,10 +66,7 @@ class PupilIdIssuingServiceTest {
         }
         val service = PupilIdIssuingService(
             serverAddress = "http://localhost/",
-            jwsAdapter = object : PupilIdIssuingService.JwsAdapter {
-                override suspend fun createSignedJwsCallback(payload: String) =
-                    KmmResult.success(payload)
-            },
+            jwsAdapter = { payload -> KmmResult.success(payload) },
             engine = mockEngine,
         )
 

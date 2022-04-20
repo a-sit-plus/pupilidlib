@@ -90,7 +90,7 @@ class DeviceBindingPupilIdIssuingService internal constructor(
         }
     }
 
-    interface Callback {
+    fun interface Callback {
         /**
          * Implementers: Return the message of `IssueCredentialMessenger.startDirect()`
          */
