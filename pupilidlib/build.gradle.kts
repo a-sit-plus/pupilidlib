@@ -43,6 +43,19 @@ kotlin {
         }
     }
 
+    targets.all {
+        compilations.all {
+            kotlinOptions {
+                freeCompilerArgs = listOf(
+                    "-Xopt-in=kotlinx.serialization.ExperimentalSerializationApi",
+                    "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                    "-Xopt-in=kotlin.time.ExperimentalTime",
+                    "-Xopt-in=kotlin.RequiresOptIn",
+                )
+            }
+        }
+    }
+
     sourceSets {
         /* Main source sets */
         val commonMain by getting {
