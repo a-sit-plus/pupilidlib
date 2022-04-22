@@ -9,7 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 
-class DeviceBindingPupilIdIssuingService internal constructor(
+class DeviceBindingPupilIdIssuingService constructor(
     /**
      * Base address of the server to contact, i.e. `https://wallet.a-sit.at/`
      */
@@ -80,7 +80,7 @@ class DeviceBindingPupilIdIssuingService internal constructor(
             }
             val response = initialPost.body<String>()
 
-            return ServiceResult.Success(response)
+            return ServiceResult.Success(response, initialPost.headers[HeaderNames.X_AUTH_TOKEN])
         } catch (e: ResponseException) {
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
                 .also { Napier.w("Error from network", throwable = e) }

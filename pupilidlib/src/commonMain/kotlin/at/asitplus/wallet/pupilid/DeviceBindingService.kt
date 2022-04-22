@@ -93,7 +93,10 @@ class DeviceBindingService(
     suspend fun createDeviceBinding(): ServiceResult = try {
         val bindingConfirmResponse = getDeviceBindingResponse()
         val body = bindingConfirmResponse.body<BindingConfirmResponse>()
-        ServiceResult.Success(body.success.toString())
+        ServiceResult.Success(
+            body.success.toString(),
+            bindingConfirmResponse.headers[HeaderNames.X_AUTH_TOKEN]
+        )
     } catch (e: ResponseException) {
         ServiceResult.ErrorFromNetwork(e.message ?: "Error")
             .also { Napier.w("Error from network", throwable = e) }

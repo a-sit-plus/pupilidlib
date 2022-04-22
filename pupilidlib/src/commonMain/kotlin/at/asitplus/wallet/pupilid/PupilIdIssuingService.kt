@@ -66,7 +66,7 @@ class PupilIdIssuingService(
             }
             val response = secondPost.body<String>()
 
-            return ServiceResult.Success(response)
+            return ServiceResult.Success(response, secondPost.headers[HeaderNames.X_AUTH_TOKEN])
         } catch (e: ResponseException) {
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
                 .also { Napier.w("Error from network", throwable = e) }
