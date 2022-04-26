@@ -1,15 +1,14 @@
 package at.asitplus.wallet
 
-import at.asitplus.wallet.pupilid.PupilIdIssuingService
-import at.asitplus.wallet.pupilid.ServiceResult
+import at.asitplus.wallet.Assertions.assertErrorFromNetwork
+import at.asitplus.wallet.Assertions.assertSuccess
 import at.asitplus.wallet.pupilid.KmmResult
+import at.asitplus.wallet.pupilid.PupilIdIssuingService
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 import kotlin.test.Test
-import kotlin.test.assertTrue
-import kotlin.test.fail
 
 class PupilIdIssuingServiceTest {
 
@@ -77,20 +76,5 @@ class PupilIdIssuingServiceTest {
         }
     }
 
-    private fun assertSuccess(result: ServiceResult) {
-        when (result) {
-            is ServiceResult.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
-            is ServiceResult.ErrorFromNetwork -> fail(result.error)
-            is ServiceResult.Success -> assertTrue(true)
-        }
-    }
-
-    private fun assertErrorFromNetwork(result: ServiceResult) {
-        when (result) {
-            is ServiceResult.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
-            is ServiceResult.ErrorFromNetwork -> assertTrue(true)
-            is ServiceResult.Success -> fail("Unexpected success")
-        }
-    }
 
 }

@@ -1,10 +1,12 @@
 package at.asitplus.wallet
 
+import at.asitplus.wallet.Assertions.assertErrorFromNativeCode
+import at.asitplus.wallet.Assertions.assertErrorFromNetwork
+import at.asitplus.wallet.Assertions.assertSuccess
 import at.asitplus.wallet.pupilid.BindingConfirmResponse
 import at.asitplus.wallet.pupilid.BindingCsrResponse
 import at.asitplus.wallet.pupilid.BindingParamsResponse
 import at.asitplus.wallet.pupilid.DeviceBindingService
-import at.asitplus.wallet.pupilid.ServiceResult
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
@@ -13,8 +15,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
 import kotlin.test.Test
-import kotlin.test.assertTrue
-import kotlin.test.fail
 
 class DeviceBindingServiceTest {
 
@@ -99,7 +99,8 @@ class DeviceBindingServiceTest {
     @Test
     fun springBootErrorResponse() {
         val mockEngine = MockEngine {
-            respond("""
+            respond(
+                """
                 {
                  "timestamp": 1500597044204,
                  "status": 400,
@@ -108,7 +109,8 @@ class DeviceBindingServiceTest {
                  "message": "JSON parse error",
                  "path": "/foo"
                 }
-            """.trimIndent(), HttpStatusCode.BadRequest, jsonHeaders)
+            """.trimIndent(), HttpStatusCode.BadRequest, jsonHeaders
+            )
         }
         val service = DeviceBindingService(
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
@@ -145,27 +147,4 @@ class DeviceBindingServiceTest {
         }
     }
 
-    private fun assertErrorFromNativeCode(result: ServiceResult) {
-        when (result) {
-            is ServiceResult.ErrorFromNativeCode -> assertTrue(true)
-            is ServiceResult.ErrorFromNetwork -> fail(result.error)
-            is ServiceResult.Success -> fail("Unexpected success")
-        }
-    }
-
-    private fun assertErrorFromNetwork(result: ServiceResult) {
-        when (result) {
-            is ServiceResult.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
-            is ServiceResult.ErrorFromNetwork -> assertTrue(true)
-            is ServiceResult.Success -> fail("Unexpected success")
-        }
-    }
-
-    private fun assertSuccess(result: ServiceResult) {
-        when (result) {
-            is ServiceResult.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
-            is ServiceResult.ErrorFromNetwork -> fail(result.error)
-            is ServiceResult.Success -> assertTrue(true)
-        }
-    }
 }
