@@ -11,6 +11,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
+import kotlinx.serialization.SerializationException
 
 /**
  * @param engine can be passed to enable mocks in unit tests, to use the default engine, pass null
@@ -99,6 +100,9 @@ class DeviceBindingService(
             body.success.toString(),
             bindingConfirmResponse.headers[HeaderNames.X_AUTH_TOKEN]
         )
+    } catch (e: SerializationException) {
+        ServiceResult.ErrorFromNetwork(e.message ?: "Error")
+            .also { Napier.w("Error from network", throwable = e) }
     } catch (e: ResponseException) {
         ServiceResult.ErrorFromNetwork(e.message ?: "Error")
             .also { Napier.w("Error from network", throwable = e) }

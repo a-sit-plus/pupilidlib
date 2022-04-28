@@ -20,33 +20,34 @@ class DeviceBindingServiceTest {
 
     private val jsonHeaders = headersOf(HttpHeaders.ContentType, "application/json")
 
-    @Test
-    fun success() {
-        val mockEngine = MockEngine { request ->
-            when {
-                request.url.encodedPath.endsWith("/binding/start") -> {
-                    val content = Json.encodeToString(BindingParamsResponse(byteArrayOf(), "subject", "EC"))
-                    respond(content, HttpStatusCode.OK, jsonHeaders)
-                }
-                request.url.encodedPath.endsWith("/binding/create") -> {
-                    val content = Json.encodeToString(BindingCsrResponse(byteArrayOf(), "attested-public-key"))
-                    respond(content, HttpStatusCode.OK, jsonHeaders)
-                }
-                request.url.encodedPath.endsWith("/binding/confirm") -> {
-                    val content = Json.encodeToString(BindingConfirmResponse(true))
-                    respond(content, HttpStatusCode.OK, jsonHeaders)
-                }
-                else -> {
-                    error("Unhandled call")
-                }
+    val successMockEngine = MockEngine { request ->
+        when {
+            request.url.encodedPath.endsWith("/binding/start") -> {
+                val content = Json.encodeToString(BindingParamsResponse(byteArrayOf(), "subject", "EC"))
+                respond(content, HttpStatusCode.OK, jsonHeaders)
+            }
+            request.url.encodedPath.endsWith("/binding/create") -> {
+                val content = Json.encodeToString(BindingCsrResponse(byteArrayOf(), "attested-public-key"))
+                respond(content, HttpStatusCode.OK, jsonHeaders)
+            }
+            request.url.encodedPath.endsWith("/binding/confirm") -> {
+                val content = Json.encodeToString(BindingConfirmResponse(true))
+                respond(content, HttpStatusCode.OK, jsonHeaders)
+            }
+            else -> {
+                error("Unhandled call")
             }
         }
+    }
+
+    @Test
+    fun success() {
         val service = DeviceBindingService(
             serverAddress = "http://localhost/",
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             deviceAdapter = DummyDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
-            engine = mockEngine
+            engine = successMockEngine
         )
 
         runBlocking {
@@ -72,7 +73,7 @@ class DeviceBindingServiceTest {
         runBlocking {
             val result = service.createDeviceBinding()
 
-            assertErrorFromNativeCode(result)
+            assertErrorFromNetwork(result)
         }
     }
 
@@ -129,15 +130,12 @@ class DeviceBindingServiceTest {
 
     @Test
     fun errorFromNativeCode() {
-        val mockEngine = MockEngine {
-            respond(ByteReadChannel("""{"foo":"bar"}"""), HttpStatusCode.OK, jsonHeaders)
-        }
         val service = DeviceBindingService(
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
             deviceAdapter = ErrorThrowingDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
-            engine = mockEngine
+            engine = successMockEngine
         )
 
         runBlocking {
