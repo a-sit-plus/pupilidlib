@@ -5,6 +5,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -72,13 +73,14 @@ class DeviceBindingService(
         val attestationCerts = deviceAdapter.loadAttestationCerts().getOrThrow()
         val bindingCsrRequest =
             BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
-        val bindingCsrResponse = client.post(URLBuilder(serverAddress).appendPathSegments("binding", "create").buildString()) {
-            contentType(ContentType.Application.Json)
-            headers {
-                append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
-            }
-            setBody(bindingCsrRequest)
-        }.body<BindingCsrResponse>()
+        val bindingCsrResponse =
+            client.post(URLBuilder(serverAddress).appendPathSegments("binding", "create").buildString()) {
+                contentType(ContentType.Application.Json)
+                headers {
+                    append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
+                }
+                setBody(bindingCsrRequest)
+            }.body<BindingCsrResponse>()
         deviceAdapter.storeCertificate(bindingCsrResponse.certificate)
         val bindingConfirmRequest = BindingConfirmRequest(true)
         return client.post(URLBuilder(serverAddress).appendPathSegments("binding", "confirm").buildString()) {

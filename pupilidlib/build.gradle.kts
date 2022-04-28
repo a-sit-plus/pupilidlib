@@ -108,7 +108,7 @@ kotlin {
         val androidTest by getting
         val jvmTest by getting {
             dependencies {
-                implementation("org.bouncycastle:bcpkix-jdk15on:${Versions.Jvm.bouncycastle}")
+                implementation("org.bouncycastle:bcpkix-jdk18on:${Versions.Jvm.bouncycastle}")
             }
         }
         val iosTest by creating
