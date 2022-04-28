@@ -78,6 +78,7 @@ class DeviceBindingPupilIdIssuingService constructor(
                     append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
                 }
                 setBody(message)
+                expectSuccess = true
             }
             val response = initialPost.body<String>()
 

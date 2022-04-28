@@ -63,6 +63,7 @@ class PupilIdIssuingService(
                     append(HttpHeaders.Authorization, responseHeaderValue)
                 }
                 setBody(message)
+                expectSuccess = true
             }
             val response = secondPost.body<String>()
 

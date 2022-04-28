@@ -62,6 +62,7 @@ class DeviceBindingService(
                 append(HeaderNames.X_AUTH_EXT_NONCE, extAuthNonce)
             }
             setBody(bindingParamsRequest)
+            expectSuccess = true
         }
         val bindingParamsResponse = post.body<BindingParamsResponse>()
         val xAuthToken = post.headers[HeaderNames.X_AUTH_TOKEN].toString()
@@ -81,6 +82,7 @@ class DeviceBindingService(
                     append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
                 }
                 setBody(bindingCsrRequest)
+                expectSuccess = true
             }.body<BindingCsrResponse>()
         deviceAdapter.storeCertificate(bindingCsrResponse.certificate)
         val bindingConfirmRequest = BindingConfirmRequest(true)
@@ -90,6 +92,7 @@ class DeviceBindingService(
                 append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
             }
             setBody(bindingConfirmRequest)
+            expectSuccess = true
         }
     }
 
