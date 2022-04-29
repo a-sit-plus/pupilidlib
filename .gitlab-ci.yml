@@ -78,7 +78,7 @@ publish:
   script: |
     export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
     echo "Publishing version $VERSION for $LIB_NAME"
-    ./gradlew --continue assembleDebugXCFramework assemble publish
+    ./gradlew --continue :pupilidlib:assemblePupilidlibDebugXCFramework assemble publish
     (cd "$LIB_NAME/build/XCFrameworks/debug/"; zip -r "$LIB_NAME.zip" "$LIB_NAME.xcframework")
     export CHECKSUM=$(shasum -a 256 "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" | cut -d' ' -f1)
     export PACKAGE_REMOTE_ZIP=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.zip
