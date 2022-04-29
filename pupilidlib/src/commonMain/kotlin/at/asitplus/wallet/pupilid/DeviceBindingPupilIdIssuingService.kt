@@ -65,24 +65,25 @@ class DeviceBindingPupilIdIssuingService constructor(
         try {
             val url = URLBuilder(serverAddress).appendPathSegments(serverIssuePath).buildString()
             val deviceBindingResponse = deviceBindingService.getDeviceBindingResponse()
-            val xAuthToken = deviceBindingResponse.headers[HeaderNames.X_AUTH_TOKEN].toString()
-            val bindingConfirmBody = deviceBindingResponse.body<BindingConfirmResponse>()
+            var xAuthToken = deviceBindingResponse.xAuthToken
+            val bindingConfirmBody = deviceBindingResponse.body
             if (!bindingConfirmBody.success) {
                 return ServiceResult.ErrorFromNetwork("No success for binding/confirm message")
             }
 
             val message = callback.loadMessage().getOrThrow()
 
-            val initialPost = client.post(url) {
+            val issuePost = client.post(url) {
                 headers {
                     append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
                 }
                 setBody(message)
                 expectSuccess = true
             }
-            val response = initialPost.body<String>()
+            val response = issuePost.body<String>()
+            xAuthToken = issuePost.headers[HeaderNames.X_AUTH_TOKEN] ?: xAuthToken
 
-            return ServiceResult.Success(response, initialPost.headers[HeaderNames.X_AUTH_TOKEN])
+            return ServiceResult.Success(response, xAuthToken)
         } catch (e: SerializationException) {
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
                 .also { Napier.w("Error from network", throwable = e) }
