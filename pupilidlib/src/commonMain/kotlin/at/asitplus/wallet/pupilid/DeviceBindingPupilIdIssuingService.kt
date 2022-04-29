@@ -81,8 +81,7 @@ class DeviceBindingPupilIdIssuingService constructor(
                 expectSuccess = true
             }
             val response = issuePost.body<String>()
-            xAuthToken = issuePost.headers[HeaderNames.X_AUTH_TOKEN] ?: xAuthToken
-
+            xAuthToken = issuePost.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
             return ServiceResult.Success(response, xAuthToken)
         } catch (e: SerializationException) {
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error")

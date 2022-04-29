@@ -84,7 +84,7 @@ class DeviceBindingService(
                 setBody(bindingCsrRequest)
                 expectSuccess = true
             }
-        xAuthToken = createResponse.headers[HeaderNames.X_AUTH_TOKEN] ?: xAuthToken
+        xAuthToken = createResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
         val bindingCsrResponse = createResponse.body<BindingCsrResponse>()
         deviceAdapter.storeCertificate(bindingCsrResponse.certificate)
         val bindingConfirmRequest = BindingConfirmRequest(true)
@@ -97,7 +97,7 @@ class DeviceBindingService(
                 setBody(bindingConfirmRequest)
                 expectSuccess = true
             }
-        xAuthToken = confirmResponse.headers[HeaderNames.X_AUTH_TOKEN] ?: xAuthToken
+        xAuthToken = confirmResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
         return HttpSessionResponse(confirmResponse.body(), xAuthToken)
     }
 
