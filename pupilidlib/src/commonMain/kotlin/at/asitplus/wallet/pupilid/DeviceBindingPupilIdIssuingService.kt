@@ -5,9 +5,11 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.SerializationException
 
 class DeviceBindingPupilIdIssuingService constructor(
     /**
@@ -72,15 +74,18 @@ class DeviceBindingPupilIdIssuingService constructor(
             val message = callback.loadMessage().getOrThrow()
 
             val initialPost = client.post(url) {
-                contentType(ContentType.Text.Plain)
                 headers {
                     append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
                 }
                 setBody(message)
+                expectSuccess = true
             }
             val response = initialPost.body<String>()
 
             return ServiceResult.Success(response, initialPost.headers[HeaderNames.X_AUTH_TOKEN])
+        } catch (e: SerializationException) {
+            return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
+                .also { Napier.w("Error from network", throwable = e) }
         } catch (e: ResponseException) {
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
                 .also { Napier.w("Error from network", throwable = e) }

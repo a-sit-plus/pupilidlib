@@ -5,10 +5,12 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -47,7 +49,6 @@ class PupilIdIssuingService(
         try {
             val url = URLBuilder(serverAddress).appendPathSegments(serverIssuePath).buildString()
             val initialPost = client.post(url) {
-                contentType(ContentType.Text.Plain)
                 setBody(message)
                 expectSuccess = false
             }
@@ -58,15 +59,18 @@ class PupilIdIssuingService(
             val signedJws = jwsAdapter.createSignedJwsCallback(payload).getOrThrow()
             val responseHeaderValue = "Response $signedJws"
             val secondPost = client.post(url) {
-                contentType(ContentType.Text.Plain)
                 headers {
                     append(HttpHeaders.Authorization, responseHeaderValue)
                 }
                 setBody(message)
+                expectSuccess = true
             }
             val response = secondPost.body<String>()
 
             return ServiceResult.Success(response, secondPost.headers[HeaderNames.X_AUTH_TOKEN])
+        } catch (e: SerializationException) {
+            return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
+                .also { Napier.w("Error from network", throwable = e) }
         } catch (e: ResponseException) {
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
                 .also { Napier.w("Error from network", throwable = e) }

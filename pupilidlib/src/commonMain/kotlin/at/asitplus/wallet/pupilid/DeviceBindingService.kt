@@ -5,11 +5,13 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
+import kotlinx.serialization.SerializationException
 
 /**
  * @param engine can be passed to enable mocks in unit tests, to use the default engine, pass null
@@ -60,6 +62,7 @@ class DeviceBindingService(
                 append(HeaderNames.X_AUTH_EXT_NONCE, extAuthNonce)
             }
             setBody(bindingParamsRequest)
+            expectSuccess = true
         }
         val bindingParamsResponse = post.body<BindingParamsResponse>()
         val xAuthToken = post.headers[HeaderNames.X_AUTH_TOKEN].toString()
@@ -72,13 +75,15 @@ class DeviceBindingService(
         val attestationCerts = deviceAdapter.loadAttestationCerts().getOrThrow()
         val bindingCsrRequest =
             BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
-        val bindingCsrResponse = client.post(URLBuilder(serverAddress).appendPathSegments("binding", "create").buildString()) {
-            contentType(ContentType.Application.Json)
-            headers {
-                append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
-            }
-            setBody(bindingCsrRequest)
-        }.body<BindingCsrResponse>()
+        val bindingCsrResponse =
+            client.post(URLBuilder(serverAddress).appendPathSegments("binding", "create").buildString()) {
+                contentType(ContentType.Application.Json)
+                headers {
+                    append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
+                }
+                setBody(bindingCsrRequest)
+                expectSuccess = true
+            }.body<BindingCsrResponse>()
         deviceAdapter.storeCertificate(bindingCsrResponse.certificate)
         val bindingConfirmRequest = BindingConfirmRequest(true)
         return client.post(URLBuilder(serverAddress).appendPathSegments("binding", "confirm").buildString()) {
@@ -87,6 +92,7 @@ class DeviceBindingService(
                 append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
             }
             setBody(bindingConfirmRequest)
+            expectSuccess = true
         }
     }
 
@@ -97,6 +103,9 @@ class DeviceBindingService(
             body.success.toString(),
             bindingConfirmResponse.headers[HeaderNames.X_AUTH_TOKEN]
         )
+    } catch (e: SerializationException) {
+        ServiceResult.ErrorFromNetwork(e.message ?: "Error")
+            .also { Napier.w("Error from network", throwable = e) }
     } catch (e: ResponseException) {
         ServiceResult.ErrorFromNetwork(e.message ?: "Error")
             .also { Napier.w("Error from network", throwable = e) }
