@@ -3,6 +3,7 @@
 package at.asitplus.wallet.pupilid
 
 import io.ktor.util.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 
@@ -179,3 +180,32 @@ open class BindingConfirmResponse(
     }
 
 }
+
+@Serializable
+data class CredentialContent (
+    @SerialName("typ")
+    val type: String,
+    val id: String,
+   @SerialName("scn")
+    val schoolName: String,
+    @SerialName("sca")
+    val schoolAddress: String,
+    @SerialName("snr")
+    val schoolNumber: String,
+    @SerialName("pnr")
+    val pupilNumber: String,
+    @SerialName("fn")
+    val firstName: String,
+    @SerialName("ln")
+    val lastName: String,
+    @SerialName("dob")
+    val dateOfBirth: String,
+    @SerialName("vu")
+    val validUntil: String,
+    @SerialName("cit")
+    val postCity: String,
+    @SerialName("pos")
+    val postCode: String,
+    @SerialName("key")
+    val key: String
+)

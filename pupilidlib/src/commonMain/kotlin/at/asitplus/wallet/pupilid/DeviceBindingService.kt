@@ -84,7 +84,7 @@ class DeviceBindingService(
                 setBody(bindingCsrRequest)
                 expectSuccess = true
             }.body<BindingCsrResponse>()
-        deviceAdapter.storeCertificate(bindingCsrResponse.certificate)
+        deviceAdapter.storeCertificate(bindingCsrResponse.certificate, bindingCsrResponse.attestedPublicKey)
         val bindingConfirmRequest = BindingConfirmRequest(true)
         return client.post(URLBuilder(serverAddress).appendPathSegments("binding", "confirm").buildString()) {
             contentType(ContentType.Application.Json)
@@ -119,7 +119,7 @@ class DeviceBindingService(
 
 interface DeviceAdapter {
     suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>>
-    fun storeCertificate(certificate: ByteArray): KmmResult<Boolean>
+    fun storeCertificate(certificate: ByteArray, attestedPublicKey: String?): KmmResult<Boolean>
     suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean>
     fun getPublicKeyEncoded(): KmmResult<ByteArray>
     val deviceName: String
