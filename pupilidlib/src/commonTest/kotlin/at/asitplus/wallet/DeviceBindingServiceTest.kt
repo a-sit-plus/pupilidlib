@@ -3,12 +3,14 @@ package at.asitplus.wallet
 import at.asitplus.wallet.Assertions.assertErrorFromNativeCode
 import at.asitplus.wallet.Assertions.assertErrorFromNetwork
 import at.asitplus.wallet.Assertions.assertSuccess
+import at.asitplus.wallet.pupilid.AttestedPublicKey
 import at.asitplus.wallet.pupilid.BindingConfirmResponse
 import at.asitplus.wallet.pupilid.BindingCsrResponse
 import at.asitplus.wallet.pupilid.BindingParamsResponse
 import at.asitplus.wallet.pupilid.DeviceBindingService
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
@@ -19,6 +21,7 @@ import kotlin.test.Test
 class DeviceBindingServiceTest {
 
     private val jsonHeaders = headersOf(HttpHeaders.ContentType, "application/json")
+    private val attestedPublicKeyKid = Random.nextBytes(32).encodeBase64()
 
     val successMockEngine = MockEngine { request ->
         when {
@@ -27,7 +30,8 @@ class DeviceBindingServiceTest {
                 respond(content, HttpStatusCode.OK, jsonHeaders)
             }
             request.url.encodedPath.endsWith("/binding/create") -> {
-                val content = Json.encodeToString(BindingCsrResponse(byteArrayOf(), "attested-public-key"))
+                val csrResponse = BindingCsrResponse(byteArrayOf(), AttestedPublicKey(attestedPublicKeyKid, 1).serialize())
+                val content = Json.encodeToString(csrResponse)
                 respond(content, HttpStatusCode.OK, jsonHeaders)
             }
             request.url.encodedPath.endsWith("/binding/confirm") -> {
@@ -45,7 +49,7 @@ class DeviceBindingServiceTest {
         val service = DeviceBindingService(
             serverAddress = "http://localhost/",
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
-            deviceAdapter = DummyDeviceAdapter,
+            deviceAdapter = AssertKidDeviceAdapter(attestedPublicKeyKid),
             cryptoAdapter = NoopCryptoAdapter,
             engine = successMockEngine
         )
@@ -146,3 +150,4 @@ class DeviceBindingServiceTest {
     }
 
 }
+

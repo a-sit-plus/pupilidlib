@@ -2,6 +2,7 @@ package at.asitplus.wallet
 
 import at.asitplus.wallet.Assertions.assertErrorFromNetwork
 import at.asitplus.wallet.Assertions.assertSuccess
+import at.asitplus.wallet.pupilid.AttestedPublicKey
 import at.asitplus.wallet.pupilid.BindingConfirmResponse
 import at.asitplus.wallet.pupilid.BindingCsrResponse
 import at.asitplus.wallet.pupilid.BindingParamsResponse
@@ -11,6 +12,7 @@ import at.asitplus.wallet.pupilid.KmmResult
 import at.asitplus.wallet.pupilid.ServiceResult
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -24,6 +26,7 @@ class DeviceBindingPupilIdIssuingServiceTest {
     private val xAuthToken = Random.nextInt().toString(16)
     private val xAuthExtNonce = Random.nextInt().toString(16)
     private val randomResponse = Random.nextInt().toString(16)
+    private val attestedPublicKeyKid = Random.nextBytes(32).encodeBase64()
     private val jsonHeaders = headersOf(
         HttpHeaders.ContentType to listOf("application/json"),
     )
@@ -42,7 +45,9 @@ class DeviceBindingPupilIdIssuingServiceTest {
                     respond(content, HttpStatusCode.OK, jsonHeadersWithXAuthToken)
                 }
                 request.url.encodedPath.endsWith("/binding/create") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
-                    val content = Json.encodeToString(BindingCsrResponse(byteArrayOf(), "attested-public-key"))
+                    val csrResponse =
+                        BindingCsrResponse(byteArrayOf(), AttestedPublicKey(attestedPublicKeyKid, 1).serialize())
+                    val content = Json.encodeToString(csrResponse)
                     respond(content, HttpStatusCode.OK, jsonHeaders)
                 }
                 request.url.encodedPath.endsWith("/binding/confirm") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
@@ -60,7 +65,7 @@ class DeviceBindingPupilIdIssuingServiceTest {
         val service = DeviceBindingPupilIdIssuingService(
             serverAddress = "http://localhost/",
             extAuthNonce = xAuthExtNonce,
-            deviceAdapter = DummyDeviceAdapter,
+            deviceAdapter = AssertKidDeviceAdapter(attestedPublicKeyKid),
             cryptoAdapter = NoopCryptoAdapter,
             callback = { KmmResult.success("foo") },
             engine = mockEngine,

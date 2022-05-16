@@ -16,9 +16,7 @@ object Assertions {
 
     fun assertErrorFromNetwork(result: ServiceResult) {
         when (result) {
-            is ServiceResult.ErrorFromNativeCode -> fail(
-                result.throwable?.toString() ?: "NULL ERROR"
-            )
+            is ServiceResult.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
             is ServiceResult.ErrorFromNetwork -> assertTrue(true)
             is ServiceResult.Success -> fail("Unexpected success")
         }
@@ -26,9 +24,7 @@ object Assertions {
 
     fun assertSuccess(result: ServiceResult) {
         when (result) {
-            is ServiceResult.ErrorFromNativeCode -> fail(
-                result.throwable?.toString() ?: "NULL ERROR"
-            )
+            is ServiceResult.ErrorFromNativeCode -> fail(result.throwable?.toString() ?: "NULL ERROR")
             is ServiceResult.ErrorFromNetwork -> fail(result.error)
             is ServiceResult.Success -> assertTrue(true)
         }

@@ -6,6 +6,9 @@ import io.ktor.util.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 
 @Serializable
@@ -105,6 +108,9 @@ open class BindingCsrRequest(
 @Serializable
 open class BindingCsrResponse(
     val certificate: ByteArray,
+    /**
+     * Serialized [AttestedPublicKey].
+     */
     val attestedPublicKey: String?,
 ) {
     override fun equals(other: Any?): Boolean {
@@ -182,11 +188,11 @@ open class BindingConfirmResponse(
 }
 
 @Serializable
-data class CredentialContent (
+data class CredentialContent(
     @SerialName("typ")
     val type: String,
     val id: String,
-   @SerialName("scn")
+    @SerialName("scn")
     val schoolName: String,
     @SerialName("sca")
     val schoolAddress: String,
@@ -208,4 +214,25 @@ data class CredentialContent (
     val postCode: String,
     @SerialName("key")
     val key: String
-)
+) {
+    fun serialize() = Json.encodeToString(this)
+}
+
+
+/**
+ * Structure for the "attestedPublicKey" format for apps,
+ * as returned in [BindingCsrResponse.attestedPublicKey].
+ */
+@Serializable
+data class AttestedPublicKey(
+    @SerialName("kid")
+    val kid: String,
+    @SerialName("sn")
+    val serialNumber: Long,
+) {
+    fun serialize() = Json.encodeToString(this)
+
+    companion object {
+        fun deserialize(it: String) = Json.decodeFromString<AttestedPublicKey>(it)
+    }
+}
