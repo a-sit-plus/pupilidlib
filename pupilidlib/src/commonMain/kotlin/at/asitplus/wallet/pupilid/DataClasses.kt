@@ -191,6 +191,7 @@ open class BindingConfirmResponse(
 data class CredentialContent(
     @SerialName("typ")
     val type: String,
+    @SerialName("id")
     val id: String,
     @SerialName("scn")
     val schoolName: String,
@@ -216,6 +217,10 @@ data class CredentialContent(
     val key: String
 ) {
     fun serialize() = Json.encodeToString(this)
+
+    companion object {
+        fun deserialize(it: String) = Json.decodeFromString<CredentialContent>(it)
+    }
 }
 
 
