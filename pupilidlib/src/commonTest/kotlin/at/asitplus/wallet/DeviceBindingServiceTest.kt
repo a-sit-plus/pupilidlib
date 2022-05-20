@@ -7,6 +7,7 @@ import at.asitplus.wallet.pupilid.BindingParamsResponse
 import at.asitplus.wallet.pupilid.DeviceBindingService
 import at.asitplus.wallet.pupilid.ServiceResult
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
@@ -104,18 +105,19 @@ class DeviceBindingServiceTest {
 
     @Test
     fun springBootErrorResponse() {
+        val randomStatus = Random.nextInt(100, 599)
+        val randomErrorMessage = Random.nextBytes(32).encodeBase64()
         val mockEngine = MockEngine {
             respond(
                 """
                 {
-                 "timestamp": 1500597044204,
-                 "status": 400,
-                 "error": "Bad Request",
-                 "exception": "org.springframework.http.converter.HttpMessageNotReadableException",
-                 "message": "JSON parse error",
-                 "path": "/foo"
+                    "timestamp":"2022-05-20T12:18:42.055+00:00",
+                    "status":$randomStatus,
+                    "error":"Unauthorized",
+                    "path":"/binding/create",
+                    "message": "$randomErrorMessage"
                 }
-            """.trimIndent(), HttpStatusCode.BadRequest, jsonHeaders
+                """.trimIndent(), HttpStatusCode.Unauthorized, jsonHeaders
             )
         }
         val service = DeviceBindingService(
@@ -130,6 +132,10 @@ class DeviceBindingServiceTest {
             val result = service.createDeviceBinding()
 
             result.shouldBeInstanceOf<ServiceResult.ErrorFromNetwork>()
+            val details = result.details
+            details.shouldNotBeNull()
+            details.message shouldBe randomErrorMessage
+            details.status shouldBe randomStatus
         }
     }
 

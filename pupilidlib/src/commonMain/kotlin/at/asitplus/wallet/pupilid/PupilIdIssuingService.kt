@@ -11,7 +11,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -46,8 +45,6 @@ class PupilIdIssuingService(
         }
     }
 
-    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
-
     suspend fun issueCredentials(message: String): ServiceResult {
         try {
             val url = URLBuilder(serverAddress).appendPathSegments(serverIssuePath).buildString()
@@ -72,15 +69,10 @@ class PupilIdIssuingService(
 
             return ServiceResult.Success(response, secondPost.headers[HeaderNames.X_AUTH_TOKEN])
         } catch (e: SerializationException) {
-            val details = e.message?.let {
-                kotlin.runCatching { json.decodeFromString<SpringErrorDocument>(it) }.getOrNull()
-            }
-            return ServiceResult.ErrorFromNetwork(e.message ?: "Error", details)
+            return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
                 .also { Napier.w("Error from network", throwable = e) }
         } catch (e: ResponseException) {
-            val details = e.message?.let {
-                kotlin.runCatching { json.decodeFromString<SpringErrorDocument>(it) }.getOrNull()
-            }
+            val details = kotlin.runCatching { e.response.body<SpringErrorDocument>() }.getOrNull()
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error", details)
                 .also { Napier.w("Error from network", throwable = e) }
         } catch (e: Throwable) {

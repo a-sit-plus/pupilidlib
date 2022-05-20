@@ -12,7 +12,7 @@ sealed class ServiceResult {
 @Serializable
 data class SpringErrorDocument(
     @SerialName("timestamp")
-    val timestamp: Long? = null,
+    val timestamp: String? = null,
     @SerialName("status")
     val status: Int? = null,
     @SerialName("error")
