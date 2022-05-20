@@ -2,6 +2,7 @@
 
 package at.asitplus.wallet.pupilid
 
+import io.github.aakira.napier.Napier
 import io.ktor.util.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -219,7 +220,9 @@ data class CredentialContent(
     fun serialize() = Json.encodeToString(this)
 
     companion object {
-        fun deserialize(it: String) = Json.decodeFromString<CredentialContent>(it)
+        fun deserialize(it: String) =
+            kotlin.runCatching { Json.decodeFromString<CredentialContent>(it) }
+                .onFailure { e -> Napier.e("Failure while deserializing", e) }.getOrNull()
     }
 }
 
@@ -238,6 +241,8 @@ data class AttestedPublicKey(
     fun serialize() = Json.encodeToString(this)
 
     companion object {
-        fun deserialize(it: String) = Json.decodeFromString<AttestedPublicKey>(it)
+        fun deserialize(it: String) =
+            kotlin.runCatching { Json.decodeFromString<AttestedPublicKey>(it) }
+                .onFailure { e -> Napier.e("Failure while deserializing", e) }.getOrNull()
     }
 }

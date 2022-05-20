@@ -13,7 +13,7 @@ class AssertKidDeviceAdapter(private val attestedPublicKeyKid: String) : DeviceA
     override fun storeCertificate(certificate: ByteArray, attestedPublicKey: String?): KmmResult<Boolean> {
         assertNotNull(attestedPublicKey)
         val apk = AttestedPublicKey.deserialize(attestedPublicKey)
-        assertEquals(attestedPublicKeyKid, apk.kid)
+        assertEquals(attestedPublicKeyKid, apk?.kid)
         return KmmResult.success(true)
     }
 
