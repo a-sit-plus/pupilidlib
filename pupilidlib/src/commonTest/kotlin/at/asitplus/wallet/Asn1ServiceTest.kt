@@ -3,8 +3,8 @@ package at.asitplus.wallet
 import at.asitplus.wallet.pupilid.Asn1Service
 import at.asitplus.wallet.pupilid.KeyAlgorithm
 import at.asitplus.wallet.pupilid.byteArrayOfInts
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
 
 
 class Asn1ServiceTest {
@@ -29,7 +29,7 @@ class Asn1ServiceTest {
 
         val service = Asn1Service(NoopCryptoAdapter)
         val wrappedKey = service.wrapPublicKey(rawPublicKey, KeyAlgorithm.EC).encoded
-        assertContentEquals(expectedWrappedKey, wrappedKey)
+        wrappedKey shouldBe expectedWrappedKey
     }
 
     @Test
@@ -45,7 +45,7 @@ class Asn1ServiceTest {
         val service = Asn1Service(NoopCryptoAdapter)
         val wrappedKey = service.wrapPublicKey(encodedPublicKey, KeyAlgorithm.EC).encoded
 
-        assertContentEquals(encodedPublicKey, wrappedKey)
+        wrappedKey shouldBe encodedPublicKey
     }
 
     @Test
@@ -93,7 +93,8 @@ class Asn1ServiceTest {
         )
         val service = Asn1Service(NoopCryptoAdapter)
         val wrappedKey = service.wrapPublicKey(rawPublicKey, KeyAlgorithm.RSA).encoded
-        assertContentEquals(expectedWrappedKey, wrappedKey)
+
+        wrappedKey shouldBe expectedWrappedKey
     }
 
     @Test
@@ -121,7 +122,8 @@ class Asn1ServiceTest {
         )
         val service = Asn1Service(NoopCryptoAdapter)
         val wrappedKey = service.wrapPublicKey(encodedWrappedKey, KeyAlgorithm.RSA).encoded
-        assertContentEquals(encodedWrappedKey, wrappedKey)
+
+        wrappedKey shouldBe encodedWrappedKey
     }
 
 }

@@ -101,6 +101,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
+                implementation("io.kotest:kotest-assertions-core:${Versions.kotest}")
             }
         }
         val iosX64Test by getting 

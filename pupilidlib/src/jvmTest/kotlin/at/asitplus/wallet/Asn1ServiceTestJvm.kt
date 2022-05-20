@@ -6,6 +6,7 @@ import at.asitplus.wallet.pupilid.DeviceAdapter
 import at.asitplus.wallet.pupilid.HashAlgorithm
 import at.asitplus.wallet.pupilid.KeyAlgorithm
 import at.asitplus.wallet.pupilid.KmmResult
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.asn1.ASN1Integer
 import org.bouncycastle.asn1.ASN1ObjectIdentifier
@@ -19,48 +20,33 @@ import java.security.KeyPairGenerator
 import java.security.Signature
 import kotlin.random.Random
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertTrue
 
 
 class Asn1ServiceTestJvm {
 
     @Test
     fun oidEncoding() {
-        assertContentEquals(
-            ASN1ObjectIdentifier("1.2.840.10045.4.3.2").encoded,
-            Asn1Object.Oid("1.2.840.10045.4.3.2").encoded
-        )
-        assertContentEquals(
-            ASN1ObjectIdentifier("1.2.840.113549.1.1.11").encoded,
-            Asn1Object.Oid("1.2.840.113549.1.1.11").encoded
-        )
+        Asn1Object.Oid("1.2.840.10045.4.3.2").encoded shouldBe
+                ASN1ObjectIdentifier("1.2.840.10045.4.3.2").encoded
+
+        Asn1Object.Oid("1.2.840.113549.1.1.11").encoded shouldBe
+                ASN1ObjectIdentifier("1.2.840.113549.1.1.11").encoded
     }
 
     @Test
     fun integerEncoding() {
-        assertContentEquals(
-            ASN1Integer(-1).encoded,
-            Asn1Object.Integer(-1).encoded
-        )
-        assertContentEquals(
-            ASN1Integer(0).encoded,
-            Asn1Object.Integer(0).encoded
-        )
-        assertContentEquals(
-            ASN1Integer(1).encoded,
-            Asn1Object.Integer(1).encoded
-        )
+        Asn1Object.Integer(-1).encoded shouldBe ASN1Integer(-1).encoded
+
+        Asn1Object.Integer(0).encoded shouldBe ASN1Integer(0).encoded
+
+        Asn1Object.Integer(1).encoded shouldBe ASN1Integer(1).encoded
+
         val negativeRand = Random.nextLong(Long.MIN_VALUE, -1L)
-        assertContentEquals(
-            ASN1Integer(negativeRand).encoded,
-            Asn1Object.Integer(negativeRand).encoded
-        )
+        Asn1Object.Integer(negativeRand).encoded shouldBe ASN1Integer(negativeRand).encoded
+
         val positiveRand = Random.nextLong(1L, Long.MAX_VALUE)
-        assertContentEquals(
-            ASN1Integer(positiveRand).encoded,
-            Asn1Object.Integer(positiveRand).encoded
-        )
+
+        Asn1Object.Integer(positiveRand).encoded shouldBe ASN1Integer(positiveRand).encoded
     }
 
     @Test
@@ -110,17 +96,20 @@ class Asn1ServiceTestJvm {
         // also remove first 3 bytes, because they encode the length of the whole structure,
         // and those lengths may also not be the same since the ECDSA signature may be 251 bit or 256 bit
         if (keyAlg == KeyAlgorithm.EC)
-            assertContentEquals(bcEncoded.drop(3).take(133), libEncoded.drop(3).take(133))
+            libEncoded.drop(3).take(133) shouldBe bcEncoded.drop(3).take(133)
         else
-            assertContentEquals(bcEncoded, libEncoded)
-        assertTrue(PKCS10CertificationRequest(libEncoded).isSignatureValid(contentVerifierProvider))
+            libEncoded shouldBe bcEncoded
+
+        PKCS10CertificationRequest(libEncoded).isSignatureValid(contentVerifierProvider) shouldBe true
     }
 
 }
 
 class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
     override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> = KmmResult.success(listOf())
-    override fun storeCertificate(certificate: ByteArray, attestedPublicKey: String?): KmmResult<Boolean> = KmmResult.success(true)
+    override fun storeCertificate(certificate: ByteArray, attestedPublicKey: String?): KmmResult<Boolean> =
+        KmmResult.success(true)
+
     override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean> =
         KmmResult.success(true)
 

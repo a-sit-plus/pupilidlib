@@ -1,9 +1,9 @@
 package at.asitplus.wallet
 
-import at.asitplus.wallet.Assertions.assertErrorFromNetwork
-import at.asitplus.wallet.Assertions.assertSuccess
 import at.asitplus.wallet.pupilid.KmmResult
 import at.asitplus.wallet.pupilid.PupilIdIssuingService
+import at.asitplus.wallet.pupilid.ServiceResult
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
@@ -44,7 +44,7 @@ class PupilIdIssuingServiceTest {
         runBlocking {
             val result = service.issueCredentials("foo")
 
-            assertSuccess(result)
+            result.shouldBeInstanceOf<ServiceResult.Success>()
         }
     }
 
@@ -72,7 +72,7 @@ class PupilIdIssuingServiceTest {
         runBlocking {
             val result = service.issueCredentials("foo")
 
-            assertErrorFromNetwork(result)
+            result.shouldBeInstanceOf<ServiceResult.ErrorFromNetwork>()
         }
     }
 

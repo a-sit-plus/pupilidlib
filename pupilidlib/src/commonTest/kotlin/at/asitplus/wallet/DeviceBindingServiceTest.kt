@@ -1,13 +1,13 @@
 package at.asitplus.wallet
 
-import at.asitplus.wallet.Assertions.assertErrorFromNativeCode
-import at.asitplus.wallet.Assertions.assertErrorFromNetwork
-import at.asitplus.wallet.Assertions.assertSuccess
 import at.asitplus.wallet.pupilid.AttestedPublicKey
 import at.asitplus.wallet.pupilid.BindingConfirmResponse
 import at.asitplus.wallet.pupilid.BindingCsrResponse
 import at.asitplus.wallet.pupilid.BindingParamsResponse
 import at.asitplus.wallet.pupilid.DeviceBindingService
+import at.asitplus.wallet.pupilid.ServiceResult
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -30,7 +30,8 @@ class DeviceBindingServiceTest {
                 respond(content, HttpStatusCode.OK, jsonHeaders)
             }
             request.url.encodedPath.endsWith("/binding/create") -> {
-                val csrResponse = BindingCsrResponse(byteArrayOf(), AttestedPublicKey(attestedPublicKeyKid, 1).serialize())
+                val csrResponse =
+                    BindingCsrResponse(byteArrayOf(), AttestedPublicKey(attestedPublicKeyKid, 1).serialize())
                 val content = Json.encodeToString(csrResponse)
                 respond(content, HttpStatusCode.OK, jsonHeaders)
             }
@@ -57,7 +58,7 @@ class DeviceBindingServiceTest {
         runBlocking {
             val result = service.createDeviceBinding()
 
-            assertSuccess(result)
+            result.shouldBeInstanceOf<ServiceResult.Success>()
         }
     }
 
@@ -77,7 +78,7 @@ class DeviceBindingServiceTest {
         runBlocking {
             val result = service.createDeviceBinding()
 
-            assertErrorFromNetwork(result)
+            result.shouldBeInstanceOf<ServiceResult.ErrorFromNetwork>()
         }
     }
 
@@ -97,7 +98,7 @@ class DeviceBindingServiceTest {
         runBlocking {
             val result = service.createDeviceBinding()
 
-            assertErrorFromNetwork(result)
+            result.shouldBeInstanceOf<ServiceResult.ErrorFromNetwork>()
         }
     }
 
@@ -128,7 +129,7 @@ class DeviceBindingServiceTest {
         runBlocking {
             val result = service.createDeviceBinding()
 
-            assertErrorFromNetwork(result)
+            result.shouldBeInstanceOf<ServiceResult.ErrorFromNetwork>()
         }
     }
 
@@ -145,7 +146,7 @@ class DeviceBindingServiceTest {
         runBlocking {
             val result = service.createDeviceBinding()
 
-            assertErrorFromNativeCode(result)
+            result.shouldBeInstanceOf<ServiceResult.ErrorFromNativeCode>()
         }
     }
 
