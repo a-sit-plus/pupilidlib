@@ -11,6 +11,8 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 /**
  * @param engine can be passed to enable mocks in unit tests, to use the default engine, pass null
@@ -51,6 +53,8 @@ class DeviceBindingService(
             json()
         }
     }
+
+    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
     @Throws(ResponseException::class, Throwable::class)
     internal suspend fun getDeviceBindingResponse(): HttpSessionResponse {
@@ -110,10 +114,16 @@ class DeviceBindingService(
             bindingConfirmResponse.xAuthToken,
         )
     } catch (e: SerializationException) {
-        ServiceResult.ErrorFromNetwork(e.message ?: "Error")
+        val details = e.message?.let {
+            kotlin.runCatching { json.decodeFromString<SpringErrorDocument>(it) }.getOrNull()
+        }
+        ServiceResult.ErrorFromNetwork(e.message ?: "Error", details)
             .also { Napier.w("Error from network", throwable = e) }
     } catch (e: ResponseException) {
-        ServiceResult.ErrorFromNetwork(e.message ?: "Error")
+        val details = e.message?.let {
+            kotlin.runCatching { json.decodeFromString<SpringErrorDocument>(it) }.getOrNull()
+        }
+        ServiceResult.ErrorFromNetwork(e.message ?: "Error", details)
             .also { Napier.w("Error from network", throwable = e) }
     } catch (e: Throwable) {
         ServiceResult.ErrorFromNativeCode(e)

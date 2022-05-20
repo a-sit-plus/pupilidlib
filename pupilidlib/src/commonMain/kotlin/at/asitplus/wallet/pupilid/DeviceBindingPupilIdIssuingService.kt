@@ -10,6 +10,8 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 class DeviceBindingPupilIdIssuingService constructor(
     /**
@@ -61,6 +63,8 @@ class DeviceBindingPupilIdIssuingService constructor(
         engine = engine,
     )
 
+    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+
     suspend fun createDeviceBindingAndIssueCredentials(): ServiceResult {
         try {
             val url = URLBuilder(serverAddress).appendPathSegments(serverIssuePath).buildString()
@@ -84,10 +88,16 @@ class DeviceBindingPupilIdIssuingService constructor(
             xAuthToken = issuePost.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
             return ServiceResult.Success(response, xAuthToken)
         } catch (e: SerializationException) {
-            return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
+            val details = e.message?.let {
+                kotlin.runCatching { json.decodeFromString<SpringErrorDocument>(it) }.getOrNull()
+            }
+            return ServiceResult.ErrorFromNetwork(e.message ?: "Error", details)
                 .also { Napier.w("Error from network", throwable = e) }
         } catch (e: ResponseException) {
-            return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
+            val details = e.message?.let {
+                kotlin.runCatching { json.decodeFromString<SpringErrorDocument>(it) }.getOrNull()
+            }
+            return ServiceResult.ErrorFromNetwork(e.message ?: "Error", details)
                 .also { Napier.w("Error from network", throwable = e) }
         } catch (e: Throwable) {
             return ServiceResult.ErrorFromNativeCode(e)
