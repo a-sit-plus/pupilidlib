@@ -194,27 +194,11 @@ data class CredentialContent(
     val type: String,
     @SerialName("id")
     val id: String,
-    @SerialName("scn")
-    val schoolName: String,
-    @SerialName("sca")
-    val schoolAddress: String,
-    @SerialName("snr")
-    val schoolNumber: String,
-    @SerialName("pnr")
-    val pupilNumber: String,
-    @SerialName("fn")
-    val firstName: String,
-    @SerialName("ln")
-    val lastName: String,
-    @SerialName("dob")
-    val dateOfBirth: String,
     @SerialName("vu")
     val validUntil: String,
-    @SerialName("cit")
-    val postCity: String,
-    @SerialName("pos")
-    val postCode: String,
-    @SerialName("key")
+    @SerialName("ex")
+    val endOfSchoolYear: String,
+   @SerialName("key")
     val key: String
 ) {
     fun serialize() = Json.encodeToString(this)
