@@ -47,10 +47,10 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 freeCompilerArgs = listOf(
-                    "-Xopt-in=kotlinx.serialization.ExperimentalSerializationApi",
-                    "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                    "-Xopt-in=kotlin.time.ExperimentalTime",
-                    "-Xopt-in=kotlin.RequiresOptIn",
+                    "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
+                    "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                    "-opt-in=kotlin.time.ExperimentalTime",
+                    "-opt-in=kotlin.RequiresOptIn",
                 )
             }
         }

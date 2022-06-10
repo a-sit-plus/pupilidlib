@@ -8,7 +8,7 @@ object ErrorThrowingDeviceAdapter : DeviceAdapter {
     override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> =
         KmmResult.failure(IllegalArgumentException())
 
-    override fun storeCertificate(certificate: ByteArray): KmmResult<Boolean> =
+    override fun storeCertificate(certificate: ByteArray, attestedPublicKey: String?): KmmResult<Boolean> =
         KmmResult.failure(IllegalArgumentException())
 
     override suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean> =
