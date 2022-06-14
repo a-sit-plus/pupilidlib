@@ -87,7 +87,8 @@ class DeviceBindingPupilIdIssuingService constructor(
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
                 .also { Napier.w("Error from network", throwable = e) }
         } catch (e: ResponseException) {
-            return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
+            val details = kotlin.runCatching { e.response.body<SpringErrorDocument>() }.getOrNull()
+            return ServiceResult.ErrorFromNetwork(e.message ?: "Error", details)
                 .also { Napier.w("Error from network", throwable = e) }
         } catch (e: Throwable) {
             return ServiceResult.ErrorFromNativeCode(e)

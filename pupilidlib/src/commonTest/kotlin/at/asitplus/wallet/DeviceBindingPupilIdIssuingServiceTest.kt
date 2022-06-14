@@ -1,7 +1,5 @@
 package at.asitplus.wallet
 
-import at.asitplus.wallet.Assertions.assertErrorFromNetwork
-import at.asitplus.wallet.Assertions.assertSuccess
 import at.asitplus.wallet.pupilid.AttestedPublicKey
 import at.asitplus.wallet.pupilid.BindingConfirmResponse
 import at.asitplus.wallet.pupilid.BindingCsrResponse
@@ -10,6 +8,8 @@ import at.asitplus.wallet.pupilid.DeviceBindingPupilIdIssuingService
 import at.asitplus.wallet.pupilid.HeaderNames
 import at.asitplus.wallet.pupilid.KmmResult
 import at.asitplus.wallet.pupilid.ServiceResult
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -18,8 +18,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 class DeviceBindingPupilIdIssuingServiceTest {
 
@@ -74,9 +72,8 @@ class DeviceBindingPupilIdIssuingServiceTest {
         runBlocking {
             val result = service.createDeviceBindingAndIssueCredentials()
 
-            assertSuccess(result)
-            assertNotNull(result as ServiceResult.Success)
-            assertEquals(result.xAuthToken, xAuthToken)
+            result.shouldBeInstanceOf<ServiceResult.Success>()
+            result.xAuthToken shouldBe xAuthToken
         }
     }
 
@@ -116,7 +113,7 @@ class DeviceBindingPupilIdIssuingServiceTest {
         runBlocking {
             val result = service.createDeviceBindingAndIssueCredentials()
 
-            assertErrorFromNetwork(result)
+            result.shouldBeInstanceOf<ServiceResult.ErrorFromNetwork>()
         }
     }
 

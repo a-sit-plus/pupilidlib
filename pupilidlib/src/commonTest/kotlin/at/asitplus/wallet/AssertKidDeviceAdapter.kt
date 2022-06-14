@@ -4,16 +4,17 @@ import at.asitplus.wallet.pupilid.AttestedPublicKey
 import at.asitplus.wallet.pupilid.DeviceAdapter
 import at.asitplus.wallet.pupilid.KeyAlgorithm
 import at.asitplus.wallet.pupilid.KmmResult
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 
 class AssertKidDeviceAdapter(private val attestedPublicKeyKid: String) : DeviceAdapter {
     override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> = KmmResult.success(listOf())
 
     override fun storeCertificate(certificate: ByteArray, attestedPublicKey: String?): KmmResult<Boolean> {
-        assertNotNull(attestedPublicKey)
+        attestedPublicKey.shouldNotBeNull()
         val apk = AttestedPublicKey.deserialize(attestedPublicKey)
-        assertEquals(attestedPublicKeyKid, apk?.kid)
+        apk.shouldNotBeNull()
+        apk.kid shouldBe attestedPublicKeyKid
         return KmmResult.success(true)
     }
 
