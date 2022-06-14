@@ -126,6 +126,7 @@ kotlin {
         ios {
             binaries.framework {
                 baseName = "PupilIdKMM"
+                embedBitcode("bitcode")
                 it.add(this)
             }
         }
