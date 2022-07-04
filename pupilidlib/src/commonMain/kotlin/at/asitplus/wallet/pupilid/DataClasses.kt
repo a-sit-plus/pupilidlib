@@ -218,9 +218,7 @@ data class CredentialContent(
 @Serializable
 data class AttestedPublicKey(
     @SerialName("kid")
-    val kid: String,
-    @SerialName("sn")
-    val serialNumber: Long,
+    val kid: String
 ) {
     fun serialize() = Json.encodeToString(this)
 
