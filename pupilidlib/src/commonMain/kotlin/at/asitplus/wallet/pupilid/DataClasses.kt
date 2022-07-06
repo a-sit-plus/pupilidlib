@@ -195,6 +195,10 @@ data class CredentialContent(
     val type: String,
     @SerialName("id")
     val id: String,
+    @SerialName("exp")
+    val qrCodeExpiration : Int,
+    @SerialName("nbf")
+    val qrCodeNotBefore : Int,
     @SerialName("vu")
     val validUntil: String,
     @SerialName("ex")
