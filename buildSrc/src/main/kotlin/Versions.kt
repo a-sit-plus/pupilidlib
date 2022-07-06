@@ -10,7 +10,7 @@ object Versions {
         const val compileSDK = 31
         const val minSDK = 21
         const val targetSDK = 31
-        const val gradlePlugin = "7.0.1"
+        const val gradlePlugin = "7.2.1"
     }
 
     object Jvm {

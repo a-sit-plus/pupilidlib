@@ -44,7 +44,7 @@ class DeviceBindingPupilIdIssuingServiceTest {
                 }
                 request.url.encodedPath.endsWith("/binding/create") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
                     val csrResponse =
-                        BindingCsrResponse(byteArrayOf(), AttestedPublicKey(attestedPublicKeyKid, 1).serialize())
+                        BindingCsrResponse(byteArrayOf(), AttestedPublicKey(attestedPublicKeyKid).serialize())
                     val content = Json.encodeToString(csrResponse)
                     respond(content, HttpStatusCode.OK, jsonHeaders)
                 }

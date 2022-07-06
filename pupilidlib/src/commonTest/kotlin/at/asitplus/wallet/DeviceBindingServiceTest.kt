@@ -32,7 +32,7 @@ class DeviceBindingServiceTest {
             }
             request.url.encodedPath.endsWith("/binding/create") -> {
                 val csrResponse =
-                    BindingCsrResponse(byteArrayOf(), AttestedPublicKey(attestedPublicKeyKid, 1).serialize())
+                    BindingCsrResponse(byteArrayOf(), AttestedPublicKey(attestedPublicKeyKid).serialize())
                 val content = Json.encodeToString(csrResponse)
                 respond(content, HttpStatusCode.OK, jsonHeaders)
             }

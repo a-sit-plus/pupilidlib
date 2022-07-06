@@ -100,7 +100,8 @@ open class BindingCsrRequest(
     }
 
     override fun toString(): String {
-        val attestationCertsString = attestationCerts.joinToString(separator = ", ") { it.encodeBase64() }
+        val attestationCertsString =
+            attestationCerts.joinToString(separator = ", ") { it.encodeBase64() }
         return "BindingCsrRequest(challenge=${challenge.encodeBase64()}, csr=${csr.encodeBase64()}, deviceName='$deviceName', attestationCerts=[$attestationCertsString])"
     }
 
@@ -202,7 +203,7 @@ data class CredentialContent(
     val validUntil: String,
     @SerialName("ex")
     val endOfSchoolYear: String,
-   @SerialName("key")
+    @SerialName("key")
     val key: String
 ) {
     fun serialize() = Json.encodeToString(this)
@@ -222,15 +223,17 @@ data class CredentialContent(
 @Serializable
 data class AttestedPublicKey(
     @SerialName("kid")
-    val kid: String,
-    @SerialName("sn")
-    val serialNumber: Long,
+    val kid: String
 ) {
     fun serialize() = Json.encodeToString(this)
 
     companion object {
         fun deserialize(it: String) =
-            kotlin.runCatching { Json.decodeFromString<AttestedPublicKey>(it) }
+            kotlin.runCatching {
+                Json {
+                    ignoreUnknownKeys = true
+                }.decodeFromString<AttestedPublicKey>(it)
+            }
                 .onFailure { e -> Napier.e("Failure while deserializing", e) }.getOrNull()
     }
 }
