@@ -4,7 +4,7 @@ object Versions {
     const val coroutines = "1.6.3"
     const val ktor = "2.0.0"
     const val napier = "2.5.0"
-    const val kotest = "5.3.1"
+    const val kotest = "5.3.2"
 
     object Android {
         const val compileSDK = 31
