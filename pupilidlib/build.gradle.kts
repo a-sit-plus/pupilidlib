@@ -2,8 +2,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version Versions.kotlin
-    id("com.android.library")
+    kotlin("plugin.serialization") version PupilIdLibVersions.kotlin
     id("maven-publish")
 }
 
@@ -16,22 +15,10 @@ kotlin {
     iosX64()
     iosArm64()
 
-    android {
-        publishLibraryVariants("release", "debug")
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = Versions.Jvm.target
-                freeCompilerArgs = listOf(
-                    "-Xjsr305=strict"
-                )
-            }
-        }
-    }
-
     jvm {
         compilations.all {
             kotlinOptions {
-                jvmTarget = Versions.Jvm.target
+                jvmTarget = PupilIdLibVersions.Jvm.target
                 freeCompilerArgs = listOf(
                     "-Xjsr305=strict"
                 )
@@ -60,31 +47,27 @@ kotlin {
         /* Main source sets */
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.`serialization-json`}")
-                implementation("io.github.aakira:napier:${Versions.napier}")
-                implementation("io.ktor:ktor-client-core:${Versions.ktor}")
-                implementation("io.ktor:ktor-client-serialization:${Versions.ktor}")
-                implementation("io.ktor:ktor-client-content-negotiation:${Versions.ktor}")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:${Versions.ktor}")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${PupilIdLibVersions.coroutines}")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${PupilIdLibVersions.`serialization-json`}")
+                implementation("io.github.aakira:napier:${PupilIdLibVersions.napier}")
+                implementation("io.ktor:ktor-client-core:${PupilIdLibVersions.ktor}")
+                implementation("io.ktor:ktor-client-serialization:${PupilIdLibVersions.ktor}")
+                implementation("io.ktor:ktor-client-content-negotiation:${PupilIdLibVersions.ktor}")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:${PupilIdLibVersions.ktor}")
             }
         }
         val iosX64Main by getting 
         val iosArm64Main by getting
-        val androidMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-client-okhttp:${Versions.ktor}")
-            }
-        }
         val iosMain by creating {
             dependencies {
-                implementation("io.ktor:ktor-client-darwin:${Versions.ktor}")
+                implementation("io.ktor:ktor-client-darwin:${PupilIdLibVersions.ktor}")
             }
         }
         val nativeMain by creating
         val jvmMain by getting {
             dependencies {
-                implementation("io.swagger.core.v3:swagger-annotations:${Versions.Jvm.swagger}")
+                implementation("io.swagger.core.v3:swagger-annotations:${PupilIdLibVersions.Jvm.swagger}")
+                implementation("io.ktor:ktor-client-okhttp:${PupilIdLibVersions.ktor}")
             }
         }
 
@@ -92,7 +75,6 @@ kotlin {
         iosMain.dependsOn(nativeMain)
         iosX64Main.dependsOn(iosMain)
         iosArm64Main.dependsOn(iosMain)
-        androidMain.dependsOn(commonMain)
         nativeMain.dependsOn(commonMain)
         jvmMain.dependsOn(commonMain)
 
@@ -100,16 +82,15 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("io.ktor:ktor-client-mock:${Versions.ktor}")
-                implementation("io.kotest:kotest-assertions-core:${Versions.kotest}")
+                implementation("io.ktor:ktor-client-mock:${PupilIdLibVersions.ktor}")
+                implementation("io.kotest:kotest-assertions-core:${PupilIdLibVersions.kotest}")
             }
         }
         val iosX64Test by getting 
         val iosArm64Test by getting
-        val androidTest by getting
         val jvmTest by getting {
             dependencies {
-                implementation("org.bouncycastle:bcpkix-jdk18on:${Versions.Jvm.bouncycastle}")
+                implementation("org.bouncycastle:bcpkix-jdk18on:${PupilIdLibVersions.Jvm.bouncycastle}")
             }
         }
         val iosTest by creating
@@ -119,7 +100,6 @@ kotlin {
         iosTest.dependsOn(nativeTest)
         iosX64Test.dependsOn(iosTest)
         iosArm64Test.dependsOn(iosTest)
-        androidTest.dependsOn(commonTest)
         nativeTest.dependsOn(commonTest)
     }
 
@@ -133,15 +113,6 @@ kotlin {
         }
     }
 
-}
-
-android {
-    compileSdk = Versions.Android.compileSDK
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    defaultConfig {
-        minSdk = Versions.Android.minSDK
-        targetSdk = Versions.Android.targetSDK
-    }
 }
 
 val gitLabPrivateToken: String? by extra

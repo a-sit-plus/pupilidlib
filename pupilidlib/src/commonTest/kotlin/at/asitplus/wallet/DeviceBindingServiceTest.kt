@@ -79,7 +79,7 @@ class DeviceBindingServiceTest {
         runBlocking {
             val result = service.createDeviceBinding()
 
-            result.shouldBeInstanceOf<ServiceResult.ErrorFromNetwork>()
+            result.shouldBeInstanceOf<ServiceResult.ErrorFromNativeCode>()
         }
     }
 

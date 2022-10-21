@@ -16,7 +16,7 @@ include:
   - template: Secret-Detection.gitlab-ci.yml
 
 default:
-  image: gitlab.iaik.tugraz.at:5050/oe-gv-at/meta/ci/androidsdk31:latest
+  image: gradle:jdk11
   tags:
     - docker
 
@@ -29,16 +29,6 @@ cache:
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development" || $CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/
-
-assembleAndroid:
-  except:
-    - tags
-  script: |
-    ./gradlew --continue clean test
-  artifacts:
-    when: always
-    reports:
-      junit: "pupilidlib/build/test-results/testDebugUnitTest/TEST-*.xml"
 
 assembleJdk11:
   image: maven:3.6-jdk-11
@@ -65,7 +55,6 @@ assembleIos:
 
 publish:
   needs:
-    - assembleAndroid
     - assembleJdk11
     - assembleIos
   tags:
