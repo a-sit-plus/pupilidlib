@@ -13,6 +13,8 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class PupilIdIssuingService(
     /**
@@ -27,6 +29,9 @@ class PupilIdIssuingService(
      * Path of the endpoint for issuing credentials, defaults to `listOf("pupilid", "issue")`
      */
     private val serverIssuePath: List<String> = listOf("pupilid", "issue"),
+
+    connectionTimeout: Duration = 20.seconds,
+    socketTimeout: Duration = 20.seconds,
     /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
      */
@@ -38,10 +43,18 @@ class PupilIdIssuingService(
             install(ContentNegotiation) {
                 json()
             }
+            install(HttpTimeout) {
+                connectTimeoutMillis = connectionTimeout.inWholeMilliseconds
+                socketTimeoutMillis = socketTimeout.inWholeMilliseconds
+            }
         }
     } ?: HttpClient {
         install(ContentNegotiation) {
             json()
+        }
+        install(HttpTimeout) {
+            connectTimeoutMillis = connectionTimeout.inWholeMilliseconds
+            socketTimeoutMillis = socketTimeout.inWholeMilliseconds
         }
     }
 

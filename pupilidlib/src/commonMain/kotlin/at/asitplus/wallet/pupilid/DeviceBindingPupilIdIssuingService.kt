@@ -10,6 +10,8 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerializationException
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class DeviceBindingPupilIdIssuingService constructor(
     /**
@@ -36,6 +38,9 @@ class DeviceBindingPupilIdIssuingService constructor(
      * Path of the endpoint for issuing credentials, defaults to `listOf("pupilid", "issue")`
      */
     private val serverIssuePath: List<String> = listOf("pupilid", "issue"),
+
+    connectionTimeout: Duration = 20.seconds,
+    socketTimeout: Duration = 20.seconds,
     /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
      */
@@ -47,10 +52,18 @@ class DeviceBindingPupilIdIssuingService constructor(
             install(ContentNegotiation) {
                 json()
             }
+            install(HttpTimeout) {
+                connectTimeoutMillis = connectionTimeout.inWholeMilliseconds
+                socketTimeoutMillis = socketTimeout.inWholeMilliseconds
+            }
         }
     } ?: HttpClient {
         install(ContentNegotiation) {
             json()
+        }
+        install(HttpTimeout) {
+            connectTimeoutMillis = connectionTimeout.inWholeMilliseconds
+            socketTimeoutMillis = socketTimeout.inWholeMilliseconds
         }
     }
     private val deviceBindingService = DeviceBindingService(
@@ -81,7 +94,8 @@ class DeviceBindingPupilIdIssuingService constructor(
                 expectSuccess = true
             }
             val response = issuePost.body<String>()
-            xAuthToken = issuePost.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
+            xAuthToken =
+                issuePost.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
             return ServiceResult.Success(response, xAuthToken)
         } catch (e: SerializationException) {
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
