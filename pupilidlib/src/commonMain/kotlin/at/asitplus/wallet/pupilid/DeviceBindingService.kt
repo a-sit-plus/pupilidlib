@@ -11,6 +11,8 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import kotlinx.serialization.SerializationException
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * @param engine can be passed to enable mocks in unit tests, to use the default engine, pass null
@@ -32,6 +34,21 @@ class DeviceBindingService(
      * Needed to create signature of the CSR
      */
     cryptoAdapter: Asn1Service.CryptoAdapter,
+
+    /**
+     * Max time to establish a connections.
+     * Connection establishment will fail if exceeded.
+     * Default: 20
+     */
+    connectionTimeoutSeconds: Int = 10,
+
+    /**
+     * Max time (in seconds) between transmission of data packet.
+     * Connection will be reset, if exceeded
+     * Default: 20
+     */
+    socketTimeoutSeconds: Int = 10,
+
     /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
      */
@@ -45,10 +62,18 @@ class DeviceBindingService(
             install(ContentNegotiation) {
                 json()
             }
+            install(HttpTimeout) {
+                connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
+                socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
+            }
         }
     } ?: HttpClient {
         install(ContentNegotiation) {
             json()
+        }
+        install(HttpTimeout) {
+            connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
+            socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
         }
     }
 

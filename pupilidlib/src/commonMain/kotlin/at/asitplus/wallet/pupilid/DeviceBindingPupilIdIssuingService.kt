@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerializationException
+import kotlin.time.Duration.Companion.seconds
 
 class DeviceBindingPupilIdIssuingService constructor(
     /**
@@ -36,6 +37,21 @@ class DeviceBindingPupilIdIssuingService constructor(
      * Path of the endpoint for issuing credentials, defaults to `listOf("pupilid", "issue")`
      */
     private val serverIssuePath: List<String> = listOf("pupilid", "issue"),
+
+    /**
+     * Max time to establish a connections.
+     * Connection establishment will fail if exceeded.
+     * Default: 20
+     */
+    connectionTimeoutSeconds: Int = 10,
+
+    /**
+     * Max time (in seconds) between transmission of data packet.
+     * Connection will be reset, if exceeded
+     * Default: 20
+     */
+    socketTimeoutSeconds: Int = 10,
+
     /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
      */
@@ -47,10 +63,18 @@ class DeviceBindingPupilIdIssuingService constructor(
             install(ContentNegotiation) {
                 json()
             }
+            install(HttpTimeout) {
+                connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
+                socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
+            }
         }
     } ?: HttpClient {
         install(ContentNegotiation) {
             json()
+        }
+        install(HttpTimeout) {
+            connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
+            socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
         }
     }
     private val deviceBindingService = DeviceBindingService(
@@ -81,7 +105,8 @@ class DeviceBindingPupilIdIssuingService constructor(
                 expectSuccess = true
             }
             val response = issuePost.body<String>()
-            xAuthToken = issuePost.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
+            xAuthToken =
+                issuePost.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
             return ServiceResult.Success(response, xAuthToken)
         } catch (e: SerializationException) {
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
