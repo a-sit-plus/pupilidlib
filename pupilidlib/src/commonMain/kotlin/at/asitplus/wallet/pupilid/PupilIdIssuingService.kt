@@ -13,7 +13,6 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class PupilIdIssuingService(
@@ -30,8 +29,20 @@ class PupilIdIssuingService(
      */
     private val serverIssuePath: List<String> = listOf("pupilid", "issue"),
 
-    connectionTimeout: Duration = 20.seconds,
-    socketTimeout: Duration = 20.seconds,
+    /**
+     * Max time to establish a connections.
+     * Connection establishment will fail if exceeded.
+     * Default: 20
+     */
+    connectionTimeoutSeconds: Int = 20,
+
+    /**
+     * Max time (in seconds) between transmission of data packet.
+     * Connection will be reset, if exceeded
+     * Default: 20
+     */
+    socketTimeoutSeconds: Int = 20,
+
     /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
      */
@@ -44,8 +55,8 @@ class PupilIdIssuingService(
                 json()
             }
             install(HttpTimeout) {
-                connectTimeoutMillis = connectionTimeout.inWholeMilliseconds
-                socketTimeoutMillis = socketTimeout.inWholeMilliseconds
+                connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
+                socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
             }
         }
     } ?: HttpClient {
@@ -53,8 +64,8 @@ class PupilIdIssuingService(
             json()
         }
         install(HttpTimeout) {
-            connectTimeoutMillis = connectionTimeout.inWholeMilliseconds
-            socketTimeoutMillis = socketTimeout.inWholeMilliseconds
+            connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
+            socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
         }
     }
 

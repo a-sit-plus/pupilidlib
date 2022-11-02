@@ -35,8 +35,20 @@ class DeviceBindingService(
      */
     cryptoAdapter: Asn1Service.CryptoAdapter,
 
-    connectionTimeout: Duration = 20.seconds,
-    socketTimeout: Duration = 20.seconds,
+    /**
+     * Max time to establish a connections.
+     * Connection establishment will fail if exceeded.
+     * Default: 20
+     */
+    connectionTimeoutSeconds: Int = 20,
+
+    /**
+     * Max time (in seconds) between transmission of data packet.
+     * Connection will be reset, if exceeded
+     * Default: 20
+     */
+    socketTimeoutSeconds: Int = 20,
+
     /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
      */
@@ -51,8 +63,8 @@ class DeviceBindingService(
                 json()
             }
             install(HttpTimeout) {
-                connectTimeoutMillis = connectionTimeout.inWholeMilliseconds
-                socketTimeoutMillis = socketTimeout.inWholeMilliseconds
+                connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
+                socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
             }
         }
     } ?: HttpClient {
@@ -60,8 +72,8 @@ class DeviceBindingService(
             json()
         }
         install(HttpTimeout) {
-            connectTimeoutMillis = connectionTimeout.inWholeMilliseconds
-            socketTimeoutMillis = socketTimeout.inWholeMilliseconds
+            connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
+            socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
         }
     }
 
