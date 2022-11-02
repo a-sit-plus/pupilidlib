@@ -40,14 +40,14 @@ class DeviceBindingService(
      * Connection establishment will fail if exceeded.
      * Default: 20
      */
-    connectionTimeoutSeconds: Int = 20,
+    connectionTimeoutSeconds: Int = 10,
 
     /**
      * Max time (in seconds) between transmission of data packet.
      * Connection will be reset, if exceeded
      * Default: 20
      */
-    socketTimeoutSeconds: Int = 20,
+    socketTimeoutSeconds: Int = 10,
 
     /**
      * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
