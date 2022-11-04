@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
 
 plugins {
     kotlin("multiplatform")
@@ -12,8 +12,24 @@ group = "at.asitplus.wallet"
 version = "$artifactVersion"
 
 kotlin {
-    iosX64()
-    iosArm64()
+
+    val xcf = XCFrameworkConfig(project, "PupilIdKMM")
+
+    ios {
+        binaries.framework {
+            baseName = "PupilIdKMM"
+            embedBitcode("bitcode")
+            xcf.add(this)
+        }
+    }
+
+    iosSimulatorArm64 {
+        binaries.framework {
+            baseName = "PupilIdKMM"
+            embedBitcode("bitcode")
+            xcf.add(this)
+        }
+    }
 
     jvm {
         compilations.all {
@@ -58,7 +74,7 @@ kotlin {
         }
         val iosX64Main by getting 
         val iosArm64Main by getting
-        val iosMain by creating {
+        val iosMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-darwin:${PupilIdLibVersions.ktor}")
             }
@@ -93,7 +109,7 @@ kotlin {
                 implementation("org.bouncycastle:bcpkix-jdk18on:${PupilIdLibVersions.Jvm.bouncycastle}")
             }
         }
-        val iosTest by creating
+        val iosTest by getting
         val nativeTest by creating
 
         /* Test hierarchy */
@@ -101,16 +117,6 @@ kotlin {
         iosX64Test.dependsOn(iosTest)
         iosArm64Test.dependsOn(iosTest)
         nativeTest.dependsOn(commonTest)
-    }
-
-    XCFramework().let {
-        ios {
-            binaries.framework {
-                baseName = "PupilIdKMM"
-                embedBitcode("bitcode")
-                it.add(this)
-            }
-        }
     }
 
 }

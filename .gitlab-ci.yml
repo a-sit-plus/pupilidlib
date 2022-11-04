@@ -67,8 +67,8 @@ publish:
   script: |
     export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
     echo "Publishing version $VERSION for $LIB_NAME"
-    ./gradlew --continue :pupilidlib:assemblePupilidlibDebugXCFramework assemble publish
-    (cd "$LIB_NAME/build/XCFrameworks/debug/"; zip -r "$LIB_NAME.zip" "$LIB_NAME.xcframework")
+    ./gradlew --continue :pupilidlib:assemblePupilIdKMMXCFramework assemble publish
+    (cd "$LIB_NAME/build/XCFrameworks/debug/"; zip -r "$LIB_NAME.zip" *.xcframework)
     export CHECKSUM=$(shasum -a 256 "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" | cut -d' ' -f1)
     export PACKAGE_REMOTE_ZIP=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.zip
     curl --http1.1 --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" "${PACKAGE_REMOTE_ZIP}"
@@ -81,6 +81,7 @@ publish:
     git add Package.swift
     git commit -m "Update framework to ${VERSION} from commit ${CI_COMMIT_SHORT_SHA}"
     git push
+    [[ ! $VERSION =~ "SNAPSHOT" ]] && git tag "$VERSION" && git push origin "$VERSION"
     popd
     popd
     echo "VERSION=$VERSION" >> variables.env
@@ -102,4 +103,4 @@ release:
     release-cli create --name "$VERSION" --tag-name "v$VERSION" --ref "$CI_COMMIT_SHA" --description "$(cat README.md)" \
         --assets-link "{\"name\":\"$LIB_NAME-$VERSION.pom\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven/at/asitplus/wallet/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.pom\"}" \
         --assets-link "{\"name\":\"$LIB_NAME-$VERSION.jar\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven/at/asitplus/wallet/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.jar\"}" \
-        --assets-link "{\"name\":\"$LIB_NAME-$VERSION.xcframework\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.zip\"}"
+        --assets-link "{\"name\":\"$LIB_NAME-$VERSION.zip\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.zip\"}"
