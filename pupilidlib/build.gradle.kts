@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
+import java.io.FileInputStream
+import java.util.*
 
 plugins {
     kotlin("multiplatform")
@@ -120,6 +122,10 @@ kotlin {
         nativeTest.dependsOn(commonTest)
     }
 
+}
+Properties().apply {
+    kotlin.runCatching { load(FileInputStream(project.rootProject.file("local.properties"))) }
+    forEach { (k, v) -> extra.set(k as String, v) }
 }
 
 val gitLabPrivateToken: String? by extra
