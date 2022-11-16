@@ -70,6 +70,7 @@ kotlin {
                 implementation("io.ktor:ktor-client-serialization:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-client-content-negotiation:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:${PupilIdLibVersions.ktor}")
+                api("at.asitplus:kmmresult:1.0-SNAPSHOT")
             }
         }
         val iosX64Main by getting 

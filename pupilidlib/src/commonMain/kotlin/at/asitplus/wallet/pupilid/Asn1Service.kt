@@ -1,5 +1,6 @@
 package at.asitplus.wallet.pupilid
 
+import at.asitplus.KmmResult
 
 class Asn1Service(
     private val cryptoAdapter: CryptoAdapter,
