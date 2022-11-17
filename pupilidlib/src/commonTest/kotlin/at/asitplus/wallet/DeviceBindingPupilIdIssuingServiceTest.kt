@@ -6,7 +6,7 @@ import at.asitplus.wallet.pupilid.BindingCsrResponse
 import at.asitplus.wallet.pupilid.BindingParamsResponse
 import at.asitplus.wallet.pupilid.DeviceBindingPupilIdIssuingService
 import at.asitplus.wallet.pupilid.HeaderNames
-import at.asitplus.wallet.pupilid.KmmResult
+import at.asitplus.KmmResult
 import at.asitplus.wallet.pupilid.ServiceResult
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
