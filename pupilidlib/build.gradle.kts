@@ -20,6 +20,7 @@ kotlin {
     ios {
         binaries.framework {
             baseName = "PupilIdKMM"
+            export("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
             embedBitcode("bitcode")
             xcf.add(this)
         }
@@ -28,6 +29,7 @@ kotlin {
     iosSimulatorArm64 {
         binaries.framework {
             baseName = "PupilIdKMM"
+            export("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
             embedBitcode("bitcode")
             xcf.add(this)
         }
