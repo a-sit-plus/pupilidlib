@@ -11,7 +11,6 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import kotlinx.serialization.SerializationException
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -97,9 +96,8 @@ class DeviceBindingService(
         deviceAdapter.createKey(keyType, challenge)
         val publicKeyEncoded = deviceAdapter.getPublicKeyEncoded().getOrThrow()
         val csr = asn1Service.signAndCreateCsr(publicKeyEncoded, subject, keyType).getOrThrow()
-        val attestationCerts = deviceAdapter.loadAttestationCerts().getOrThrow()
-        val bindingCsrRequest =
-            BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
+        val attestationCerts = deviceAdapter.loadAttestationCerts(challenge, csr).getOrThrow()
+        val bindingCsrRequest = BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
         val createResponse =
             client.post(URLBuilder(serverAddress).appendPathSegments("binding", "create").buildString()) {
                 contentType(ContentType.Application.Json)
@@ -154,7 +152,7 @@ data class HttpSessionResponse(
 )
 
 interface DeviceAdapter {
-    suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>>
+    suspend fun loadAttestationCerts(challenge: ByteArray, clientData: ByteArray): KmmResult<List<ByteArray>>
     fun storeCertificate(certificate: ByteArray, attestedPublicKey: String?): KmmResult<Boolean>
     suspend fun createKey(key: KeyAlgorithm, challenge: ByteArray): KmmResult<Boolean>
     fun getPublicKeyEncoded(): KmmResult<ByteArray>
