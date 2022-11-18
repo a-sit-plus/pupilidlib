@@ -96,7 +96,7 @@ class DeviceBindingService(
         deviceAdapter.createKey(keyType, challenge)
         val publicKeyEncoded = deviceAdapter.getPublicKeyEncoded().getOrThrow()
         val csr = asn1Service.signAndCreateCsr(publicKeyEncoded, subject, keyType).getOrThrow()
-        val attestationCerts = deviceAdapter.loadAttestationCerts(challenge, csr).getOrThrow()
+        val attestationCerts = deviceAdapter.loadAttestationCerts(challenge, publicKeyEncoded).getOrThrow()
         val bindingCsrRequest = BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
         val createResponse =
             client.post(URLBuilder(serverAddress).appendPathSegments("binding", "create").buildString()) {
