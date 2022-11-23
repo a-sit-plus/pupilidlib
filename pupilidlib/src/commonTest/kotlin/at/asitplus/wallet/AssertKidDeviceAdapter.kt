@@ -8,7 +8,8 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 class AssertKidDeviceAdapter(private val attestedPublicKeyKid: String) : DeviceAdapter {
-    override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> = KmmResult.success(listOf())
+    override suspend fun loadAttestationCerts(challenge: ByteArray, clientData: ByteArray): KmmResult<List<ByteArray>> =
+        KmmResult.success(listOf())
 
     override fun storeCertificate(certificate: ByteArray, attestedPublicKey: String?): KmmResult<Boolean> {
         attestedPublicKey.shouldNotBeNull()
