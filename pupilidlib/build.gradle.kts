@@ -72,10 +72,10 @@ kotlin {
                 implementation("io.ktor:ktor-client-serialization:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-client-content-negotiation:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:${PupilIdLibVersions.ktor}")
-                api("at.asitplus:kmmresult:1.0-SNAPSHOT")
+                api("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
             }
         }
-        val iosX64Main by getting 
+        val iosX64Main by getting
         val iosArm64Main by getting
         val iosMain by getting {
             dependencies {
@@ -105,7 +105,7 @@ kotlin {
                 implementation("io.kotest:kotest-assertions-core:${PupilIdLibVersions.kotest}")
             }
         }
-        val iosX64Test by getting 
+        val iosX64Test by getting
         val iosArm64Test by getting
         val jvmTest by getting {
             dependencies {
