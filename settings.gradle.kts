@@ -6,5 +6,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "PupilId_Library"
+rootProject.name = "pupilidlib"
 include(":pupilidlib")
