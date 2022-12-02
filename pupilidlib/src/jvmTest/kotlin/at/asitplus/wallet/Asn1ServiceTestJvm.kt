@@ -5,7 +5,7 @@ import at.asitplus.wallet.pupilid.Asn1Service
 import at.asitplus.wallet.pupilid.DeviceAdapter
 import at.asitplus.wallet.pupilid.HashAlgorithm
 import at.asitplus.wallet.pupilid.KeyAlgorithm
-import at.asitplus.wallet.pupilid.KmmResult
+import at.asitplus.KmmResult
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.asn1.ASN1Integer

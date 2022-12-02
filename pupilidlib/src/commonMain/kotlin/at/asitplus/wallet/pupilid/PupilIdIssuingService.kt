@@ -1,5 +1,6 @@
 package at.asitplus.wallet.pupilid
 
+import at.asitplus.KmmResult
 import io.github.aakira.napier.Napier
 import io.ktor.client.*
 import io.ktor.client.call.*

@@ -1,6 +1,6 @@
 package at.asitplus.wallet
 
-import at.asitplus.wallet.pupilid.KmmResult
+import at.asitplus.KmmResult
 import at.asitplus.wallet.pupilid.PupilIdIssuingService
 import at.asitplus.wallet.pupilid.ServiceResult
 import io.kotest.matchers.types.shouldBeInstanceOf

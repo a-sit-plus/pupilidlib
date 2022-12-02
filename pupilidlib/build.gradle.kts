@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
+import java.io.FileInputStream
+import java.util.*
 
 plugins {
     kotlin("multiplatform")
@@ -70,9 +72,10 @@ kotlin {
                 implementation("io.ktor:ktor-client-serialization:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-client-content-negotiation:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:${PupilIdLibVersions.ktor}")
+                api("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
             }
         }
-        val iosX64Main by getting 
+        val iosX64Main by getting
         val iosArm64Main by getting
         val iosMain by getting {
             dependencies {
@@ -102,7 +105,7 @@ kotlin {
                 implementation("io.kotest:kotest-assertions-core:${PupilIdLibVersions.kotest}")
             }
         }
-        val iosX64Test by getting 
+        val iosX64Test by getting
         val iosArm64Test by getting
         val jvmTest by getting {
             dependencies {
@@ -119,6 +122,10 @@ kotlin {
         nativeTest.dependsOn(commonTest)
     }
 
+}
+Properties().apply {
+    kotlin.runCatching { load(FileInputStream(project.rootProject.file("local.properties"))) }
+    forEach { (k, v) -> extra.set(k as String, v) }
 }
 
 val gitLabPrivateToken: String? by extra

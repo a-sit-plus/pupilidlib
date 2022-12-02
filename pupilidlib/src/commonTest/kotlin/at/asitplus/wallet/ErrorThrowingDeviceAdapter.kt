@@ -2,7 +2,7 @@ package at.asitplus.wallet
 
 import at.asitplus.wallet.pupilid.DeviceAdapter
 import at.asitplus.wallet.pupilid.KeyAlgorithm
-import at.asitplus.wallet.pupilid.KmmResult
+import at.asitplus.KmmResult
 
 object ErrorThrowingDeviceAdapter : DeviceAdapter {
     override suspend fun loadAttestationCerts(challenge: ByteArray, clientData: ByteArray): KmmResult<List<ByteArray>> =
