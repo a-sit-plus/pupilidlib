@@ -3,12 +3,13 @@ package at.asitplus.wallet
 import at.asitplus.wallet.pupilid.AttestedPublicKey
 import at.asitplus.wallet.pupilid.DeviceAdapter
 import at.asitplus.wallet.pupilid.KeyAlgorithm
-import at.asitplus.wallet.pupilid.KmmResult
+import at.asitplus.KmmResult
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 class AssertKidDeviceAdapter(private val attestedPublicKeyKid: String) : DeviceAdapter {
-    override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> = KmmResult.success(listOf())
+    override suspend fun loadAttestationCerts(challenge: ByteArray, clientData: ByteArray): KmmResult<List<ByteArray>> =
+        KmmResult.success(listOf())
 
     override fun storeCertificate(certificate: ByteArray, attestedPublicKey: String?): KmmResult<Boolean> {
         attestedPublicKey.shouldNotBeNull()

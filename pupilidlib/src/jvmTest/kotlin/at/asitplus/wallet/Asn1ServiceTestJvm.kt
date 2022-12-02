@@ -5,7 +5,7 @@ import at.asitplus.wallet.pupilid.Asn1Service
 import at.asitplus.wallet.pupilid.DeviceAdapter
 import at.asitplus.wallet.pupilid.HashAlgorithm
 import at.asitplus.wallet.pupilid.KeyAlgorithm
-import at.asitplus.wallet.pupilid.KmmResult
+import at.asitplus.KmmResult
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.asn1.ASN1Integer
@@ -27,10 +27,10 @@ class Asn1ServiceTestJvm {
     @Test
     fun oidEncoding() {
         Asn1Object.Oid("1.2.840.10045.4.3.2").encoded shouldBe
-                ASN1ObjectIdentifier("1.2.840.10045.4.3.2").encoded
+            ASN1ObjectIdentifier("1.2.840.10045.4.3.2").encoded
 
         Asn1Object.Oid("1.2.840.113549.1.1.11").encoded shouldBe
-                ASN1ObjectIdentifier("1.2.840.113549.1.1.11").encoded
+            ASN1ObjectIdentifier("1.2.840.113549.1.1.11").encoded
     }
 
     @Test
@@ -106,7 +106,9 @@ class Asn1ServiceTestJvm {
 }
 
 class InMemoryDeviceAdapter(private val keyPair: KeyPair) : DeviceAdapter {
-    override suspend fun loadAttestationCerts(): KmmResult<List<ByteArray>> = KmmResult.success(listOf())
+    override suspend fun loadAttestationCerts(challenge: ByteArray, clientData: ByteArray): KmmResult<List<ByteArray>> =
+        KmmResult.success(listOf())
+
     override fun storeCertificate(certificate: ByteArray, attestedPublicKey: String?): KmmResult<Boolean> =
         KmmResult.success(true)
 
@@ -125,6 +127,7 @@ fun getJcaSignatureName(key: KeyAlgorithm, hash: HashAlgorithm) = when (key) {
         HashAlgorithm.SHA256 -> "SHA256withECDSA"
         HashAlgorithm.SHA512 -> "SHA512withECDSA"
     }
+
     KeyAlgorithm.RSA -> when (hash) {
         HashAlgorithm.SHA1 -> "SHA1withRSA"
         HashAlgorithm.SHA256 -> "SHA256withRSA"
