@@ -68,7 +68,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${PupilIdLibVersions.coroutines}")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${PupilIdLibVersions.`serialization-json`}")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${PupilIdLibVersions.serialization}")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-cbor:${PupilIdLibVersions.serialization}")
                 implementation("io.github.aakira:napier:${PupilIdLibVersions.napier}")
                 implementation("io.ktor:ktor-client-core:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-client-serialization:${PupilIdLibVersions.ktor}")
