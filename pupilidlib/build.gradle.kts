@@ -113,6 +113,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation("org.bouncycastle:bcpkix-jdk18on:${PupilIdLibVersions.Jvm.bouncycastle}")
+                implementation("com.nimbusds:nimbus-jose-jwt:${PupilIdLibVersions.Jvm.`nimbus-jose`}")
             }
         }
         val iosTest by getting

@@ -10,6 +10,7 @@ object PupilIdLibVersions {
     object Jvm {
         const val target = "11"
         const val bouncycastle = "1.72"
+        const val `nimbus-jose` = "9.25.6"
         const val swagger = "2.2.3"
     }
 }
