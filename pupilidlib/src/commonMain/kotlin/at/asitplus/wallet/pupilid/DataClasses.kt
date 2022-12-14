@@ -204,13 +204,15 @@ data class CredentialContent(
     @SerialName("ex")
     val endOfSchoolYear: String,
     @SerialName("key")
-    val key: String
+    val key: String,
+    @SerialName("pic")
+    val scaledPictureHash: String? = null,
 ) {
     fun serialize() = Json.encodeToString(this)
 
     companion object {
         fun deserialize(it: String) =
-            kotlin.runCatching { Json.decodeFromString<CredentialContent>(it) }
+            kotlin.runCatching { Json { ignoreUnknownKeys = true } .decodeFromString<CredentialContent>(it) }
                 .onFailure { e -> Napier.e("Failure while deserializing", e) }.getOrNull()
     }
 }

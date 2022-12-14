@@ -36,7 +36,6 @@ object QrCodeContentService {
      *
      * Clients shall encode each String as a QR code
      */
-    @OptIn(ExperimentalSerializationApi::class)
     fun encodeInQrCode(
         content: CredentialContent,
         createSignedJwsWithPayload: (String) -> String,
@@ -49,18 +48,47 @@ object QrCodeContentService {
         val cbor = Cbor.encodeToByteArray(extendedContent)
         val gzipped = DefaultZlibService().compress(cbor) ?: return null
         val base45 = Base45Encoder.encode(gzipped)
-        val result = mutableListOf<String>()
-        var splitIndex = 0
-        while (splitIndex < base45.length) {
-            if (splitIndex + splitLength > base45.length)
-                result += base45.substring(splitIndex)
-            else
-                result += base45.substring(splitIndex, splitIndex + splitLength)
-            splitIndex += splitLength
-        }
+        val result = splitEveryNChars(base45, splitLength)
         return result.mapIndexed { index, s ->
             "PI1:${index + 1}-${result.size}:$s"
         }
+    }
+
+
+    /**
+     * 1. Applies ZLIB compression to [payload]
+     * 2. Encode in Base45
+     * 3. Split every [splitLength] characters
+     * 4. Prepend with [prefix] and the sequence number `1-3:`, `2-3:` and so on
+     * 5. Return list of these strings
+     *
+     * Clients shall encode each String as a QR code
+     */
+    fun encodeInQrCode(
+        payload: String,
+        prefix: String = "PI2:",
+        splitLength: Int = 1701,
+    ): List<String>? {
+        val gzipped = DefaultZlibService().compress(payload.encodeToByteArray()) ?: return null
+        val base45 = Base45Encoder.encode(gzipped)
+        val result = splitEveryNChars(base45, splitLength)
+        val prefixWithoutSemicolon = prefix.removeSuffix(":")
+        return result.mapIndexed { index, s ->
+            "$prefixWithoutSemicolon:${index + 1}-${result.size}:$s"
+        }
+    }
+
+    private fun splitEveryNChars(input: String, n: Int): MutableList<String> {
+        val result = mutableListOf<String>()
+        var splitIndex = 0
+        while (splitIndex < input.length) {
+            if (splitIndex + n > input.length)
+                result += input.substring(splitIndex)
+            else
+                result += input.substring(splitIndex, splitIndex + n)
+            splitIndex += n
+        }
+        return result
     }
 
     data class DecodeResult(
@@ -71,7 +99,6 @@ object QrCodeContentService {
     /**
      * Decodes a list of scanned QR codes with prefix `PI1`
      */
-    @OptIn(ExperimentalSerializationApi::class)
     fun decodeQrCode(
         input: List<String>,
         verifyJwsExtractPayload: (String) -> String?
