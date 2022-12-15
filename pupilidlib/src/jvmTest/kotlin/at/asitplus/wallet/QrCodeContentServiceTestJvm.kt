@@ -24,10 +24,12 @@ import io.ktor.util.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull.content
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Key
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.MessageDigest
+import java.security.Security
 import java.security.cert.CertificateFactory
 import java.security.interfaces.ECPrivateKey
 import java.security.interfaces.ECPublicKey
@@ -79,6 +81,7 @@ class QrCodeContentServiceTestJvm {
 
     @Test
     fun testValidationAppExtendedValidation() {
+        Security.addProvider(BouncyCastleProvider())
         val jwsWallet = Wallet.step1()
         val jwsValidationApp = Validator.step1(jwsWallet)
         val jweWalletApp = Wallet.step2(jwsValidationApp)
