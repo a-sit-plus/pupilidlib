@@ -1,5 +1,6 @@
 package at.asitplus.wallet
 
+import at.asitplus.KmmResult
 import at.asitplus.wallet.pupilid.CredentialContent
 import at.asitplus.wallet.pupilid.QrCodeContentService
 import com.nimbusds.jose.EncryptionMethod
@@ -21,9 +22,9 @@ import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.util.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonNull.content
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Key
 import java.security.KeyPair
@@ -44,19 +45,22 @@ class QrCodeContentServiceTestJvm {
         val picture = Random.Default.nextBytes(Random.nextInt(900, 1800))
         val keyPair = KeyPairGenerator.getInstance("EC").generateKeyPair()
 
-        val encoded = QrCodeContentService.encodeInQrCode(
-            content = input,
-            createSignedJwsWithPayload = { s ->
-                JWSObject(
-                    JWSHeader.Builder(JWSAlgorithm.ES256).jwk(keyPair.toPublicJwk()).build(),
-                    Payload(s)
-                ).apply {
-                    sign(keyPair.toEcdsaSigner())
-                }.serialize()
-                    .also { println(it) }
-            },
-            picture = picture
-        )
+        val encoded = runBlocking {
+            QrCodeContentService.encodeInQrCode(
+                content = input,
+                createSignedJwsWithPayload = { s ->
+                    KmmResult.success(JWSObject(
+                        JWSHeader.Builder(JWSAlgorithm.ES256).jwk(keyPair.toPublicJwk()).build(),
+                        Payload(s)
+                    ).apply {
+                        sign(keyPair.toEcdsaSigner())
+                    }.serialize()
+                        .also { println(it) }
+                    )
+                },
+                picture = picture
+            ).getOrThrow()
+        }
 
         encoded.shouldNotBeEmpty()
 
@@ -67,11 +71,11 @@ class QrCodeContentServiceTestJvm {
             verifyJwsExtractPayload = { s ->
                 JWSObject.parse(s).run {
                     if (!verify(this.header.createVerifier()))
-                        return@run null
-                    payload.toString()
+                        return@run KmmResult.failure(NullPointerException())
+                    KmmResult.success(payload.toString())
                 }
             }
-        )
+        ).getOrThrow()
 
         decoded.shouldNotBeNull()
         decoded.content.shouldBe(input)

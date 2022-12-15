@@ -1,5 +1,6 @@
 package at.asitplus.wallet.pupilid
 
+import at.asitplus.KmmResult
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -34,24 +35,24 @@ object QrCodeContentService {
      *
      * Clients shall encode each String as a QR code
      */
-    fun encodeInQrCode(
+    suspend fun encodeInQrCode(
         content: CredentialContent,
-        createSignedJwsWithPayload: (String) -> String,
+        createSignedJwsWithPayload: suspend (String) -> KmmResult<String>,
         picture: ByteArray,
         splitLength: Int = 1701,
-    ): List<String> {
-        // TODO: Return KmmResult
+    ): KmmResult<List<String>> {
         val serializedContent = Json.encodeToString(content)
         val jws = createSignedJwsWithPayload(serializedContent)
+            .getOrElse { return KmmResult.failure(it) }
         val extendedContent = ExtendedQrCodeContent(jws, picture)
         val cbor = Cbor.encodeToByteArray(extendedContent)
         val base45 = Base45Encoder.encode(cbor)
         val result = splitEveryNChars(base45, splitLength)
-        return result.mapIndexed { index, s ->
+        val list = result.mapIndexed { index, s ->
             "PI1:${index + 1}-${result.size}:$s"
         }
+        return KmmResult.success(list)
     }
-
 
     /**
      * 1. Encode in Base45
@@ -65,14 +66,14 @@ object QrCodeContentService {
         payload: String,
         prefix: String = "PI2:",
         splitLength: Int = 1701,
-    ): List<String> {
-        // TODO: Return KmmResult
+    ): KmmResult<List<String>> {
         val base45 = Base45Encoder.encode(payload.encodeToByteArray())
         val result = splitEveryNChars(base45, splitLength)
         val prefixWithoutSemicolon = prefix.removeSuffix(":")
-        return result.mapIndexed { index, s ->
+        val list = result.mapIndexed { index, s ->
             "$prefixWithoutSemicolon:${index + 1}-${result.size}:$s"
         }
+        return KmmResult.success(list)
     }
 
     private fun splitEveryNChars(input: String, n: Int): MutableList<String> {
@@ -116,16 +117,18 @@ object QrCodeContentService {
      */
     fun decodeQrCode(
         input: List<String>,
-        verifyJwsExtractPayload: (String) -> String?
-    ): DecodeResult? {
+        verifyJwsExtractPayload: (String) -> KmmResult<String>
+    ): KmmResult<DecodeResult> {
         val base45 = input.mapIndexed { index, s ->
             s.removePrefix("PI1:${index + 1}-${input.size}:")
         }.joinToString(separator = "")
         val cbor = Base45Encoder.decode(base45)
         val extendedContent = Cbor.decodeFromByteArray<ExtendedQrCodeContent>(cbor)
-        val jwsPayload = verifyJwsExtractPayload(extendedContent.jws) ?: return null
+        val jwsPayload = verifyJwsExtractPayload(extendedContent.jws)
+            .getOrElse { return KmmResult.failure(it) }
         val content = Json.decodeFromString<CredentialContent>(jwsPayload)
-        return DecodeResult(content, extendedContent.picture)
+        val result = DecodeResult(content, extendedContent.picture)
+        return KmmResult.success(result)
     }
 
 }
