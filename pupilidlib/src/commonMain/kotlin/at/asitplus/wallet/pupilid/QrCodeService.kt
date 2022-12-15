@@ -91,7 +91,25 @@ object QrCodeContentService {
     data class DecodeResult(
         val content: CredentialContent,
         val picture: ByteArray,
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+
+            other as DecodeResult
+
+            if (content != other.content) return false
+            if (!picture.contentEquals(other.picture)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = content.hashCode()
+            result = 31 * result + picture.contentHashCode()
+            return result
+        }
+    }
 
     /**
      * Decodes a list of scanned QR codes with prefix `PI1`
