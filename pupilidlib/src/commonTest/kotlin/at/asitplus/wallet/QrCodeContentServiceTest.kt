@@ -21,7 +21,6 @@ class QrCodeContentServiceTest {
             picture = picture
         )
 
-        encoded.shouldNotBeNull()
         encoded.shouldNotBeEmpty()
 
         println(encoded)

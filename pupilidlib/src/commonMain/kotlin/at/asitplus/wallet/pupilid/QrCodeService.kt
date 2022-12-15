@@ -1,6 +1,5 @@
 package at.asitplus.wallet.pupilid
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -28,11 +27,10 @@ object QrCodeContentService {
      * 1. Encodes the [content] as JSON
      * 2. Creates a signed JWS with callback [createSignedJwsWithPayload]
      * 3. Encodes in CBOR (a simple data structure with `jws` and `picture`)
-     * 4. Applies ZLIB compression
-     * 5. Encode in Base45
-     * 6. Split every [splitLength] characters
-     * 7. Prepend with `PI1:1-3:` and `PI1:2-3:` and so on
-     * 8. Return list of these strings
+     * 4. Encode in Base45
+     * 5. Split every [splitLength] characters
+     * 6. Prepend with `PI1:1-3:` and `PI1:2-3:` and so on
+     * 7. Return list of these strings
      *
      * Clients shall encode each String as a QR code
      */
@@ -41,13 +39,13 @@ object QrCodeContentService {
         createSignedJwsWithPayload: (String) -> String,
         picture: ByteArray,
         splitLength: Int = 1701,
-    ): List<String>? {
+    ): List<String> {
+        // TODO: Return KmmResult
         val serializedContent = Json.encodeToString(content)
         val jws = createSignedJwsWithPayload(serializedContent)
         val extendedContent = ExtendedQrCodeContent(jws, picture)
         val cbor = Cbor.encodeToByteArray(extendedContent)
-        val gzipped = DefaultZlibService().compress(cbor) ?: return null
-        val base45 = Base45Encoder.encode(gzipped)
+        val base45 = Base45Encoder.encode(cbor)
         val result = splitEveryNChars(base45, splitLength)
         return result.mapIndexed { index, s ->
             "PI1:${index + 1}-${result.size}:$s"
@@ -56,11 +54,10 @@ object QrCodeContentService {
 
 
     /**
-     * 1. Applies ZLIB compression to [payload]
-     * 2. Encode in Base45
-     * 3. Split every [splitLength] characters
-     * 4. Prepend with [prefix] and the sequence number `1-3:`, `2-3:` and so on
-     * 5. Return list of these strings
+     * 1. Encode in Base45
+     * 2. Split every [splitLength] characters
+     * 3. Prepend with [prefix] and the sequence number `1-3:`, `2-3:` and so on
+     * 4. Return list of these strings
      *
      * Clients shall encode each String as a QR code
      */
@@ -68,9 +65,9 @@ object QrCodeContentService {
         payload: String,
         prefix: String = "PI2:",
         splitLength: Int = 1701,
-    ): List<String>? {
-        val gzipped = DefaultZlibService().compress(payload.encodeToByteArray()) ?: return null
-        val base45 = Base45Encoder.encode(gzipped)
+    ): List<String> {
+        // TODO: Return KmmResult
+        val base45 = Base45Encoder.encode(payload.encodeToByteArray())
         val result = splitEveryNChars(base45, splitLength)
         val prefixWithoutSemicolon = prefix.removeSuffix(":")
         return result.mapIndexed { index, s ->
@@ -106,8 +103,7 @@ object QrCodeContentService {
         val base45 = input.mapIndexed { index, s ->
             s.removePrefix("PI1:${index + 1}-${input.size}:")
         }.joinToString(separator = "")
-        val gzipped = Base45Encoder.decode(base45)
-        val cbor = DefaultZlibService().decompress(gzipped) ?: return null
+        val cbor = Base45Encoder.decode(base45)
         val extendedContent = Cbor.decodeFromByteArray<ExtendedQrCodeContent>(cbor)
         val jwsPayload = verifyJwsExtractPayload(extendedContent.jws) ?: return null
         val content = Json.decodeFromString<CredentialContent>(jwsPayload)

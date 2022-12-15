@@ -58,7 +58,6 @@ class QrCodeContentServiceTestJvm {
             picture = picture
         )
 
-        encoded.shouldNotBeNull()
         encoded.shouldNotBeEmpty()
 
         println(encoded)
