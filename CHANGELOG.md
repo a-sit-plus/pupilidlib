@@ -1,5 +1,8 @@
 # Changelog
 
+Release 1.5.0:
+ - Implement extended validation and QR code creation for PupilIds and pictures
+
 Release 1.4.8:
  - Use library `KmmResult` in version 1.1
  - Introduce Key Attestation for iOS by attesting the public key in addition to the App Attestation
