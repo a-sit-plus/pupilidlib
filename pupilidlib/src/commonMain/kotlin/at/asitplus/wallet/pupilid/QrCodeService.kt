@@ -24,6 +24,14 @@ object QrCodeContentService {
         null
     }
 
+    interface Callback {
+
+        /**
+         * Implementers: Create a signed JWS with [input] as the payload.
+         */
+        suspend fun sign(input: String): KmmResult<String>
+    }
+
     /**
      * 1. Encodes the [content] as JSON
      * 2. Creates a signed JWS with callback [createSignedJwsWithPayload]
@@ -37,12 +45,12 @@ object QrCodeContentService {
      */
     suspend fun encodeInQrCode(
         content: CredentialContent,
-        createSignedJwsWithPayload: suspend (String) -> KmmResult<String>,
         picture: ByteArray,
         splitLength: Int = 1701,
+        callback: Callback,
     ): KmmResult<List<String>> {
         val serializedContent = Json.encodeToString(content)
-        val jws = createSignedJwsWithPayload(serializedContent)
+        val jws = callback.sign(serializedContent)
             .getOrElse { return KmmResult.failure(it) }
         val extendedContent = ExtendedQrCodeContent(jws, picture)
         val cbor = Cbor.encodeToByteArray(extendedContent)

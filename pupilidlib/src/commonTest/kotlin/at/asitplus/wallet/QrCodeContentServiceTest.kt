@@ -3,7 +3,6 @@ package at.asitplus.wallet
 import at.asitplus.KmmResult
 import at.asitplus.wallet.pupilid.CredentialContent
 import at.asitplus.wallet.pupilid.QrCodeContentService
-import io.kotest.inspectors.runTest
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -20,8 +19,12 @@ class QrCodeContentServiceTest {
 
         val encoded = QrCodeContentService.encodeInQrCode(
             content = input,
-            createSignedJwsWithPayload = { s -> KmmResult.success(s) },
-            picture = picture
+            picture = picture,
+            callback = object : QrCodeContentService.Callback {
+                override suspend fun sign(input: String): KmmResult<String> {
+                    return KmmResult.success(input)
+                }
+            }
         ).getOrThrow()
 
         encoded.shouldNotBeEmpty()

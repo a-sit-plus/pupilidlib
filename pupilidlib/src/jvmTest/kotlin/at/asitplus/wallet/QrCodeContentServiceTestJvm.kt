@@ -48,17 +48,17 @@ class QrCodeContentServiceTestJvm {
         val encoded = runBlocking {
             QrCodeContentService.encodeInQrCode(
                 content = input,
-                createSignedJwsWithPayload = { s ->
-                    KmmResult.success(JWSObject(
+                picture = picture,
+                callback = object : QrCodeContentService.Callback {
+                    override suspend fun sign(input: String) = KmmResult.success(JWSObject(
                         JWSHeader.Builder(JWSAlgorithm.ES256).jwk(keyPair.toPublicJwk()).build(),
-                        Payload(s)
+                        Payload(input)
                     ).apply {
                         sign(keyPair.toEcdsaSigner())
                     }.serialize()
                         .also { println(it) }
                     )
-                },
-                picture = picture
+                }
             ).getOrThrow()
         }
 
