@@ -116,6 +116,9 @@ class DeviceBindingPupilIdIssuingService constructor(
             val details = kotlin.runCatching { e.response.body<SpringErrorDocument>() }.getOrNull()
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error", details)
                 .also { Napier.w("Error from network", throwable = e) }
+        } catch (e: CryptoException) {
+            return ServiceResult.SignatureInvalid
+                .also { Napier.w("binding not signed by trusted issuer", throwable = e) }
         } catch (e: Throwable) {
             return ServiceResult.ErrorFromNativeCode(e)
                 .also { Napier.w("Error from native code", throwable = e) }

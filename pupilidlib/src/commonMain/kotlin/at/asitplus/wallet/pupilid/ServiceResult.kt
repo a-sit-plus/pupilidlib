@@ -7,6 +7,7 @@ sealed class ServiceResult {
     data class Success(val message: String, val xAuthToken: String?) : ServiceResult()
     data class ErrorFromNetwork(val error: String, val details: SpringErrorDocument? = null) : ServiceResult()
     data class ErrorFromNativeCode(val throwable: Any?) : ServiceResult()
+    object SignatureInvalid : ServiceResult()
 }
 
 @Serializable
