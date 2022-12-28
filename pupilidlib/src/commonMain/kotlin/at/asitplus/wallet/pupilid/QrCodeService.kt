@@ -147,24 +147,29 @@ object QrCodeContentService {
     }
 
     /**
-     * Decodes a list of scanned QR codes with prefix `PI1`
+     * Decodes a collection of scanned QR codes with prefix [prefix] (e.g. "PI1:")
      */
     fun decodeQrCode(
-        input: List<String>,
+        input: Collection<String>,
+        prefix: String = "PI1:",
         callback: DecodeCallback,
     ): KmmResult<DecodeResult> {
-        val base45 = input.mapIndexed { index, s ->
-            s.removePrefix("PI1:${index + 1}-${input.size}:")
+        val prefixWithoutSemicolon = prefix.removeSuffix(":")
+        val base45 = input.sorted().mapIndexed { index, s ->
+            s.removePrefix("$prefixWithoutSemicolon:${index + 1}-${input.size}:")
         }.joinToString(separator = "")
-        val cbor = Base45Encoder.decode(base45)
-        val extendedContent = Cbor.decodeFromByteArray<ExtendedQrCodeContent>(cbor)
-        val jwsPayload = callback.verifyJwsExtractPayload(extendedContent.jws)
-            .getOrElse { return KmmResult.failure(it) }
-        val content = Json.decodeFromString<CredentialContent>(jwsPayload)
-        val result = DecodeResult(content, extendedContent.picture)
-        return KmmResult.success(result)
+        return kotlin.runCatching {
+            val cbor = Base45Encoder.decode(base45)
+            val extendedContent = Cbor.decodeFromByteArray<ExtendedQrCodeContent>(cbor)
+            val jwsPayload = callback.verifyJwsExtractPayload(extendedContent.jws)
+                .getOrElse { return KmmResult.failure(it) }
+            val content = Json.decodeFromString<CredentialContent>(jwsPayload)
+            val result = DecodeResult(content, extendedContent.picture)
+            KmmResult.success(result)
+        }.getOrElse {
+            KmmResult.failure(it)
+        }
     }
-
 }
 
 @kotlinx.serialization.Serializable
