@@ -48,18 +48,17 @@ class QrCodeContentServiceTestJvm {
         val encoded = runBlocking {
             QrCodeContentService.encodeInQrCode(
                 content = input,
-                picture = picture,
-                callback = object : QrCodeContentService.Callback {
-                    override suspend fun sign(input: String) = KmmResult.success(JWSObject(
-                        JWSHeader.Builder(JWSAlgorithm.ES256).jwk(keyPair.toPublicJwk()).build(),
-                        Payload(input)
-                    ).apply {
-                        sign(keyPair.toEcdsaSigner())
-                    }.serialize()
-                        .also { println(it) }
-                    )
-                }
-            ).getOrThrow()
+                picture = picture
+            ) {
+                KmmResult.success(JWSObject(
+                    JWSHeader.Builder(JWSAlgorithm.ES256).jwk(keyPair.toPublicJwk()).build(),
+                    Payload(it)
+                ).apply {
+                    sign(keyPair.toEcdsaSigner())
+                }.serialize()
+                    .also { println(it) }
+                )
+            }.getOrThrow()
         }
 
         encoded.shouldNotBeEmpty()
@@ -68,8 +67,8 @@ class QrCodeContentServiceTestJvm {
 
         val decoded = QrCodeContentService.decodeQrCode(
             input = encoded
-        ) { input ->
-            JWSObject.parse(input).run {
+        ) {
+            JWSObject.parse(it).run {
                 if (!verify(this.header.createVerifier()))
                     return@run KmmResult.failure(NullPointerException())
                 KmmResult.success(payload.toString())

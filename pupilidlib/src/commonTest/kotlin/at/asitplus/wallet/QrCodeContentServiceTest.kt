@@ -19,13 +19,8 @@ class QrCodeContentServiceTest {
 
         val encoded = QrCodeContentService.encodeInQrCode(
             content = input,
-            picture = picture,
-            callback = object : QrCodeContentService.Callback {
-                override suspend fun sign(input: String): KmmResult<String> {
-                    return KmmResult.success(input)
-                }
-            }
-        ).getOrThrow()
+            picture = picture
+        ) { KmmResult.success(it) }.getOrThrow()
 
         encoded.shouldNotBeEmpty()
 
@@ -34,11 +29,20 @@ class QrCodeContentServiceTest {
 
         val decoded = QrCodeContentService.decodeQrCode(
             input = encoded
-        ) { input -> KmmResult.success(input) }.getOrThrow()
+        ) { KmmResult.success(it) }.getOrThrow()
 
         decoded.shouldNotBeNull()
         decoded.content.shouldBe(input)
         decoded.picture.shouldBe(picture)
+    }
+
+    @Test
+    fun testWrongQr() {
+        val decoded = QrCodeContentService.decodeQrCode(
+            listOf("foo")
+        ) { KmmResult.success(it) }
+
+        decoded.isFailure shouldBe true
     }
 
 }
