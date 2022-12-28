@@ -67,7 +67,12 @@ publish:
   script: |
     export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
     echo "Publishing version $VERSION for $LIB_NAME"
+    echo "VERSION=$VERSION" >> variables.env
     ./gradlew --continue :pupilidlib:assemblePupilIdKMMXCFramework assemble publish
+    if [[ $VERSION =~ "SNAPSHOT" ]]; then
+      VERSION=${VERSION/-SNAPSHOT/-$(date +"%Y%m%d.%H%M%S")-SNAPSHOT}
+      echo "Adapting version number for publishing of Snapshot Framework blobs to $VERSION"
+    fi
     (cd "$LIB_NAME/build/XCFrameworks/debug/"; zip -r "$LIB_NAME.zip" *.xcframework)
     export CHECKSUM=$(shasum -a 256 "$LIB_NAME/build/XCFrameworks/debug/$LIB_NAME.zip" | cut -d' ' -f1)
     export PACKAGE_REMOTE_ZIP=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.zip
@@ -84,7 +89,6 @@ publish:
     [[ ! $VERSION =~ "SNAPSHOT" ]] && git tag "$VERSION" && git push origin "$VERSION"
     popd
     popd
-    echo "VERSION=$VERSION" >> variables.env
   artifacts:
     when: always
     reports:
