@@ -24,7 +24,7 @@ object QrCodeContentService {
         null
     }
 
-    interface Callback {
+    fun interface Callback {
 
         /**
          * Implementers: Create a signed JWS with [input] as the payload.
