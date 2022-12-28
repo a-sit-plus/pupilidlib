@@ -67,15 +67,14 @@ class QrCodeContentServiceTestJvm {
         println(encoded)
 
         val decoded = QrCodeContentService.decodeQrCode(
-            input = encoded,
-            verifyJwsExtractPayload = { s ->
-                JWSObject.parse(s).run {
-                    if (!verify(this.header.createVerifier()))
-                        return@run KmmResult.failure(NullPointerException())
-                    KmmResult.success(payload.toString())
-                }
+            input = encoded
+        ) { input ->
+            JWSObject.parse(input).run {
+                if (!verify(this.header.createVerifier()))
+                    return@run KmmResult.failure(NullPointerException())
+                KmmResult.success(payload.toString())
             }
-        ).getOrThrow()
+        }.getOrThrow()
 
         decoded.shouldNotBeNull()
         decoded.content.shouldBe(input)

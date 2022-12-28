@@ -120,19 +120,26 @@ object QrCodeContentService {
         }
     }
 
+    fun interface DecodeCallback {
+        /**
+         * Implementers: Verify JWS from Wallet App and return payload
+         */
+        fun verifyJwsExtractPayload(input: String): KmmResult<String>
+    }
+
     /**
      * Decodes a list of scanned QR codes with prefix `PI1`
      */
     fun decodeQrCode(
         input: List<String>,
-        verifyJwsExtractPayload: (String) -> KmmResult<String>
+        callback: DecodeCallback,
     ): KmmResult<DecodeResult> {
         val base45 = input.mapIndexed { index, s ->
             s.removePrefix("PI1:${index + 1}-${input.size}:")
         }.joinToString(separator = "")
         val cbor = Base45Encoder.decode(base45)
         val extendedContent = Cbor.decodeFromByteArray<ExtendedQrCodeContent>(cbor)
-        val jwsPayload = verifyJwsExtractPayload(extendedContent.jws)
+        val jwsPayload = callback.verifyJwsExtractPayload(extendedContent.jws)
             .getOrElse { return KmmResult.failure(it) }
         val content = Json.decodeFromString<CredentialContent>(jwsPayload)
         val result = DecodeResult(content, extendedContent.picture)

@@ -33,9 +33,8 @@ class QrCodeContentServiceTest {
         //println(encoded.size)
 
         val decoded = QrCodeContentService.decodeQrCode(
-            input = encoded,
-            verifyJwsExtractPayload = { s -> KmmResult.success(s) }
-        ).getOrThrow()
+            input = encoded
+        ) { input -> KmmResult.success(input) }.getOrThrow()
 
         decoded.shouldNotBeNull()
         decoded.content.shouldBe(input)
