@@ -34,7 +34,7 @@ object QrCodeContentService {
 
     /**
      * 1. Encodes the [content] as JSON
-     * 2. Creates a signed JWS with callback [createSignedJwsWithPayload]
+     * 2. Creates a signed JWS with [callback]
      * 3. Encodes in CBOR (a simple data structure with `jws` and `picture`)
      * 4. Encode in Base45
      * 5. Split every [splitLength] characters
@@ -54,12 +54,11 @@ object QrCodeContentService {
             .getOrElse { return KmmResult.failure(it) }
         val extendedContent = ExtendedQrCodeContent(jws, picture)
         val cbor = Cbor.encodeToByteArray(extendedContent)
-        val base45 = Base45Encoder.encode(cbor)
-        val result = splitEveryNChars(base45, splitLength)
-        val list = result.mapIndexed { index, s ->
-            "PI1:${index + 1}-${result.size}:$s"
-        }
-        return KmmResult.success(list)
+        return encodeInQrCode(
+            payload = cbor,
+            prefix = "PI1:",
+            splitLength = splitLength
+        )
     }
 
     /**
@@ -75,7 +74,27 @@ object QrCodeContentService {
         prefix: String = "PI2:",
         splitLength: Int = 1701,
     ): KmmResult<List<String>> {
-        val base45 = Base45Encoder.encode(payload.encodeToByteArray())
+        return encodeInQrCode(
+            payload = payload.encodeToByteArray(),
+            prefix = prefix,
+            splitLength = splitLength
+        )
+    }
+
+    /**
+     * 1. Encode in Base45
+     * 2. Split every [splitLength] characters
+     * 3. Prepend with [prefix] and the sequence number `1-3:`, `2-3:` and so on
+     * 4. Return list of these strings
+     *
+     * Clients shall encode each String as a QR code
+     */
+    fun encodeInQrCode(
+        payload: ByteArray,
+        prefix: String = "PI2:",
+        splitLength: Int = 1701,
+    ): KmmResult<List<String>> {
+        val base45 = Base45Encoder.encode(payload)
         val result = splitEveryNChars(base45, splitLength)
         val prefixWithoutSemicolon = prefix.removeSuffix(":")
         val list = result.mapIndexed { index, s ->
