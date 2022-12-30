@@ -147,7 +147,11 @@ object QrCodeContentService {
     }
 
     /**
-     * Decodes a collection of scanned QR codes with prefix [prefix] (e.g. "PI1:")
+     * Decodes a collection of scanned QR codes with prefix [prefix] (e.g. "PI1:").
+     *
+     * Custom exceptions returned in `KmmResult` include:
+     * - [InputInsufficientError]: The list of inputs is not complete
+     * - [QrCodeDecodingError]: The QR Code can't be decoded
      */
     fun decodeQrCode(
         input: Collection<String>,
@@ -155,10 +159,19 @@ object QrCodeContentService {
         callback: DecodeCallback,
     ): KmmResult<DecodeResult> {
         val prefixWithoutSemicolon = prefix.removeSuffix(":")
+        if (input.isEmpty())
+            return KmmResult.failure(InputInsufficientError())
+        if (input.any { !it.startsWith(prefixWithoutSemicolon) })
+            return KmmResult.failure(InputInsufficientError())
+        val expectedCount = input.min()
+            .removePrefix("$prefixWithoutSemicolon:")
+            .dropWhile { it != '-' }.drop(1)
+            .takeWhile { it != ':' }.toIntOrNull() ?: 1
+        if (input.count() != expectedCount)
+            return KmmResult.failure(InputInsufficientError())
         val base45 = input.sorted().mapIndexed { index, s ->
             s.removePrefix("$prefixWithoutSemicolon:${index + 1}-${input.size}:")
         }.joinToString(separator = "")
-        // TODO Throw custom exception when we need more input
         return kotlin.runCatching {
             val cbor = Base45Encoder.decode(base45)
             val extendedContent = Cbor.decodeFromByteArray<ExtendedQrCodeContent>(cbor)
@@ -168,7 +181,7 @@ object QrCodeContentService {
             val result = DecodeResult(content, extendedContent.picture)
             KmmResult.success(result)
         }.getOrElse {
-            KmmResult.failure(it)
+            KmmResult.failure(QrCodeDecodingError(it))
         }
     }
 }
@@ -199,4 +212,5 @@ data class ExtendedQrCodeContent(
     }
 }
 
-
+class InputInsufficientError : Throwable("Need more input")
+class QrCodeDecodingError(it: Throwable) : Throwable("QR Code Decoding Error", it)

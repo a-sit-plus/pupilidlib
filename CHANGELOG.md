@@ -1,7 +1,8 @@
 # Changelog
 
 Release 1.5.0:
- - Implement extended validation and QR code creation for PupilIds and pictures
+ - Implement extended creation and validation of QR Codes for PupilIds and pictures, see `QrCodeContentService`
+ - Rename `endOfSchoolYear` in `CredentialContent` to `expiration`
 
 Release 1.4.8:
  - Use library `KmmResult` in version 1.1
@@ -14,4 +15,4 @@ Release 1.4.4:
  - Skipped due to Swift Package Manager problems
 
 Release 1.4.3:
- - Configurabe network timeouts
+ - Configurable network timeouts

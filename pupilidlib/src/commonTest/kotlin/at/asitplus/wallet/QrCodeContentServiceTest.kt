@@ -2,10 +2,13 @@ package at.asitplus.wallet
 
 import at.asitplus.KmmResult
 import at.asitplus.wallet.pupilid.CredentialContent
+import at.asitplus.wallet.pupilid.InputInsufficientError
 import at.asitplus.wallet.pupilid.QrCodeContentService
+import at.asitplus.wallet.pupilid.QrCodeDecodingError
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 import kotlin.test.Test
@@ -37,12 +40,35 @@ class QrCodeContentServiceTest {
     }
 
     @Test
-    fun testWrongQr() {
-        val decoded = QrCodeContentService.decodeQrCode(
-            listOf("foo")
-        ) { KmmResult.success(it) }
+    fun testWrongPrefix() {
+        val decoded = QrCodeContentService.decodeQrCode(listOf("foo")) { KmmResult.success(it) }
 
         decoded.isFailure shouldBe true
+        decoded.error shouldBe InputInsufficientError()
+    }
+
+    @Test
+    fun testEmptyInput() {
+        val decoded = QrCodeContentService.decodeQrCode(listOf()) { KmmResult.success(it) }
+
+        decoded.isFailure shouldBe true
+        decoded.error shouldBe InputInsufficientError()
+    }
+
+    @Test
+    fun testNotEnoughInput() {
+        val decoded = QrCodeContentService.decodeQrCode(listOf("PI1:1-3:foo"), "PI1:") { KmmResult.success(it) }
+
+        decoded.isFailure shouldBe true
+        decoded.error shouldBe InputInsufficientError()
+    }
+
+    @Test
+    fun testQrCodeError() {
+        val decoded = QrCodeContentService.decodeQrCode(listOf("PI1:1-1:foo"), "PI1:") { KmmResult.success(it) }
+
+        decoded.isFailure shouldBe true
+        decoded.error shouldBe QrCodeDecodingError(Throwable())
     }
 
 }
