@@ -196,24 +196,25 @@ data class CredentialContent(
     @SerialName("id")
     val id: String,
     @SerialName("exp")
-    val qrCodeExpiration : Int,
+    val qrCodeExpiration: Int,
     @SerialName("nbf")
-    val qrCodeNotBefore : Int,
+    val qrCodeNotBefore: Int,
     @SerialName("vu")
     val validUntil: String,
     @SerialName("ex")
-    val endOfSchoolYear: String,
+    val expiration: String,
     @SerialName("key")
     val key: String,
     @SerialName("pic")
     val scaledPictureHash: String? = null,
 ) {
-    fun serialize() = Json.encodeToString(this)
+    fun serialize() = jsonSerializer.encodeToString(this)
 
     companion object {
         fun deserialize(it: String) =
-            kotlin.runCatching { Json { ignoreUnknownKeys = true } .decodeFromString<CredentialContent>(it) }
-                .onFailure { e -> Napier.e("Failure while deserializing", e) }.getOrNull()
+            kotlin.runCatching { jsonSerializer.decodeFromString<CredentialContent>(it) }
+                .onFailure { e -> Napier.e("Failure while deserializing", e) }
+                .getOrNull()
     }
 }
 
@@ -227,15 +228,14 @@ data class AttestedPublicKey(
     @SerialName("kid")
     val kid: String
 ) {
-    fun serialize() = Json.encodeToString(this)
+    fun serialize() = jsonSerializer.encodeToString(this)
 
     companion object {
         fun deserialize(it: String) =
-            kotlin.runCatching {
-                Json {
-                    ignoreUnknownKeys = true
-                }.decodeFromString<AttestedPublicKey>(it)
-            }
-                .onFailure { e -> Napier.e("Failure while deserializing", e) }.getOrNull()
+            kotlin.runCatching { jsonSerializer.decodeFromString<AttestedPublicKey>(it) }
+                .onFailure { e -> Napier.e("Failure while deserializing", e) }
+                .getOrNull()
     }
 }
+
+private val jsonSerializer = Json { ignoreUnknownKeys = true }
