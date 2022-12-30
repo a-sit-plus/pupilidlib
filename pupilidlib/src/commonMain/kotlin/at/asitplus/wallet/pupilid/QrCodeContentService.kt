@@ -158,6 +158,7 @@ object QrCodeContentService {
         val base45 = input.sorted().mapIndexed { index, s ->
             s.removePrefix("$prefixWithoutSemicolon:${index + 1}-${input.size}:")
         }.joinToString(separator = "")
+        // TODO Throw custom exception when we need more input
         return kotlin.runCatching {
             val cbor = Base45Encoder.decode(base45)
             val extendedContent = Cbor.decodeFromByteArray<ExtendedQrCodeContent>(cbor)
