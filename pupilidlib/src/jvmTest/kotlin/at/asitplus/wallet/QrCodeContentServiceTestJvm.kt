@@ -41,8 +41,8 @@ class QrCodeContentServiceTestJvm {
 
     @Test
     fun testWalletAppBasicVerification() {
-        val input = CredentialContent("PupilId", "id", 1, 2, "2022-12-01", "2022-12-31", "key")
         val picture = Random.Default.nextBytes(Random.nextInt(900, 1800))
+        val input = CredentialContent("PupilId", "id", 1, 2, "2022-12-01", "2022-12-31", "key", picture.sha256())
         val keyPair = KeyPairGenerator.getInstance("EC").generateKeyPair()
 
         val encoded = runBlocking {

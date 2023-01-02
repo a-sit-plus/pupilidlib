@@ -1,6 +1,8 @@
 package at.asitplus.wallet.pupilid
 
 import at.asitplus.KmmResult
+import io.github.aakira.napier.Napier
+import io.ktor.util.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -8,6 +10,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import okio.ByteString.Companion.toByteString
 
 object QrCodeContentService {
     /**
@@ -152,6 +155,7 @@ object QrCodeContentService {
      * Custom exceptions returned in `KmmResult` include:
      * - [InputInsufficientError]: The list of inputs is not complete
      * - [QrCodeDecodingError]: The QR Code can't be decoded
+     * - [PictureNotMatchingError]: The picture and credential content are not linked correctly
      */
     fun decodeQrCode(
         input: Collection<String>,
@@ -178,9 +182,19 @@ object QrCodeContentService {
             val jwsPayload = callback.verifyJwsExtractPayload(extendedContent.jws)
                 .getOrElse { return KmmResult.failure(it) }
             val content = Json.decodeFromString<CredentialContent>(jwsPayload)
+            if (extendedContent.picture.isNotEmpty() && content.scaledPictureHash == null)
+                throw PictureNotMatchingError()
+            content.scaledPictureHash?.let { includedHash ->
+                val computedHash = extendedContent.picture.toByteString().sha256().toByteArray()
+                if (!computedHash.contentEquals(includedHash.decodeBase64Bytes()))
+                    throw PictureNotMatchingError()
+            }
             val result = DecodeResult(content, extendedContent.picture)
             KmmResult.success(result)
         }.getOrElse {
+            Napier.d("decodeQrCode: Error", it)
+            if (it is PictureNotMatchingError)
+                return KmmResult.failure(it)
             KmmResult.failure(QrCodeDecodingError(it))
         }
     }
@@ -214,3 +228,4 @@ data class ExtendedQrCodeContent(
 
 class InputInsufficientError : Throwable("Need more input")
 class QrCodeDecodingError(it: Throwable) : Throwable("QR Code Decoding Error", it)
+class PictureNotMatchingError : Throwable("Picture hash does not match")

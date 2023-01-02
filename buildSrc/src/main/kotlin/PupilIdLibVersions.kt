@@ -6,6 +6,7 @@ object PupilIdLibVersions {
     const val napier = "2.6.1"
     const val kotest = "5.5.4"
     const val resultlib = "1.1"
+    const val okio = "3.2.0"
 
     object Jvm {
         const val target = "11"
