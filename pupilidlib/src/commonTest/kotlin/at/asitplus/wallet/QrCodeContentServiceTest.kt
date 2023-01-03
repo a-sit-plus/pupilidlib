@@ -90,7 +90,7 @@ class QrCodeContentServiceTest {
 
         decoded.shouldNotBeNull()
         decoded.isFailure shouldBe true
-        decoded.error shouldBe PictureNotMatchingError()
+        decoded.exceptionOrNull() shouldBe PictureNotMatchingError()
     }
 
     @Test
@@ -115,7 +115,7 @@ class QrCodeContentServiceTest {
 
         decoded.shouldNotBeNull()
         decoded.isFailure shouldBe true
-        decoded.error shouldBe PictureNotMatchingError()
+        decoded.exceptionOrNull() shouldBe PictureNotMatchingError()
     }
 
     @Test
@@ -123,7 +123,7 @@ class QrCodeContentServiceTest {
         val decoded = QrCodeContentService.decodeQrCode(listOf("foo")) { KmmResult.success(it) }
 
         decoded.isFailure shouldBe true
-        decoded.error shouldBe InputInsufficientError()
+        decoded.exceptionOrNull() shouldBe InputInsufficientError()
     }
 
     @Test
@@ -131,7 +131,7 @@ class QrCodeContentServiceTest {
         val decoded = QrCodeContentService.decodeQrCode(listOf()) { KmmResult.success(it) }
 
         decoded.isFailure shouldBe true
-        decoded.error shouldBe InputInsufficientError()
+        decoded.exceptionOrNull() shouldBe InputInsufficientError()
     }
 
     @Test
@@ -139,7 +139,7 @@ class QrCodeContentServiceTest {
         val decoded = QrCodeContentService.decodeQrCode(listOf("PI1:1-3:foo"), "PI1:") { KmmResult.success(it) }
 
         decoded.isFailure shouldBe true
-        decoded.error shouldBe InputInsufficientError()
+        decoded.exceptionOrNull() shouldBe InputInsufficientError()
     }
 
     @Test
@@ -147,10 +147,10 @@ class QrCodeContentServiceTest {
         val decoded = QrCodeContentService.decodeQrCode(listOf("PI1:1-1:foo"), "PI1:") { KmmResult.success(it) }
 
         decoded.isFailure shouldBe true
-        decoded.error shouldBe QrCodeDecodingError(Throwable())
+        decoded.exceptionOrNull() shouldBe QrCodeDecodingError(Throwable())
     }
 
-    fun randomString(): String {
+    private fun randomString(): String {
         return Random.nextBytes(32).encodeBase64()
     }
 
