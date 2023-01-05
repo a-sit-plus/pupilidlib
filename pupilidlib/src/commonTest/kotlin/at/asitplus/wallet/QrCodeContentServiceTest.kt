@@ -17,20 +17,21 @@ import kotlin.test.Test
 
 class QrCodeContentServiceTest {
 
+    private val validInput = CredentialContent(
+        randomString(),
+        randomString(),
+        1,
+        2,
+        randomString(),
+        randomString(),
+        randomString()
+    )
+
     @Test
     fun testEncoding() = runBlocking {
         val picture = Random.Default.nextBytes(Random.nextInt(900, 1800))
         val pictureHash = picture.toByteString().sha256().toByteArray()
-        val input = CredentialContent(
-            randomString(),
-            randomString(),
-            1,
-            2,
-            randomString(),
-            randomString(),
-            randomString(),
-            pictureHash.encodeBase64()
-        )
+        val input = validInput.copy(scaledPictureHash = pictureHash.encodeBase64())
 
         val encoded = QrCodeContentService.encodeInQrCode(content = input, picture = picture) { KmmResult.success(it) }
             .getOrThrow()
@@ -45,15 +46,7 @@ class QrCodeContentServiceTest {
 
     @Test
     fun testEmptyPicture() = runBlocking {
-        val input = CredentialContent(
-            randomString(),
-            randomString(),
-            1,
-            2,
-            randomString(),
-            randomString(),
-            randomString(),
-        )
+        val input = validInput.copy()
 
         val encoded =
             QrCodeContentService.encodeInQrCode(content = input, picture = byteArrayOf()) { KmmResult.success(it) }
@@ -67,19 +60,25 @@ class QrCodeContentServiceTest {
     }
 
     @Test
+    fun testEmptyPictureWithAdditionalScans() = runBlocking {
+        val input = validInput.copy()
+
+        val encoded =
+            QrCodeContentService.encodeInQrCode(content = input, picture = byteArrayOf()) { KmmResult.success(it) }
+                .getOrThrow()
+        encoded.shouldNotBeEmpty()
+
+        val decoded = QrCodeContentService.decodeQrCode(input = encoded + "foo") { KmmResult.success(it) }.getOrThrow()
+
+        decoded.shouldNotBeNull()
+        decoded.content.shouldBe(input)
+    }
+
+    @Test
     fun testPictureHashNotMatching() = runBlocking {
         val picture = Random.Default.nextBytes(Random.nextInt(900, 1800))
         val pictureHash = picture.toByteString().sha256().toByteArray()
-        val input = CredentialContent(
-            randomString(),
-            randomString(),
-            1,
-            2,
-            randomString(),
-            randomString(),
-            randomString(),
-            pictureHash.encodeBase64().reversed()
-        )
+        val input = validInput.copy(scaledPictureHash = pictureHash.encodeBase64().reversed())
 
         val encoded = QrCodeContentService.encodeInQrCode(content = input, picture = picture) { KmmResult.success(it) }
             .getOrThrow()
@@ -96,15 +95,7 @@ class QrCodeContentServiceTest {
     @Test
     fun testNoPictureHash() = runBlocking {
         val picture = Random.Default.nextBytes(Random.nextInt(900, 1800))
-        val input = CredentialContent(
-            randomString(),
-            randomString(),
-            1,
-            2,
-            randomString(),
-            randomString(),
-            randomString(),
-        )
+        val input = validInput.copy()
 
         val encoded = QrCodeContentService.encodeInQrCode(content = input, picture = picture) { KmmResult.success(it) }
             .getOrThrow()

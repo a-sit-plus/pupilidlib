@@ -111,7 +111,7 @@ open class BindingCsrRequest(
 open class BindingCsrResponse(
     val certificate: ByteArray,
     /**
-     * Serialized [AttestedPublicKey].
+     * JWS with payload a serialized [AttestedPublicKey], signed by the backend key.
      */
     val attestedPublicKey: String?,
 ) {

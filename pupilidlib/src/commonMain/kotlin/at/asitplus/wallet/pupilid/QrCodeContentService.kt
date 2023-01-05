@@ -165,16 +165,17 @@ object QrCodeContentService {
         val prefixWithoutSemicolon = prefix.removeSuffix(":")
         if (input.isEmpty())
             return KmmResult.failure(InputInsufficientError())
-        if (input.any { !it.startsWith(prefixWithoutSemicolon) })
+        val filtered = input.filter { it.startsWith("$prefixWithoutSemicolon:") }
+        if (filtered.isEmpty())
             return KmmResult.failure(InputInsufficientError())
-        val expectedCount = input.min()
+        val expectedCount = filtered.min()
             .removePrefix("$prefixWithoutSemicolon:")
             .dropWhile { it != '-' }.drop(1)
             .takeWhile { it != ':' }.toIntOrNull() ?: 1
-        if (input.count() != expectedCount)
+        if (filtered.count() != expectedCount)
             return KmmResult.failure(InputInsufficientError())
-        val base45 = input.sorted().mapIndexed { index, s ->
-            s.removePrefix("$prefixWithoutSemicolon:${index + 1}-${input.size}:")
+        val base45 = filtered.sorted().mapIndexed { index, s ->
+            s.removePrefix("$prefixWithoutSemicolon:${index + 1}-${filtered.size}:")
         }.joinToString(separator = "")
         return kotlin.runCatching {
             val cbor = Base45Encoder.decode(base45)
