@@ -111,7 +111,7 @@ class DeviceBindingService(
             }
         xAuthToken = createResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
         val bindingCsrResponse = createResponse.body<BindingCsrResponse>()
-        deviceAdapter.storeCertificate(bindingCsrResponse.certificate, bindingCsrResponse.attestedPublicKey)
+        deviceAdapter.storeCertificate(bindingCsrResponse.certificate, bindingCsrResponse.attestedPublicKey).getOrThrow()
         val bindingConfirmRequest = BindingConfirmRequest(true)
         val confirmResponse =
             client.post(URLBuilder(serverAddress).appendPathSegments("binding", "confirm").buildString()) {
