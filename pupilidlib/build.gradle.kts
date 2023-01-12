@@ -5,6 +5,7 @@ import java.util.*
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization") version PupilIdLibVersions.kotlin
+    id("io.kotest.multiplatform") version PupilIdLibVersions.kotest
     id("maven-publish")
 }
 
@@ -68,12 +69,14 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${PupilIdLibVersions.coroutines}")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${PupilIdLibVersions.`serialization-json`}")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${PupilIdLibVersions.serialization}")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-cbor:${PupilIdLibVersions.serialization}")
                 implementation("io.github.aakira:napier:${PupilIdLibVersions.napier}")
                 implementation("io.ktor:ktor-client-core:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-client-serialization:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-client-content-negotiation:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:${PupilIdLibVersions.ktor}")
+                implementation("com.squareup.okio:okio:${PupilIdLibVersions.okio}")
                 api("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
             }
         }
@@ -105,6 +108,7 @@ kotlin {
                 implementation(kotlin("test"))
                 implementation("io.ktor:ktor-client-mock:${PupilIdLibVersions.ktor}")
                 implementation("io.kotest:kotest-assertions-core:${PupilIdLibVersions.kotest}")
+                implementation("io.kotest:kotest-framework-engine:${PupilIdLibVersions.kotest}")
             }
         }
         val iosX64Test by getting
@@ -112,6 +116,8 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation("org.bouncycastle:bcpkix-jdk18on:${PupilIdLibVersions.Jvm.bouncycastle}")
+                implementation("com.nimbusds:nimbus-jose-jwt:${PupilIdLibVersions.Jvm.`nimbus-jose`}")
+                implementation("io.kotest:kotest-runner-junit5:${PupilIdLibVersions.kotest}")
             }
         }
         val iosTest by getting
