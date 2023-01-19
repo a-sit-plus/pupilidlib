@@ -165,7 +165,7 @@ object QrCodeContentService {
         val prefixWithoutSemicolon = prefix.removeSuffix(":")
         if (input.isEmpty())
             return KmmResult.failure(InputInsufficientError())
-        val filtered = input.filter { it.startsWith("$prefixWithoutSemicolon:") }
+        val filtered = input.filter { it.startsWith("$prefixWithoutSemicolon:") }.distinct()
         if (filtered.isEmpty())
             return KmmResult.failure(InputInsufficientError())
         val expectedCount = filtered.min()
