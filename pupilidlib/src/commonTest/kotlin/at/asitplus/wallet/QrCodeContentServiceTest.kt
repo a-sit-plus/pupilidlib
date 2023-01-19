@@ -75,6 +75,7 @@ class QrCodeContentServiceTest {
         decoded.shouldNotBeNull()
         decoded.isFailure shouldBe true
         decoded.exceptionOrNull().shouldBeInstanceOf<InputIncorrectError>()
+        Unit
     }
 
     @Test
@@ -93,6 +94,7 @@ class QrCodeContentServiceTest {
         decoded.shouldNotBeNull()
         decoded.isFailure shouldBe true
         decoded.exceptionOrNull().shouldBeInstanceOf<PictureNotMatchingError>()
+        Unit
     }
 
     @Test
@@ -110,6 +112,7 @@ class QrCodeContentServiceTest {
         decoded.shouldNotBeNull()
         decoded.isFailure shouldBe true
         decoded.exceptionOrNull().shouldBeInstanceOf<PictureNotMatchingError>()
+        Unit
     }
 
     @Test
@@ -118,6 +121,7 @@ class QrCodeContentServiceTest {
 
         decoded.isFailure shouldBe true
         decoded.exceptionOrNull().shouldBeInstanceOf<InputIncorrectError>()
+        Unit
     }
 
     @Test
@@ -126,6 +130,7 @@ class QrCodeContentServiceTest {
 
         decoded.isFailure shouldBe true
         decoded.exceptionOrNull().shouldBeInstanceOf<InputInsufficientError>()
+        Unit
     }
 
     @Test
@@ -134,6 +139,7 @@ class QrCodeContentServiceTest {
 
         decoded.isFailure shouldBe true
         decoded.exceptionOrNull().shouldBeInstanceOf<InputInsufficientError>()
+        Unit
     }
 
     @Test
@@ -142,6 +148,7 @@ class QrCodeContentServiceTest {
 
         decoded.isFailure shouldBe true
         decoded.exceptionOrNull().shouldBeInstanceOf<QrCodeDecodingError>()
+        Unit
     }
 
     private fun randomString(): String {
