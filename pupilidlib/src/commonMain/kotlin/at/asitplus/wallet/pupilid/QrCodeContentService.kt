@@ -13,19 +13,6 @@ import kotlinx.serialization.json.Json
 import okio.ByteString.Companion.toByteString
 
 object QrCodeContentService {
-    /**
-     * Serializes the [content] to JSON
-     */
-    fun serializedContent(content: CredentialContent) = Json.encodeToString(content)
-
-    /**
-     * Parses [json] (a JSON string) into a [CredentialContent]
-     */
-    fun deserializedContent(json: String): CredentialContent? = try {
-        Json.decodeFromString(json)
-    } catch (e: Throwable) {
-        null
-    }
 
     fun interface Callback {
 
@@ -177,7 +164,7 @@ object QrCodeContentService {
         val base45 = filtered.sorted().mapIndexed { index, s ->
             s.removePrefix("$prefixWithoutSemicolon:${index + 1}-${filtered.size}:")
         }.joinToString(separator = "")
-        return kotlin.runCatching {
+        return runCatching {
             val cbor = Base45Encoder.decode(base45)
             val extendedContent = Cbor.decodeFromByteArray<ExtendedQrCodeContent>(cbor)
             val jwsPayload = callback.verifyJwsExtractPayload(extendedContent.jws)
