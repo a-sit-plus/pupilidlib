@@ -138,31 +138,32 @@ object QrCodeContentService {
 
     /**
      * Decodes a collection of scanned QR codes with prefix [prefix] (e.g. "PI1:").
+     * If any input does not start with [prefix], an error is returned.
      *
      * Custom exceptions returned in `KmmResult` include:
      * - [InputInsufficientError]: The list of inputs is not complete
      * - [QrCodeDecodingError]: The QR Code can't be decoded
      * - [PictureNotMatchingError]: The picture and credential content are not linked correctly
+     * - [InputIncorrectError]: The list of inputs contains strings not starting with [prefix]
      */
     fun decodeQrCode(
-        input: Collection<String>,
+        input: List<String>,
         prefix: String = "PI1:",
         callback: DecodeCallback,
     ): KmmResult<DecodeResult> {
         val prefixWithoutSemicolon = prefix.removeSuffix(":")
         if (input.isEmpty())
             return KmmResult.failure(InputInsufficientError())
-        val filtered = input.filter { it.startsWith("$prefixWithoutSemicolon:") }.distinct()
-        if (filtered.isEmpty())
-            return KmmResult.failure(InputInsufficientError())
-        val expectedCount = filtered.min()
+        if (input.any { !it.startsWith("$prefixWithoutSemicolon:") })
+            return KmmResult.failure(InputIncorrectError())
+        val expectedCount = input.min()
             .removePrefix("$prefixWithoutSemicolon:")
             .dropWhile { it != '-' }.drop(1)
             .takeWhile { it != ':' }.toIntOrNull() ?: 1
-        if (filtered.count() != expectedCount)
+        if (input.distinct().count() != expectedCount)
             return KmmResult.failure(InputInsufficientError())
-        val base45 = filtered.sorted().mapIndexed { index, s ->
-            s.removePrefix("$prefixWithoutSemicolon:${index + 1}-${filtered.size}:")
+        val base45 = input.distinct().sorted().mapIndexed { index, s ->
+            s.removePrefix("$prefixWithoutSemicolon:${index + 1}-${input.size}:")
         }.joinToString(separator = "")
         return runCatching {
             val cbor = Base45Encoder.decode(base45)
@@ -214,6 +215,7 @@ data class ExtendedQrCodeContent(
     }
 }
 
-class InputInsufficientError : Throwable("Need more input")
-class QrCodeDecodingError(it: Throwable) : Throwable("QR Code Decoding Error", it)
-class PictureNotMatchingError : Throwable("Picture hash does not match")
+class InputInsufficientError: Throwable("Need more input")
+class QrCodeDecodingError(it: Throwable): Throwable("QR Code Decoding Error", it)
+class PictureNotMatchingError: Throwable("Picture hash does not match")
+class InputIncorrectError: Throwable("Input does not start with prefix")

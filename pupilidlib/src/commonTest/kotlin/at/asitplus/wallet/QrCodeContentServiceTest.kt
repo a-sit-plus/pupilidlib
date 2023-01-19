@@ -2,6 +2,7 @@ package at.asitplus.wallet
 
 import at.asitplus.KmmResult
 import at.asitplus.wallet.pupilid.CredentialContent
+import at.asitplus.wallet.pupilid.InputIncorrectError
 import at.asitplus.wallet.pupilid.InputInsufficientError
 import at.asitplus.wallet.pupilid.PictureNotMatchingError
 import at.asitplus.wallet.pupilid.QrCodeContentService
@@ -9,6 +10,7 @@ import at.asitplus.wallet.pupilid.QrCodeDecodingError
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.util.*
 import kotlinx.coroutines.runBlocking
 import okio.ByteString.Companion.toByteString
@@ -68,10 +70,11 @@ class QrCodeContentServiceTest {
                 .getOrThrow()
         encoded.shouldNotBeEmpty()
 
-        val decoded = QrCodeContentService.decodeQrCode(input = encoded + "foo") { KmmResult.success(it) }.getOrThrow()
+        val decoded = QrCodeContentService.decodeQrCode(input = encoded + "foo") { KmmResult.success(it) }
 
         decoded.shouldNotBeNull()
-        decoded.content.shouldBe(input)
+        decoded.isFailure shouldBe true
+        decoded.exceptionOrNull().shouldBeInstanceOf<InputIncorrectError>()
     }
 
     @Test
@@ -89,7 +92,7 @@ class QrCodeContentServiceTest {
 
         decoded.shouldNotBeNull()
         decoded.isFailure shouldBe true
-        decoded.exceptionOrNull() shouldBe PictureNotMatchingError()
+        decoded.exceptionOrNull().shouldBeInstanceOf<PictureNotMatchingError>()
     }
 
     @Test
@@ -106,7 +109,7 @@ class QrCodeContentServiceTest {
 
         decoded.shouldNotBeNull()
         decoded.isFailure shouldBe true
-        decoded.exceptionOrNull() shouldBe PictureNotMatchingError()
+        decoded.exceptionOrNull().shouldBeInstanceOf<PictureNotMatchingError>()
     }
 
     @Test
@@ -114,7 +117,7 @@ class QrCodeContentServiceTest {
         val decoded = QrCodeContentService.decodeQrCode(listOf("foo")) { KmmResult.success(it) }
 
         decoded.isFailure shouldBe true
-        decoded.exceptionOrNull() shouldBe InputInsufficientError()
+        decoded.exceptionOrNull().shouldBeInstanceOf<InputIncorrectError>()
     }
 
     @Test
@@ -122,7 +125,7 @@ class QrCodeContentServiceTest {
         val decoded = QrCodeContentService.decodeQrCode(listOf()) { KmmResult.success(it) }
 
         decoded.isFailure shouldBe true
-        decoded.exceptionOrNull() shouldBe InputInsufficientError()
+        decoded.exceptionOrNull().shouldBeInstanceOf<InputInsufficientError>()
     }
 
     @Test
@@ -130,7 +133,7 @@ class QrCodeContentServiceTest {
         val decoded = QrCodeContentService.decodeQrCode(listOf("PI1:1-3:foo"), "PI1:") { KmmResult.success(it) }
 
         decoded.isFailure shouldBe true
-        decoded.exceptionOrNull() shouldBe InputInsufficientError()
+        decoded.exceptionOrNull().shouldBeInstanceOf<InputInsufficientError>()
     }
 
     @Test
@@ -138,7 +141,7 @@ class QrCodeContentServiceTest {
         val decoded = QrCodeContentService.decodeQrCode(listOf("PI1:1-1:foo"), "PI1:") { KmmResult.success(it) }
 
         decoded.isFailure shouldBe true
-        decoded.exceptionOrNull() shouldBe QrCodeDecodingError(Throwable())
+        decoded.exceptionOrNull().shouldBeInstanceOf<QrCodeDecodingError>()
     }
 
     private fun randomString(): String {
