@@ -151,6 +151,7 @@ object QrCodeContentService {
         prefix: String = "PI1:",
         callback: DecodeCallback,
     ): KmmResult<DecodeResult> {
+        Napier.d("decodeQrCode: Got ${input.size} input strings")
         val prefixWithoutSemicolon = prefix.removeSuffix(":")
         if (input.isEmpty())
             return KmmResult.failure(InputInsufficientError())
@@ -160,6 +161,7 @@ object QrCodeContentService {
             .removePrefix("$prefixWithoutSemicolon:")
             .dropWhile { it != '-' }.drop(1)
             .takeWhile { it != ':' }.toIntOrNull() ?: 1
+        Napier.d("decodeQrCode: Expecting $expectedCount inputs, got ${input.distinct().count()} distinct input strings")
         if (input.distinct().count() != expectedCount)
             return KmmResult.failure(InputInsufficientError())
         val base45 = input.distinct().sorted().mapIndexed { index, s ->
@@ -181,7 +183,7 @@ object QrCodeContentService {
             val result = DecodeResult(content, extendedContent.picture)
             KmmResult.success(result)
         }.getOrElse {
-            Napier.d("decodeQrCode: Error", it)
+            Napier.w("decodeQrCode: Error", it)
             if (it is PictureNotMatchingError)
                 return KmmResult.failure(it)
             KmmResult.failure(QrCodeDecodingError(it))
