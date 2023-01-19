@@ -66,6 +66,7 @@ publish:
       allow_failure: true
   script: |
     export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
+    [[ -z "$VERSION" ]] && { echo "Version is empty" ; exit 1; }
     echo "Publishing version $VERSION for $LIB_NAME"
     echo "VERSION=$VERSION" >> variables.env
     ./gradlew --continue :pupilidlib:assemblePupilIdKMMXCFramework assemble publish
@@ -104,6 +105,7 @@ release:
       when: manual
   script: |
     echo "Releasing version $VERSION of $LIB_NAME"
+    [[ -z "$VERSION" ]] && { echo "Version is empty" ; exit 1; }
     release-cli create --name "$VERSION" --tag-name "v$VERSION" --ref "$CI_COMMIT_SHA" --description "$(cat README.md)" \
         --assets-link "{\"name\":\"$LIB_NAME-$VERSION.pom\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven/at/asitplus/wallet/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.pom\"}" \
         --assets-link "{\"name\":\"$LIB_NAME-$VERSION.jar\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven/at/asitplus/wallet/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.jar\"}" \
