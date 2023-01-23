@@ -158,7 +158,7 @@ object QrCodeContentService {
      * - [InputIncorrectError]: The list of inputs contains strings not starting with [prefix]
      */
     fun decodeQrCode(
-        input: List<String>,
+        input: Collection<String>,
         prefix: String = "PI1:",
         stripSecondPrefix: Boolean = false,
         callback: DecodeCallback,
@@ -207,7 +207,7 @@ object QrCodeContentService {
      * and extracting and mapping potential second prefixes, see also [MapResult].
      */
     fun analyzeQrCode(
-        input: List<String>,
+        input: Collection<String>,
         prefix: String = "PI1:"
     ): KmmResult<List<MapResult>> {
         Napier.d("decodeQrCodeAndMap: Got ${input.size} strings")
@@ -230,14 +230,14 @@ object QrCodeContentService {
     }
 
     @Throws(InputInsufficientError::class)
-    private fun List<String>.extractPayload(prefixWithoutSemicolon: String, stripSecondPrefix: Boolean) =
+    private fun Collection<String>.extractPayload(prefixWithoutSemicolon: String, stripSecondPrefix: Boolean) =
         if (stripSecondPrefix)
             this.extractPayloadStrippingSecondPrefix(prefixWithoutSemicolon)
         else
             this.extractPayload(prefixWithoutSemicolon)
 
     @Throws(InputInsufficientError::class)
-    private fun List<String>.extractPayloadStrippingSecondPrefix(prefixWithoutSemicolon: String): String {
+    private fun Collection<String>.extractPayloadStrippingSecondPrefix(prefixWithoutSemicolon: String): String {
         val mapSecondPrefixToPayload = mapBySecondPrefix(prefixWithoutSemicolon)
         mapSecondPrefixToPayload.forEach {
             val base45 = runCatching { it.value.extractPayload("$prefixWithoutSemicolon:${it.key}") }.getOrNull()
@@ -248,7 +248,7 @@ object QrCodeContentService {
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun List<String>.mapBySecondPrefix(prefixWithoutSemicolon: String): MutableMap<String, MutableList<String>> {
+    private fun Collection<String>.mapBySecondPrefix(prefixWithoutSemicolon: String): MutableMap<String, MutableList<String>> {
         val mapSecondPrefixToPayload = mutableMapOf<String, MutableList<String>>()
         distinct().forEach {
             val secondPrefix = it.removePrefix("$prefixWithoutSemicolon:").takeWhile { it != ':' }
@@ -259,7 +259,7 @@ object QrCodeContentService {
     }
 
     @Throws(InputInsufficientError::class)
-    private fun List<String>.extractPayload(prefixWithoutSemicolon: String): String {
+    private fun Collection<String>.extractPayload(prefixWithoutSemicolon: String): String {
         val expectedCount = expectedSize(prefixWithoutSemicolon)
         val actualCount = distinct().count()
         Napier.d("decodeQrCode: Expecting $expectedCount inputs, got $actualCount distinct input strings")
@@ -270,7 +270,7 @@ object QrCodeContentService {
         }.joinToString(separator = "")
     }
 
-    private fun List<String>.expectedSize(prefixWithoutSemicolon: String) = minOf { it }
+    private fun Collection<String>.expectedSize(prefixWithoutSemicolon: String) = minOf { it }
         .removePrefix("$prefixWithoutSemicolon:")
         .dropWhile { it != '-' }.drop(1)
         .takeWhile { it != ':' }.toIntOrNull() ?: 1
