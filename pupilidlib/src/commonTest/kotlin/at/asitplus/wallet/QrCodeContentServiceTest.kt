@@ -8,6 +8,7 @@ import at.asitplus.wallet.pupilid.PictureNotMatchingError
 import at.asitplus.wallet.pupilid.QrCodeContentService
 import at.asitplus.wallet.pupilid.QrCodeDecodingError
 import io.kotest.matchers.collections.shouldNotBeEmpty
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -46,6 +47,11 @@ class QrCodeContentServiceTest {
         decoded.shouldNotBeNull()
         decoded.content.shouldBe(input)
         decoded.picture.shouldBe(picture)
+
+        val mapped = QrCodeContentService.analyzeQrCode(encoded).getOrThrow().first()
+        mapped.secondPrefix.shouldBeNull()
+        mapped.actualCount.shouldBe(encoded.size)
+        mapped.expectedCount.shouldBe(encoded.size)
     }
 
     @Test
@@ -68,6 +74,11 @@ class QrCodeContentServiceTest {
         decoded.shouldNotBeNull()
         decoded.content.shouldBe(input)
         decoded.picture.shouldBe(picture)
+
+        val mapped = QrCodeContentService.analyzeQrCode(encoded).getOrThrow().first()
+        mapped.secondPrefix.shouldBe(secondPrefix)
+        mapped.actualCount.shouldBe(encoded.size)
+        mapped.expectedCount.shouldBe(encoded.size)
     }
 
     @Test
@@ -92,15 +103,21 @@ class QrCodeContentServiceTest {
         decoded.shouldNotBeNull()
         decoded.content.shouldBe(input)
         decoded.picture.shouldBe(picture)
+
+        val mapped = QrCodeContentService.analyzeQrCode(encoded).getOrThrow().first()
+        mapped.secondPrefix.shouldBe(secondPrefix)
+        mapped.actualCount.shouldBe(encoded.size)
+        mapped.expectedCount.shouldBe(encoded.size)
     }
 
     @Test
     fun testEncodingWithSecondPrefixFromDifferentSources() = runBlocking {
-        val (input1, encoded1) = encodeWithSecondPrefix()
-        val (input2, encoded2) = encodeWithSecondPrefix()
+        val (input1, secondPrefix1, encoded1) = encodeWithSecondPrefix()
+        val (input2, secondPrefix2, encoded2) = encodeWithSecondPrefix()
 
+        val newInput = (encoded1 + encoded2.drop(1)).shuffled()
         val decoded = QrCodeContentService.decodeQrCode(
-            input = (encoded1 + encoded2.drop(1)).shuffled(),
+            input = newInput,
             prefix = "PI1",
             stripSecondPrefix = true
         ) { KmmResult.success(it) }.getOrThrow()
@@ -108,18 +125,24 @@ class QrCodeContentServiceTest {
         decoded.shouldNotBeNull()
         decoded.content.shouldBe(input1)
         decoded.picture.shouldBe(picture)
+
+        val mapped = QrCodeContentService.analyzeQrCode(newInput).getOrThrow()
+        mapped.first { it.secondPrefix == secondPrefix1 }.actualCount.shouldBe(encoded1.size)
+        mapped.first { it.secondPrefix == secondPrefix1 }.expectedCount.shouldBe(encoded1.size)
+        mapped.first { it.secondPrefix == secondPrefix2 }.actualCount.shouldBe(encoded2.size - 1)
+        mapped.first { it.secondPrefix == secondPrefix2 }.expectedCount.shouldBe(encoded2.size)
     }
 
-    private suspend fun encodeWithSecondPrefix(): Pair<CredentialContent, List<String>> {
-        val input1 = createValidInput().copy(scaledPictureHash = pictureHash.encodeBase64())
-        val secondPrefix1 = Random.nextBytes(4).encodeBase64()
-        val encoded1 = QrCodeContentService.encodeInQrCode(
-            content = input1,
+    private suspend fun encodeWithSecondPrefix(): Triple<CredentialContent, String, List<String>> {
+        val input = createValidInput().copy(scaledPictureHash = pictureHash.encodeBase64())
+        val secondPrefix = Random.nextBytes(4).encodeBase64()
+        val encoded = QrCodeContentService.encodeInQrCode(
+            content = input,
             picture = picture,
-            prefix = "PI1:$secondPrefix1:"
+            prefix = "PI1:$secondPrefix:"
         ) { KmmResult.success(it) }.getOrThrow()
-        encoded1.shouldNotBeEmpty()
-        return Pair(input1, encoded1)
+        encoded.shouldNotBeEmpty()
+        return Triple(input, secondPrefix, encoded)
     }
 
     @Test
