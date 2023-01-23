@@ -19,7 +19,11 @@ import kotlin.test.Test
 
 class QrCodeContentServiceTest {
 
-    private val validInput = CredentialContent(
+    private val validInput = createValidInput()
+    private val picture = Random.Default.nextBytes(Random.nextInt(900, 1800))
+    private val pictureHash = picture.toByteString().sha256().toByteArray()
+
+    private fun createValidInput() = CredentialContent(
         randomString(),
         randomString(),
         1,
@@ -31,8 +35,6 @@ class QrCodeContentServiceTest {
 
     @Test
     fun testEncoding() = runBlocking {
-        val picture = Random.Default.nextBytes(Random.nextInt(900, 1800))
-        val pictureHash = picture.toByteString().sha256().toByteArray()
         val input = validInput.copy(scaledPictureHash = pictureHash.encodeBase64())
 
         val encoded = QrCodeContentService.encodeInQrCode(content = input, picture = picture) { KmmResult.success(it) }
@@ -44,6 +46,80 @@ class QrCodeContentServiceTest {
         decoded.shouldNotBeNull()
         decoded.content.shouldBe(input)
         decoded.picture.shouldBe(picture)
+    }
+
+    @Test
+    fun testEncodingWithSecondPrefix() = runBlocking {
+        val input = validInput.copy(scaledPictureHash = pictureHash.encodeBase64())
+        val secondPrefix = Random.Default.nextBytes(4).encodeBase64()
+
+        val encoded = QrCodeContentService.encodeInQrCode(
+            content = input,
+            picture = picture,
+            prefix = "PI1:$secondPrefix:"
+        ) { KmmResult.success(it) }
+            .getOrThrow()
+        encoded.shouldNotBeEmpty()
+
+        val decoded =
+            QrCodeContentService.decodeQrCode(input = encoded, prefix = "PI1:$secondPrefix:") { KmmResult.success(it) }
+                .getOrThrow()
+
+        decoded.shouldNotBeNull()
+        decoded.content.shouldBe(input)
+        decoded.picture.shouldBe(picture)
+    }
+
+    @Test
+    fun testEncodingWithSecondPrefixNotGiven() = runBlocking {
+        val input = validInput.copy(scaledPictureHash = pictureHash.encodeBase64())
+        val secondPrefix = Random.Default.nextBytes(4).encodeBase64()
+
+        val encoded = QrCodeContentService.encodeInQrCode(
+            content = input,
+            picture = picture,
+            prefix = "PI1:$secondPrefix:"
+        ) { KmmResult.success(it) }
+            .getOrThrow()
+        encoded.shouldNotBeEmpty()
+
+        val decoded = QrCodeContentService.decodeQrCode(
+            input = encoded,
+            prefix = "PI1",
+            stripSecondPrefix = true
+        ) { KmmResult.success(it) }.getOrThrow()
+
+        decoded.shouldNotBeNull()
+        decoded.content.shouldBe(input)
+        decoded.picture.shouldBe(picture)
+    }
+
+    @Test
+    fun testEncodingWithSecondPrefixFromDifferentSources() = runBlocking {
+        val (input1, encoded1) = encodeWithSecondPrefix()
+        val (input2, encoded2) = encodeWithSecondPrefix()
+
+        val decoded = QrCodeContentService.decodeQrCode(
+            input = (encoded1 + encoded2.drop(1)).shuffled(),
+            prefix = "PI1",
+            stripSecondPrefix = true
+        ) { KmmResult.success(it) }.getOrThrow()
+
+        decoded.shouldNotBeNull()
+        decoded.content.shouldBe(input1)
+        decoded.picture.shouldBe(picture)
+    }
+
+    private suspend fun encodeWithSecondPrefix(): Pair<CredentialContent, List<String>> {
+        val input1 = createValidInput().copy(scaledPictureHash = pictureHash.encodeBase64())
+        val secondPrefix1 = Random.nextBytes(4).encodeBase64()
+        val encoded1 = QrCodeContentService.encodeInQrCode(
+            content = input1,
+            picture = picture,
+            prefix = "PI1:$secondPrefix1:"
+        ) { KmmResult.success(it) }.getOrThrow()
+        encoded1.shouldNotBeEmpty()
+        return Pair(input1, encoded1)
     }
 
     @Test

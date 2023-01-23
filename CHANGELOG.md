@@ -4,6 +4,7 @@ Release 1.6.1:
  - Remove `QrCodeContentService.serializedContent()`, Clients may use `CredentialContent.serialize()` instead
  - Remove `QrCodeContentService.deserializedContent()`, Clients may use `CredentialContent.companion.deserialize()` instead
  - Return `InputIncorrectError` on `QrCodeContentService.decodeQrCode()` when any input does not start with the expected prefix
+ - Implement encoding and decoding list of QR Codes with a second prefix, see `QrCodeContentService`
 
 Release 1.6.0:
  - Upgrade to Gradle 7.6, Kotlin 1.8.0, Resultlib 1.4.0

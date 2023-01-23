@@ -28,17 +28,21 @@ object QrCodeContentService {
      * 3. Encodes in CBOR (a simple data structure with `jws` and `picture`)
      * 4. Encode in Base45
      * 5. Split every [splitLength] characters
-     * 6. Prepend with `PI1:1-3:` and `PI1:2-3:` and so on
+     * 6. Prepend with [prefix] and counter, e.g. `PI1:1-3:` and `PI1:2-3:` and so on
      * 7. Return list of these strings
      *
-     * Clients shall encode each String as a QR code
+     * Clients shall encode each String as a QR code and display them.
+     *
+     * [prefix] may include a custom random string to distinguish QR codes, e.g. `PI1:AG4x:`, but no `-`
      */
     suspend fun encodeInQrCode(
         content: CredentialContent,
         picture: ByteArray,
         splitLength: Int = 1701,
+        prefix: String = "PI1:",
         callback: Callback,
     ): KmmResult<List<String>> {
+        if (prefix.contains('-')) return KmmResult.failure(IllegalArgumentException("prefix contains -"))
         val serializedContent = Json.encodeToString(content)
         val jws = callback.sign(serializedContent)
             .getOrElse { return KmmResult.failure(it) }
@@ -46,7 +50,7 @@ object QrCodeContentService {
         val cbor = Cbor.encodeToByteArray(extendedContent)
         return encodeInQrCode(
             payload = cbor,
-            prefix = "PI1:",
+            prefix = prefix,
             splitLength = splitLength
         )
     }
@@ -64,6 +68,7 @@ object QrCodeContentService {
         prefix: String = "PI2:",
         splitLength: Int = 1701,
     ): KmmResult<List<String>> {
+        if (prefix.contains('-')) return KmmResult.failure(IllegalArgumentException("prefix contains -"))
         return encodeInQrCode(
             payload = payload.encodeToByteArray(),
             prefix = prefix,
@@ -84,6 +89,7 @@ object QrCodeContentService {
         prefix: String = "PI2:",
         splitLength: Int = 1701,
     ): KmmResult<List<String>> {
+        if (prefix.contains('-')) return KmmResult.failure(IllegalArgumentException("prefix contains -"))
         val base45 = Base45Encoder.encode(payload)
         val result = splitEveryNChars(base45, splitLength)
         val prefixWithoutSemicolon = prefix.removeSuffix(":")
@@ -137,8 +143,13 @@ object QrCodeContentService {
     }
 
     /**
-     * Decodes a collection of scanned QR codes with prefix [prefix] (e.g. "PI1:").
+     * Decodes a collection of scanned QR codes in [input] with a custom [prefix] (e.g. `PI1:`).
      * If any input does not start with [prefix], an error is returned.
+     *
+     * If [stripSecondPrefix] is true, the input strings are expected to contain a random string between
+     * [prefix] and the counter, e.g. `PI1:AG4x:1-3:...`, which will be stripped by this method.
+     *
+     * If multiple "second prefixes" are contained in the input, the first (by random) complete input will be decoded.
      *
      * Custom exceptions returned in `KmmResult` include:
      * - [InputInsufficientError]: The list of inputs is not complete
@@ -149,25 +160,18 @@ object QrCodeContentService {
     fun decodeQrCode(
         input: List<String>,
         prefix: String = "PI1:",
+        stripSecondPrefix: Boolean = false,
         callback: DecodeCallback,
     ): KmmResult<DecodeResult> {
         Napier.d("decodeQrCode: Got ${input.size} input strings")
         val prefixWithoutSemicolon = prefix.removeSuffix(":")
         if (input.isEmpty())
-            return KmmResult.failure(InputInsufficientError())
+            return KmmResult.failure(InputInsufficientError(0, 0))
         if (input.any { !it.startsWith("$prefixWithoutSemicolon:") })
             return KmmResult.failure(InputIncorrectError())
-        val expectedCount = input.min()
-            .removePrefix("$prefixWithoutSemicolon:")
-            .dropWhile { it != '-' }.drop(1)
-            .takeWhile { it != ':' }.toIntOrNull() ?: 1
-        Napier.d("decodeQrCode: Expecting $expectedCount inputs, got ${input.distinct().count()} distinct input strings")
-        if (input.distinct().count() != expectedCount)
-            return KmmResult.failure(InputInsufficientError())
-        val base45 = input.distinct().sorted().mapIndexed { index, s ->
-            s.removePrefix("$prefixWithoutSemicolon:${index + 1}-${input.size}:")
-        }.joinToString(separator = "")
+
         return runCatching {
+            val base45 = input.extractPayload(prefixWithoutSemicolon, stripSecondPrefix)
             val cbor = Base45Encoder.decode(base45)
             val extendedContent = Cbor.decodeFromByteArray<ExtendedQrCodeContent>(cbor)
             val jwsPayload = callback.verifyJwsExtractPayload(extendedContent.jws)
@@ -186,9 +190,50 @@ object QrCodeContentService {
             Napier.w("decodeQrCode: Error", it)
             if (it is PictureNotMatchingError)
                 return KmmResult.failure(it)
+            if (it is InputInsufficientError)
+                return KmmResult.failure(it)
             KmmResult.failure(QrCodeDecodingError(it))
         }
     }
+
+    @Throws(InputInsufficientError::class)
+    private fun List<String>.extractPayload(prefixWithoutSemicolon: String, stripSecondPrefix: Boolean) =
+        if (stripSecondPrefix)
+            this.extractPayloadStrippingSecondPrefix(prefixWithoutSemicolon)
+        else
+            this.extractPayload(prefixWithoutSemicolon)
+
+    @Throws(InputInsufficientError::class)
+    private fun List<String>.extractPayloadStrippingSecondPrefix(prefixWithoutSemicolon: String): String {
+        val mapSecondPrefixToPayload = mutableMapOf<String, MutableList<String>>()
+        distinct().forEach {
+            val secondPrefix = it.removePrefix("$prefixWithoutSemicolon:").takeWhile { it != ':' }
+            mapSecondPrefixToPayload.getOrPut(secondPrefix) { mutableListOf() }.add(it)
+        }
+        mapSecondPrefixToPayload.forEach {
+            val base45 = runCatching { it.value.extractPayload("$prefixWithoutSemicolon:${it.key}") }.getOrNull()
+            if (base45 != null)
+                return base45
+        }
+        throw InputInsufficientError(mapSecondPrefixToPayload.maxOf { it.value.size }, 0)
+    }
+
+    @Throws(InputInsufficientError::class)
+    private fun List<String>.extractPayload(prefixWithoutSemicolon: String): String {
+        val expectedCount = expectedSize(prefixWithoutSemicolon)
+        val actualCount = distinct().count()
+        Napier.d("decodeQrCode: Expecting $expectedCount inputs, got $actualCount distinct input strings")
+        if (actualCount != expectedCount)
+            throw InputInsufficientError(actualCount, expectedCount)
+        return distinct().sorted().mapIndexed { index, s ->
+            s.removePrefix("$prefixWithoutSemicolon:${index + 1}-$size:")
+        }.joinToString(separator = "")
+    }
+
+    private fun List<String>.expectedSize(prefixWithoutSemicolon: String) = minOf { it }
+        .removePrefix("$prefixWithoutSemicolon:")
+        .dropWhile { it != '-' }.drop(1)
+        .takeWhile { it != ':' }.toIntOrNull() ?: 1
 }
 
 @kotlinx.serialization.Serializable
@@ -217,7 +262,7 @@ data class ExtendedQrCodeContent(
     }
 }
 
-class InputInsufficientError: Throwable("Need more input")
-class QrCodeDecodingError(it: Throwable): Throwable("QR Code Decoding Error", it)
-class PictureNotMatchingError: Throwable("Picture hash does not match")
-class InputIncorrectError: Throwable("Input does not start with prefix")
+class InputInsufficientError(val count: Int, val expectedCount: Int) : Throwable("Need more input")
+class QrCodeDecodingError(it: Throwable) : Throwable("QR Code Decoding Error", it)
+class PictureNotMatchingError : Throwable("Picture hash does not match")
+class InputIncorrectError : Throwable("Input does not start with prefix")
