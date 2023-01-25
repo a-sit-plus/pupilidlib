@@ -1,12 +1,13 @@
 package at.asitplus.wallet
 
+import at.asitplus.KmmResult
 import at.asitplus.wallet.pupilid.AttestedPublicKey
 import at.asitplus.wallet.pupilid.BindingConfirmResponse
 import at.asitplus.wallet.pupilid.BindingCsrResponse
 import at.asitplus.wallet.pupilid.BindingParamsResponse
 import at.asitplus.wallet.pupilid.DeviceBindingPupilIdIssuingService
 import at.asitplus.wallet.pupilid.HeaderNames
-import at.asitplus.KmmResult
+import at.asitplus.wallet.pupilid.HttpClientBuilder
 import at.asitplus.wallet.pupilid.ServiceResult
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -66,7 +67,7 @@ class DeviceBindingPupilIdIssuingServiceTest {
             deviceAdapter = AssertKidDeviceAdapter(attestedPublicKeyKid),
             cryptoAdapter = NoopCryptoAdapter,
             callback = { KmmResult.success("foo") },
-            engine = mockEngine,
+            httpClientBuilder = HttpClientBuilder(engine = mockEngine),
         )
 
         runBlocking {
@@ -107,7 +108,7 @@ class DeviceBindingPupilIdIssuingServiceTest {
             deviceAdapter = DummyDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
             callback = { KmmResult.success("foo") },
-            engine = mockEngine,
+            httpClientBuilder = HttpClientBuilder(engine = mockEngine),
         )
 
         runBlocking {

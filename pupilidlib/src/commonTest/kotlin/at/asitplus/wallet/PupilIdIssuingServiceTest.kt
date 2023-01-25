@@ -1,6 +1,7 @@
 package at.asitplus.wallet
 
 import at.asitplus.KmmResult
+import at.asitplus.wallet.pupilid.HttpClientBuilder
 import at.asitplus.wallet.pupilid.PupilIdIssuingService
 import at.asitplus.wallet.pupilid.ServiceResult
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -38,7 +39,7 @@ class PupilIdIssuingServiceTest {
         val service = PupilIdIssuingService(
             serverAddress = "http://localhost/",
             jwsAdapter = { payload -> KmmResult.success(payload) },
-            engine = mockEngine,
+            httpClientBuilder = HttpClientBuilder(engine = mockEngine),
         )
 
         runBlocking {
@@ -66,7 +67,7 @@ class PupilIdIssuingServiceTest {
         val service = PupilIdIssuingService(
             serverAddress = "http://localhost/",
             jwsAdapter = { payload -> KmmResult.success(payload) },
-            engine = mockEngine,
+            httpClientBuilder = HttpClientBuilder(engine = mockEngine),
         )
 
         runBlocking {

@@ -5,6 +5,7 @@ import at.asitplus.wallet.pupilid.BindingConfirmResponse
 import at.asitplus.wallet.pupilid.BindingCsrResponse
 import at.asitplus.wallet.pupilid.BindingParamsResponse
 import at.asitplus.wallet.pupilid.DeviceBindingService
+import at.asitplus.wallet.pupilid.HttpClientBuilder
 import at.asitplus.wallet.pupilid.ServiceResult
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -24,7 +25,7 @@ class DeviceBindingServiceTest {
     private val jsonHeaders = headersOf(HttpHeaders.ContentType, "application/json")
     private val attestedPublicKeyKid = Random.nextBytes(32).encodeBase64()
 
-    val successMockEngine = MockEngine { request ->
+    private val successMockEngine = MockEngine { request ->
         when {
             request.url.encodedPath.endsWith("/binding/start") -> {
                 val content = Json.encodeToString(BindingParamsResponse(byteArrayOf(), "subject", "EC"))
@@ -53,7 +54,7 @@ class DeviceBindingServiceTest {
             extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             deviceAdapter = AssertKidDeviceAdapter(attestedPublicKeyKid),
             cryptoAdapter = NoopCryptoAdapter,
-            engine = successMockEngine
+            httpClientBuilder = HttpClientBuilder(engine = successMockEngine),
         )
 
         runBlocking {
@@ -73,7 +74,7 @@ class DeviceBindingServiceTest {
             serverAddress = "http://localhost/",
             deviceAdapter = DummyDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
-            engine = mockEngine
+            httpClientBuilder = HttpClientBuilder(engine = mockEngine),
         )
 
         runBlocking {
@@ -93,7 +94,7 @@ class DeviceBindingServiceTest {
             serverAddress = "http://localhost/",
             deviceAdapter = DummyDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
-            engine = mockEngine
+            httpClientBuilder = HttpClientBuilder(engine = mockEngine),
         )
 
         runBlocking {
@@ -125,7 +126,7 @@ class DeviceBindingServiceTest {
             serverAddress = "http://localhost/",
             deviceAdapter = DummyDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
-            engine = mockEngine
+            httpClientBuilder = HttpClientBuilder(engine = mockEngine),
         )
 
         runBlocking {
@@ -146,7 +147,7 @@ class DeviceBindingServiceTest {
             serverAddress = "http://localhost/",
             deviceAdapter = ErrorThrowingDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
-            engine = successMockEngine
+            httpClientBuilder = HttpClientBuilder(engine = successMockEngine),
         )
 
         runBlocking {

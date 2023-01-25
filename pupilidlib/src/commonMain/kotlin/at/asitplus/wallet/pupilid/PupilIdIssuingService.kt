@@ -16,6 +16,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * Executes the process of receiving a PupilId credential from the backend.
+ */
 class PupilIdIssuingService(
     /**
      * Base address of the server to contact, i.e. `https://wallet.a-sit.at/`
@@ -29,46 +32,13 @@ class PupilIdIssuingService(
      * Path of the endpoint for issuing credentials, defaults to `listOf("pupilid", "issue")`
      */
     private val serverIssuePath: List<String> = listOf("pupilid", "issue"),
-
     /**
-     * Max time to establish a connections.
-     * Connection establishment will fail if exceeded.
-     * Default: 20
+     * Use this to configure an HTTP client once
      */
-    connectionTimeoutSeconds: Int = 10,
-
-    /**
-     * Max time (in seconds) between transmission of data packet.
-     * Connection will be reset, if exceeded
-     * Default: 20
-     */
-    socketTimeoutSeconds: Int = 10,
-
-    /**
-     * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
-     */
-    engine: HttpClientEngine? = null
+    httpClientBuilder: HttpClientBuilder,
 ) {
 
-    private val client: HttpClient = engine?.let {
-        HttpClient(it) {
-            install(ContentNegotiation) {
-                json()
-            }
-            install(HttpTimeout) {
-                connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
-                socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
-            }
-        }
-    } ?: HttpClient {
-        install(ContentNegotiation) {
-            json()
-        }
-        install(HttpTimeout) {
-            connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
-            socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
-        }
-    }
+    private val client = httpClientBuilder.client
 
     suspend fun issueCredentials(message: String): ServiceResult {
         try {
