@@ -73,6 +73,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-cbor:${PupilIdLibVersions.serialization}")
                 implementation("io.github.aakira:napier:${PupilIdLibVersions.napier}")
                 implementation("io.ktor:ktor-client-core:${PupilIdLibVersions.ktor}")
+                implementation("io.ktor:ktor-client-logging:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-client-serialization:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-client-content-negotiation:${PupilIdLibVersions.ktor}")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:${PupilIdLibVersions.ktor}")

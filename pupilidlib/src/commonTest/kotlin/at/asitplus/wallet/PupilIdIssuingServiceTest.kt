@@ -4,6 +4,8 @@ import at.asitplus.KmmResult
 import at.asitplus.wallet.pupilid.HttpClientBuilder
 import at.asitplus.wallet.pupilid.PupilIdIssuingService
 import at.asitplus.wallet.pupilid.ServiceResult
+import io.github.aakira.napier.DebugAntilog
+import io.github.aakira.napier.Napier
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
@@ -39,8 +41,9 @@ class PupilIdIssuingServiceTest {
         val service = PupilIdIssuingService(
             serverAddress = "http://localhost/",
             jwsAdapter = { payload -> KmmResult.success(payload) },
-            httpClientBuilder = HttpClientBuilder(engine = mockEngine),
+            httpClientBuilder = HttpClientBuilder(engine = mockEngine, enableLogging = true),
         )
+        Napier.base(DebugAntilog())
 
         runBlocking {
             val result = service.issueCredentials("foo")
