@@ -4,6 +4,7 @@ import at.asitplus.KmmResult
 import io.github.aakira.napier.Napier
 import io.ktor.util.*
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.cbor.ByteString
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.decodeFromString
@@ -281,6 +282,7 @@ data class ExtendedQrCodeContent(
     @SerialName("jws")
     val jws: String,
     @SerialName("picture")
+    @ByteString
     val picture: ByteArray,
 ) {
     override fun equals(other: Any?): Boolean {
