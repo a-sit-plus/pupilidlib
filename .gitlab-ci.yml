@@ -28,12 +28,12 @@ cache:
 
 workflow:
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' || $CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development" || $CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development" || $CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/'
 
 assembleJdk11:
   image: maven:3.6-jdk-11
-  except:
-    - tags
   script: |
     ./gradlew --continue clean jvmTest
   artifacts:
@@ -42,8 +42,6 @@ assembleJdk11:
       junit: "pupilidlib/build/test-results/jvmTest/TEST-*.xml"
 
 assembleIos:
-  except:
-    - tags
   tags:
     - ios
   script: |
@@ -60,12 +58,12 @@ publish:
   tags:
     - ios
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development"'
-    - if: '$CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/ || $CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development" || $CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/'
       when: manual
       allow_failure: true
   script: |
     export VERSION=$(grep artifactVersion gradle.properties | sed "s/artifactVersion = //g")
+    [[ -z "$VERSION" ]] && { echo "Version is empty" ; exit 1; }
     echo "Publishing version $VERSION for $LIB_NAME"
     echo "VERSION=$VERSION" >> variables.env
     ./gradlew --continue :pupilidlib:assemblePupilIdKMMXCFramework assemble publish
@@ -104,6 +102,7 @@ release:
       when: manual
   script: |
     echo "Releasing version $VERSION of $LIB_NAME"
+    [[ -z "$VERSION" ]] && { echo "Version is empty" ; exit 1; }
     release-cli create --name "$VERSION" --tag-name "v$VERSION" --ref "$CI_COMMIT_SHA" --description "$(cat README.md)" \
         --assets-link "{\"name\":\"$LIB_NAME-$VERSION.pom\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven/at/asitplus/wallet/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.pom\"}" \
         --assets-link "{\"name\":\"$LIB_NAME-$VERSION.jar\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven/at/asitplus/wallet/$LIB_NAME/$VERSION/$LIB_NAME-$VERSION.jar\"}" \

@@ -1,12 +1,22 @@
 # Changelog
 
+Release 1.6.1:
+ - Remove `QrCodeContentService.serializedContent()`, Clients may use `CredentialContent.serialize()` instead
+ - Remove `QrCodeContentService.deserializedContent()`, Clients may use `CredentialContent.companion.deserialize()` instead
+ - Return `InputIncorrectError` on `QrCodeContentService.decodeQrCode()` when any input does not start with the expected prefix
+ - Implement encoding and decoding list of QR Codes with a second prefix, see `QrCodeContentService`
+ - Add function to analyze scanned QR Codes, see `QrCodeContentService.analyzeQrCode`
+
+Release 1.6.0:
+ - Upgrade to Gradle 7.6, Kotlin 1.8.0, Resultlib 1.4.0
+
 Release 1.5.0:
  - Implement extended creation and validation of QR Codes for PupilIds and pictures, see `QrCodeContentService`
  - Rename `endOfSchoolYear` in `CredentialContent` to `expiration`
 
 Release 1.4.8:
  - Use library `KmmResult` in version 1.1
- - Introduce Key Attestation for iOS by attesting the public key in addition to the App Attestation
+ - Modify `DeviceAdapter.loadAttestationCerts()` to pass `challenge` and `clientData`, which shall be included in iOS App Attest statements
 
 Release 1.4.5:
  - Fix iOS target name to be `PupilIdKMM`
