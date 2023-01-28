@@ -2,20 +2,15 @@ package at.asitplus.wallet.pupilid
 
 import at.asitplus.KmmResult
 import io.github.aakira.napier.Napier
-import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import kotlinx.serialization.SerializationException
-import kotlin.time.Duration.Companion.seconds
 
 /**
- * @param engine can be passed to enable mocks in unit tests, to use the default engine, pass null
+ * Executes the device binding process on a backend.
  */
 class DeviceBindingService(
     /**
@@ -34,48 +29,14 @@ class DeviceBindingService(
      * Needed to create signature of the CSR
      */
     cryptoAdapter: Asn1Service.CryptoAdapter,
-
     /**
-     * Max time to establish a connections.
-     * Connection establishment will fail if exceeded.
-     * Default: 20
+     * Use this to configure an HTTP client once
      */
-    connectionTimeoutSeconds: Int = 10,
-
-    /**
-     * Max time (in seconds) between transmission of data packet.
-     * Connection will be reset, if exceeded
-     * Default: 20
-     */
-    socketTimeoutSeconds: Int = 10,
-
-    /**
-     * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
-     */
-    engine: HttpClientEngine? = null
+    httpClientBuilder: HttpClientBuilder,
 ) {
 
     private val asn1Service = Asn1Service(cryptoAdapter)
-
-    private val client: HttpClient = engine?.let {
-        HttpClient(it) {
-            install(ContentNegotiation) {
-                json()
-            }
-            install(HttpTimeout) {
-                connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
-                socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
-            }
-        }
-    } ?: HttpClient {
-        install(ContentNegotiation) {
-            json()
-        }
-        install(HttpTimeout) {
-            connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
-            socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
-        }
-    }
+    private val client = httpClientBuilder.client
 
     @Throws(ResponseException::class, Throwable::class)
     internal suspend fun getDeviceBindingResponse(): HttpSessionResponse {
@@ -111,7 +72,8 @@ class DeviceBindingService(
             }
         xAuthToken = createResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
         val bindingCsrResponse = createResponse.body<BindingCsrResponse>()
-        deviceAdapter.storeCertificate(bindingCsrResponse.certificate, bindingCsrResponse.attestedPublicKey).getOrThrow()
+        deviceAdapter.storeCertificate(bindingCsrResponse.certificate, bindingCsrResponse.attestedPublicKey)
+            .getOrThrow()
         val bindingConfirmRequest = BindingConfirmRequest(true)
         val confirmResponse =
             client.post(URLBuilder(serverAddress).appendPathSegments("binding", "confirm").buildString()) {

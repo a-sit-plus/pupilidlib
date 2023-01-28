@@ -13,6 +13,12 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerializationException
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * Executes the device binding process, immediately followed by requesting a PupilId Credential.
+ *
+ * @see [DeviceBindingService]
+ * @see [PupilIdIssuingService]
+ */
 class DeviceBindingPupilIdIssuingService constructor(
     /**
      * Base address of the server to contact, i.e. `https://wallet.a-sit.at/`
@@ -38,52 +44,19 @@ class DeviceBindingPupilIdIssuingService constructor(
      * Path of the endpoint for issuing credentials, defaults to `listOf("pupilid", "issue")`
      */
     private val serverIssuePath: List<String> = listOf("pupilid", "issue"),
-
     /**
-     * Max time to establish a connections.
-     * Connection establishment will fail if exceeded.
-     * Default: 20
+     * Use this to configure an HTTP client once
      */
-    connectionTimeoutSeconds: Int = 10,
-
-    /**
-     * Max time (in seconds) between transmission of data packet.
-     * Connection will be reset, if exceeded
-     * Default: 20
-     */
-    socketTimeoutSeconds: Int = 10,
-
-    /**
-     * Can be passed to enable mocks in unit tests, to use the default engine, pass `null`
-     */
-    engine: HttpClientEngine? = null
+    httpClientBuilder: HttpClientBuilder,
 ) {
 
-    private val client: HttpClient = engine?.let {
-        HttpClient(it) {
-            install(ContentNegotiation) {
-                json()
-            }
-            install(HttpTimeout) {
-                connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
-                socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
-            }
-        }
-    } ?: HttpClient {
-        install(ContentNegotiation) {
-            json()
-        }
-        install(HttpTimeout) {
-            connectTimeoutMillis = connectionTimeoutSeconds.seconds.inWholeMilliseconds
-            socketTimeoutMillis = socketTimeoutSeconds.seconds.inWholeMilliseconds
-        }
-    }
+    private val client = httpClientBuilder.client
     private val deviceBindingService = DeviceBindingService(
         serverAddress = serverAddress,
         extAuthNonce = extAuthNonce,
         deviceAdapter = deviceAdapter,
         cryptoAdapter = cryptoAdapter,
-        engine = engine,
+        httpClientBuilder = httpClientBuilder,
     )
 
     suspend fun createDeviceBindingAndIssueCredentials(): ServiceResult {
