@@ -1,5 +1,10 @@
 # Changelog
 
+Release next:
+ - Refactor passing HTTP client engine to various network services, introducing class `HttpClientBuilder`
+ - Clients may also specify a user agent header string to be included in all requests, see parameter `userAgent` in `HttpClientBuilder`
+ - Clients may enable logging of all HTTP requests, see parameter `enableLogging` in `HttpClientBuilder`
+
 Release 1.6.1:
  - Remove `QrCodeContentService.serializedContent()`, Clients may use `CredentialContent.serialize()` instead
  - Remove `QrCodeContentService.deserializedContent()`, Clients may use `CredentialContent.companion.deserialize()` instead
