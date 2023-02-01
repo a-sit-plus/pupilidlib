@@ -237,8 +237,23 @@ class QrCodeContentServiceTest {
         val decoded = QrCodeContentService.decodeQrCode(listOf("PI1:1-3:foo"), "PI1:") { KmmResult.success(it) }
 
         decoded.isFailure shouldBe true
-        decoded.exceptionOrNull().shouldBeInstanceOf<InputInsufficientError>()
-        Unit
+        val throwable = decoded.exceptionOrNull()
+        throwable.shouldBeInstanceOf<InputInsufficientError>()
+        throwable.count shouldBe 1
+        throwable.expectedCount shouldBe 3
+    }
+
+    @Test
+    fun testNotEnoughMultipleSecondPrefixes() {
+        val secondPrefix1 = Random.Default.nextBytes(4).encodeBase64()
+        val secondPrefix2 = Random.Default.nextBytes(4).encodeBase64()
+        val decoded = QrCodeContentService.decodeQrCode(listOf("PI1:$secondPrefix1:2-4:foo", "PI1:$secondPrefix2:1-3:bar"), "PI1:", true) { KmmResult.success(it) }
+
+        decoded.isFailure shouldBe true
+        val throwable = decoded.exceptionOrNull()
+        throwable.shouldBeInstanceOf<InputInsufficientError>()
+        throwable.count shouldBe 1
+        throwable.expectedCount shouldBe 4
     }
 
     @Test
