@@ -22,6 +22,7 @@ kotlin {
         binaries.framework {
             baseName = "PupilIdKMM"
             export("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
+            export("at.asitplus.wallet:vclib:${PupilIdLibVersions.vclib}")
             embedBitcode("bitcode")
             xcf.add(this)
         }
@@ -31,6 +32,7 @@ kotlin {
         binaries.framework {
             baseName = "PupilIdKMM"
             export("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
+            export("at.asitplus.wallet:vclib:${PupilIdLibVersions.vclib}")
             embedBitcode("bitcode")
             xcf.add(this)
         }
@@ -72,29 +74,15 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${PupilIdLibVersions.serialization}")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-cbor:${PupilIdLibVersions.serialization}")
                 implementation("io.github.aakira:napier:${PupilIdLibVersions.napier}")
-                implementation("io.ktor:ktor-client-core:${PupilIdLibVersions.ktor}")
-                implementation("io.ktor:ktor-client-logging:${PupilIdLibVersions.ktor}")
-                implementation("io.ktor:ktor-client-serialization:${PupilIdLibVersions.ktor}")
-                implementation("io.ktor:ktor-client-content-negotiation:${PupilIdLibVersions.ktor}")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:${PupilIdLibVersions.ktor}")
-                implementation("com.squareup.okio:okio:${PupilIdLibVersions.okio}")
+                api("at.asitplus.wallet:vclib:${PupilIdLibVersions.vclib}")
                 api("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
             }
         }
         val iosX64Main by getting
         val iosArm64Main by getting
-        val iosMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-client-darwin:${PupilIdLibVersions.ktor}")
-            }
-        }
+        val iosMain by getting
         val nativeMain by creating
-        val jvmMain by getting {
-            dependencies {
-                implementation("io.swagger.core.v3:swagger-annotations:${PupilIdLibVersions.Jvm.swagger}")
-                implementation("io.ktor:ktor-client-okhttp:${PupilIdLibVersions.ktor}")
-            }
-        }
+        val jvmMain by getting
 
         /* Main hierarchy */
         iosMain.dependsOn(nativeMain)
@@ -106,8 +94,6 @@ kotlin {
         /* Test source sets */
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test"))
-                implementation("io.ktor:ktor-client-mock:${PupilIdLibVersions.ktor}")
                 implementation("io.kotest:kotest-assertions-core:${PupilIdLibVersions.kotest}")
                 implementation("io.kotest:kotest-framework-engine:${PupilIdLibVersions.kotest}")
             }
@@ -116,8 +102,6 @@ kotlin {
         val iosArm64Test by getting
         val jvmTest by getting {
             dependencies {
-                implementation("org.bouncycastle:bcpkix-jdk18on:${PupilIdLibVersions.Jvm.bouncycastle}")
-                implementation("com.nimbusds:nimbus-jose-jwt:${PupilIdLibVersions.Jvm.`nimbus-jose`}")
                 implementation("io.kotest:kotest-runner-junit5:${PupilIdLibVersions.kotest}")
             }
         }
