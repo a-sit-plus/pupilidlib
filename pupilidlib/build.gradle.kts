@@ -72,7 +72,8 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${PupilIdLibVersions.coroutines}")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${PupilIdLibVersions.serialization}")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-cbor:${PupilIdLibVersions.serialization}")
+                implementation("com.benasher44:uuid:${PupilIdLibVersions.uuid}")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:${PupilIdLibVersions.datetime}")
                 implementation("io.github.aakira:napier:${PupilIdLibVersions.napier}")
                 api("at.asitplus.wallet:vclib:${PupilIdLibVersions.vclib}")
                 api("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
