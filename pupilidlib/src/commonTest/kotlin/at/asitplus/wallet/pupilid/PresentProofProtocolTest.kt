@@ -53,7 +53,7 @@ class PresentProofProtocolTest : FreeSpec({
         holder.storeCredentials(
             IssuerAgent.newDefaultInstance(
                 DefaultCryptoService(),
-                dataProvider = Foo(),
+                dataProvider = PupilCredentialDataProvider(),
             ).issueCredential(
                 holderCryptoService.keyId,
                 ConstantIndex.PupilId.vcType

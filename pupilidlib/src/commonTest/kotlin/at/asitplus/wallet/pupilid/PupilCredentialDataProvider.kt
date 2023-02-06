@@ -6,7 +6,7 @@ import at.asitplus.wallet.lib.agent.IssuerCredentialDataProvider
 import kotlinx.datetime.Clock
 import kotlin.time.Duration.Companion.minutes
 
-class Foo(
+class PupilCredentialDataProvider(
     private val clock: Clock = Clock.System,
 ) : IssuerCredentialDataProvider {
 

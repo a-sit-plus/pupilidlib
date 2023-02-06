@@ -30,7 +30,7 @@ class IssueCredentialProtocolTest : FreeSpec({
     beforeEach {
         issuerCryptoService = DefaultCryptoService()
         holderCryptoService = DefaultCryptoService()
-        issuer = IssuerAgent.newDefaultInstance(issuerCryptoService, dataProvider = Foo())
+        issuer = IssuerAgent.newDefaultInstance(issuerCryptoService, dataProvider = PupilCredentialDataProvider())
         holder = HolderAgent.newDefaultInstance(holderCryptoService)
         issuerProtocol = IssueCredentialProtocol.newIssuerInstance(
             issuer = issuer,

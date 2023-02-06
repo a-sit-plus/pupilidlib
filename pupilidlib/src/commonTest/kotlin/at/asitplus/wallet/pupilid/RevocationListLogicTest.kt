@@ -25,7 +25,7 @@ class RevocationListLogicTest : FreeSpec() {
                 cryptoService = DefaultCryptoService(),
                 timePeriodProvider = SchoolyearBasedTimePeriodProvider(TestTimeSource.timePeriodStart),
                 issuerCredentialStore = store,
-                dataProvider = Foo(),
+                dataProvider = PupilCredentialDataProvider(),
             )
             issuer.compileCurrentRevocationLists().let {
                 it shouldHaveSize 1
@@ -132,7 +132,7 @@ class RevocationListLogicTest : FreeSpec() {
                 cryptoService = DefaultCryptoService(),
                 timePeriodProvider = SchoolyearBasedTimePeriodProvider(TestTimeSource.timePeriodStart),
                 issuerCredentialStore = store,
-                dataProvider = Foo(),
+                dataProvider = PupilCredentialDataProvider(),
             )
 
             "initially only the current list should be present" {
@@ -243,7 +243,7 @@ suspend fun IssuerCredentialStore.createCredentialFortimePeriod(year: Int): Pair
         cryptoService = DefaultCryptoService(),
         timePeriodProvider = SchoolyearBasedTimePeriodProvider(TestTimeSource.timePeriodStart),
         issuerCredentialStore = this,
-        dataProvider = Foo(),
+        dataProvider = PupilCredentialDataProvider(),
     )
 
     val credential = oldIssuer.issueCredential(
