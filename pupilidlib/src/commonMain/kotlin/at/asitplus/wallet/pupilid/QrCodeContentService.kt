@@ -245,7 +245,9 @@ object QrCodeContentService {
             if (base45 != null)
                 return base45
         }
-        throw InputInsufficientError(mapSecondPrefixToPayload.maxOf { it.value.size }, 0)
+        throw InputInsufficientError(
+            mapSecondPrefixToPayload.maxOf { it.value.size },
+            mapSecondPrefixToPayload.maxOf { it.value.expectedSize(prefixWithoutSemicolon) })
     }
 
     @Throws(IllegalArgumentException::class)
