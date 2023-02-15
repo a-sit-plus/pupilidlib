@@ -29,7 +29,7 @@ class IssueCredentialMessengerTest : FreeSpec() {
     lateinit var holderMessenger: IssueCredentialMessenger
 
     init {
-        Initializer.initWithVcLib()
+        Initializer
         beforeEach {
             issuerCryptoService = DefaultCryptoService()
             holderCryptoService = DefaultCryptoService()

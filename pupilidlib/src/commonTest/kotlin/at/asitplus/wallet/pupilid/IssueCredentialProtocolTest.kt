@@ -23,10 +23,6 @@ class IssueCredentialProtocolTest : FreeSpec({
     lateinit var issuerProtocol: IssueCredentialProtocol
     lateinit var holderProtocol: IssueCredentialProtocol
 
-    beforeSpec {
-        Initializer.initWithVcLib()
-    }
-
     beforeEach {
         issuerCryptoService = DefaultCryptoService()
         holderCryptoService = DefaultCryptoService()
