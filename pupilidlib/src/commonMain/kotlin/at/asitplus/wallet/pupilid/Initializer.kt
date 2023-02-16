@@ -25,17 +25,20 @@ class Initializer {
          */
         fun initWithVcLib() {
             if (registered) return
-            val polymorphicSerializersModule = SerializersModule {
-                polymorphic(CredentialSubject::class) {
-                    subclass(PupilIdCredential::class)
-                }
-            }
             LibraryInitializer.registerExtensionLibrary(
                 LibraryInitializer.ExtensionLibraryInfo(
-                    goalCodes = listOf(ConstantIndex.PupilId.goalCodeIssue, ConstantIndex.PupilId.goalCodeRequestProof),
-                    schema = SchemaIndex.CRED_PUPIL_ID,
-                    credentialScheme = ConstantIndex.PupilId,
-                    serializersModule = polymorphicSerializersModule,
+                    credentialScheme = object : at.asitplus.wallet.lib.data.ConstantIndex.CredentialScheme {
+                        override val goalCodeIssue: String = "issue-vc-pupilid"
+                        override val goalCodeRequestProof: String = "request-proof-pupilid"
+                        override val credentialDefinitionName: String = "pupilid"
+                        override val schemaUri: String = SchemaIndex.CRED_PUPIL_ID
+                        override val vcType: String = "PupilId2022"
+                    },
+                    serializersModule = SerializersModule {
+                        polymorphic(CredentialSubject::class) {
+                            subclass(PupilIdCredential::class)
+                        }
+                    },
                 )
             )
             registered = true
