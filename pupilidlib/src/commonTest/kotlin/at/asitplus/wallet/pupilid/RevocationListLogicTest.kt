@@ -5,7 +5,6 @@ import at.asitplus.wallet.lib.agent.FixedTimeClock
 import at.asitplus.wallet.lib.agent.InMemoryIssuerCredentialStore
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.IssuerCredentialStore
-import at.asitplus.wallet.lib.agent.SchoolyearBasedTimePeriodProvider
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldHaveSize
@@ -35,7 +34,7 @@ class RevocationListLogicTest : FreeSpec() {
             "Adding a credential for the current year should have no impact in revocation lists" - {
                 val credential = issuer.issueCredential(
                     Random.nextLong().toString(),
-                    at.asitplus.wallet.pupilid.ConstantIndex.PupilId.vcType
+                    ConstantIndex.PupilId.vcType
                 ).successful
                 issuer.compileCurrentRevocationLists().let {
                     it shouldHaveSize 1
@@ -215,7 +214,7 @@ class RevocationListLogicTest : FreeSpec() {
             "Adding a credential for the current year should have no impact in revocation lists" - {
                 val credential = issuer.issueCredential(
                     Random.nextLong().toString(),
-                    at.asitplus.wallet.pupilid.ConstantIndex.PupilId.vcType
+                    ConstantIndex.PupilId.vcType
                 ).successful
                 issuer.compileCurrentRevocationLists().let {
                     it shouldHaveSize 3
@@ -248,7 +247,7 @@ suspend fun IssuerCredentialStore.createCredentialFortimePeriod(year: Int): Pair
 
     val credential = oldIssuer.issueCredential(
         Random.nextLong().toString(),
-        at.asitplus.wallet.pupilid.ConstantIndex.PupilId.vcType
+        ConstantIndex.PupilId.vcType
     ).successful.map { it.vcJws }
 
     return oldIssuer to credential
