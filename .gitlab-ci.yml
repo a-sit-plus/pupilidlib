@@ -45,11 +45,11 @@ assembleIos:
   tags:
     - ios
   script: |
-    ./gradlew --continue clean iosX64Test
+    ./gradlew --continue clean iosX64Test iosSimulatorArm64Test
   artifacts:
     when: always
     reports:
-      junit: "pupilidlib/build/test-results/iosX64Test/TEST-*.xml"
+      junit: "pupilidlib/build/test-results/ios*64Test/TEST-*.xml"
 
 publish:
   needs:
@@ -69,7 +69,7 @@ publish:
     [[ -z "$VERSION" ]] && { echo "Version is empty" ; exit 1; }
     echo "Publishing version $VERSION for $LIB_NAME"
     echo "VERSION=$VERSION" >> variables.env
-    ./gradlew --continue :pupilidlib:assemblePupilIdKMMXCFramework assemble publish
+    ./gradlew --continue :pupilidlib:assemblePupilIdKMMXCFramework assemble publishAllPublicationsToGitlabRepository
     if [[ $VERSION =~ "SNAPSHOT" ]]; then
       VERSION=${VERSION/-SNAPSHOT/-$(date +"%Y%m%d.%H%M%S")-SNAPSHOT}
       echo "Adapting version number for publishing of Snapshot Framework blobs to $VERSION"
