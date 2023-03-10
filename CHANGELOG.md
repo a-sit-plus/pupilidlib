@@ -1,9 +1,18 @@
 # Changelog
 
-Release 1.8.0:
+Release 1.8.2:
  - Move network processes to Umbrella lib
  - Implement VC for PupilIds, as extension to vclib
- - Upgrade to Resultlib 1.5.0, vclib 1.8.0
+ - Upgrade to vclib 1.7.2
+
+Release 1.8.0:
+ - Transport expected size of payloads in `InputInsuffientError`
+ - Dependencies: Kotlin 1.8.0, Resultlib 1.4.0
+
+Release 1.7.0:
+ - Refactor passing HTTP client engine to various network services, introducing class `HttpClientBuilder`
+ - Clients may also specify a user agent header string to be included in all requests, see parameter `userAgent` in `HttpClientBuilder`
+ - Clients may enable logging of all HTTP requests, see parameter `enableLogging` in `HttpClientBuilder`
 
 Release 1.7.0:
  - Refactor passing HTTP client engine to various network services, introducing class `HttpClientBuilder`
