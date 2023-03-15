@@ -2,6 +2,11 @@
 
 This is a Kotlin Multiplatform Library implementing features to use the PupilId in Apps and on the Backend.
 
+## Note on Composite KMM Builds
+This is borked on the curren stable version of the KMP gradle plugin and might not even work correctly once 1.8.20 is release.
+Hence, `./gradlew init` builds the included `vclib` and publishes it to a local maven repo which is included in this project.
+Makes the build work without relying on composite builds, but does not support refactoring across modules.
+
 ## Publishing
 
 The CI pipeline runs a `publish` job on every commit for `master` and `development` to publish the library artifacts, see [.gitlab-ci.yml](.gitlab-ci.yml).

@@ -75,9 +75,24 @@ kotlin {
                 implementation("com.benasher44:uuid:${PupilIdLibVersions.uuid}")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:${PupilIdLibVersions.datetime}")
                 implementation("io.github.aakira:napier:${PupilIdLibVersions.napier}")
-                api("at.asitplus.wallet:vclib:${PupilIdLibVersions.vclib}")
+                api("at.asitplus.wallet:vclib:${PupilIdLibVersions.vclib}") {
+                    layout.projectDirectory.dir("..").dir("vclib").dir("repo").asFile.let {
+                        if (it.exists() && it.isDirectory && it.listFiles()!!.isNotEmpty()) {
+                            logger.info("assuming VcLib maven artifact present")
+                        } else {
+                            exec {
+                                workingDir = layout.projectDirectory.dir("..").dir("vclib").asFile
+                                println("descending into ${workingDir.absolutePath}")
+                                logger.lifecycle("Rebuilding VcLib maven artifacts")
+                                commandLine("./gradlew", "publishAllPublicationsToLocalRepository")
+                            }
+                        }
+                    }
+                }
                 api("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
             }
+
+
         }
         val iosX64Main by getting
         val iosArm64Main by getting
@@ -122,11 +137,17 @@ Properties().apply {
     forEach { (k, v) -> extra.set(k as String, v) }
 }
 
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor(0, TimeUnit.SECONDS)
+
+}
+
 val gitLabPrivateToken: String? by extra
 val gitLabProjectId: String by extra
 val gitLabGroupId: String by extra
 
 repositories {
+    maven(uri(layout.projectDirectory.dir("..").dir("vclib").dir("repo")))
     mavenLocal()
     if (System.getenv("CI_JOB_TOKEN") != null || gitLabPrivateToken != null) {
         maven {
@@ -167,6 +188,18 @@ publishing {
                     create<HttpHeaderAuthentication>("header")
                 }
             }
+        }
+        maven {
+            url = uri(layout.projectDirectory.dir("..").dir("repo"))
+            name = "local"
+        }
+    }
+}
+tasks.getByName("publishAllPublicationsToLocalRepository") {
+    doLast {
+        copy {
+            from(layout.projectDirectory.dir("..").dir("vclib").dir("repo"))
+            into(layout.projectDirectory.dir("..").dir("repo"))
         }
     }
 }
