@@ -9,6 +9,9 @@ variables:
   SAST_JAVA_VERSION: "11"
   SECRET_DETECTION_EXCLUDED_PATHS: ".gradle,gradle,.m2"
   SAST_EXPERIMENTAL_FEATURES: "true"
+  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_DEPTH: 2
+  GIT_STRATEGY: clone
 
 include:
   - template: Dependency-Scanning.gitlab-ci.yml

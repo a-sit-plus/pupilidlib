@@ -1,6 +1,11 @@
 # Changelog
 
-Release 1.8.2:
+Release NEXT
+ - depend on locally built vclib
+ - add project-local maven repo to publish artifacts
+ - add new `purge` task to purge included vclib maven artifacts
+
+Release 1.8.0:
  - Move network processes to Umbrella lib
  - Implement VC for PupilIds, as extension to vclib
  - Upgrade to vclib 1.7.2

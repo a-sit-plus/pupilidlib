@@ -6,8 +6,8 @@ object PupilIdLibVersions {
     const val kotest = "5.5.4"
     const val napier = "2.6.1"
     const val uuid = "0.5.0"
-    const val resultlib = "1.5.0-SNAPSHOT"
-    const val vclib = "1.7.2-SNAPSHOT"
+    const val resultlib = "1.4.1"
+    const val vclib = "1.7.3-SNAPSHOT"
 
     object Jvm {
         const val target = "11"
