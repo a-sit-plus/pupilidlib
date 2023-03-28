@@ -1,6 +1,14 @@
 # Changelog
 
+Release 1.8.3
+ - depend on locally built vclib v 1.7.3
+ - add project-local maven repo to publish artifacts
+ - add new `purge` task to purge included vclib maven artifacts
+
 Release 1.8.0:
+ - Move network processes to Umbrella lib
+ - Implement VC for PupilIds, as extension to vclib
+ - Upgrade to vclib 1.7.2
  - Transport expected size of payloads in `InputInsuffientError`
  - Dependencies: Kotlin 1.8.0, Resultlib 1.4.0
 

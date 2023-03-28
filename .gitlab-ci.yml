@@ -9,6 +9,9 @@ variables:
   SAST_JAVA_VERSION: "11"
   SECRET_DETECTION_EXCLUDED_PATHS: ".gradle,gradle,.m2"
   SAST_EXPERIMENTAL_FEATURES: "true"
+  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_DEPTH: 2
+  GIT_STRATEGY: clone
 
 include:
   - template: Dependency-Scanning.gitlab-ci.yml
@@ -45,11 +48,11 @@ assembleIos:
   tags:
     - ios
   script: |
-    ./gradlew --continue clean iosX64Test
+    ./gradlew --continue clean iosX64Test iosSimulatorArm64Test
   artifacts:
     when: always
     reports:
-      junit: "pupilidlib/build/test-results/iosX64Test/TEST-*.xml"
+      junit: "pupilidlib/build/test-results/ios*64Test/TEST-*.xml"
 
 publish:
   needs:
@@ -58,6 +61,9 @@ publish:
   tags:
     - ios
   rules:
+    - if: '$CI_COMMIT_REF_NAME == "development"'
+      when: always
+      allow_failure: true
     - if: '$CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development" || $CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/'
       when: manual
       allow_failure: true
@@ -66,7 +72,7 @@ publish:
     [[ -z "$VERSION" ]] && { echo "Version is empty" ; exit 1; }
     echo "Publishing version $VERSION for $LIB_NAME"
     echo "VERSION=$VERSION" >> variables.env
-    ./gradlew --continue :pupilidlib:assemblePupilIdKMMXCFramework assemble publish
+    ./gradlew --continue :pupilidlib:assemblePupilIdKMMXCFramework assemble publishAllPublicationsToGitlabRepository
     if [[ $VERSION =~ "SNAPSHOT" ]]; then
       VERSION=${VERSION/-SNAPSHOT/-$(date +"%Y%m%d.%H%M%S")-SNAPSHOT}
       echo "Adapting version number for publishing of Snapshot Framework blobs to $VERSION"
