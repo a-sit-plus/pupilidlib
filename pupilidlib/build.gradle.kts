@@ -1,12 +1,9 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
-import java.io.FileInputStream
-import java.util.*
+import at.asitplus.gradle.*
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization") version PupilIdLibVersions.kotlin
-    id("io.kotest.multiplatform") version PupilIdLibVersions.kotest
-    id("maven-publish")
+    kotlin("plugin.serialization")
+    id("at.asitplus.gradle.vclib-conventions")
 }
 
 /* required for maven publication */
@@ -14,78 +11,30 @@ val artifactVersion: String by extra
 group = "at.asitplus.wallet"
 version = "$artifactVersion"
 
+val vcLibVersion: String by extra
+val swagger: String by extra
+
+exportIosFramework(
+    "PupilIdKMM",
+    "at.asitplus:kmmresult:${VcLibVersions.resultlib}",
+    "at.asitplus.wallet:vclib-aries:$vcLibVersion",
+    datetime(),
+    napier()
+)
 kotlin {
-
-    val xcf = XCFrameworkConfig(project, "PupilIdKMM")
-
-    ios {
-        binaries.framework {
-            baseName = "PupilIdKMM"
-            export("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
-            export("at.asitplus.wallet:vclib:${PupilIdLibVersions.vclib}")
-            export("org.jetbrains.kotlinx:kotlinx-datetime:${PupilIdLibVersions.datetime}")
-            export("io.github.aakira:napier:${PupilIdLibVersions.napier}")
-            embedBitcode("bitcode")
-            xcf.add(this)
-        }
-    }
-
-    iosSimulatorArm64 {
-        binaries.framework {
-            baseName = "PupilIdKMM"
-            export("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
-            export("at.asitplus.wallet:vclib:${PupilIdLibVersions.vclib}")
-            export("org.jetbrains.kotlinx:kotlinx-datetime:${PupilIdLibVersions.datetime}")
-            export("io.github.aakira:napier:${PupilIdLibVersions.napier}")
-            embedBitcode("bitcode")
-            xcf.add(this)
-        }
-    }
-
-    jvm {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = PupilIdLibVersions.Jvm.target
-                freeCompilerArgs = listOf(
-                    "-Xjsr305=strict"
-                )
-            }
-        }
-
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-    }
-
-    targets.all {
-        compilations.all {
-            kotlinOptions {
-                freeCompilerArgs = listOf(
-                    "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
-                    "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-                    "-opt-in=kotlin.time.ExperimentalTime",
-                    "-opt-in=kotlin.RequiresOptIn",
-                )
-            }
-        }
-    }
 
     sourceSets {
         /* Main source sets */
         val commonMain by getting {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${PupilIdLibVersions.coroutines}")
-                api("org.jetbrains.kotlinx:kotlinx-serialization-json:${PupilIdLibVersions.serialization}")
-                api("com.benasher44:uuid:${PupilIdLibVersions.uuid}")
-                api("io.github.aakira:napier:${PupilIdLibVersions.napier}")
-                api("org.jetbrains.kotlinx:kotlinx-datetime:${PupilIdLibVersions.datetime}")
-                api("io.ktor:ktor-client-core:${PupilIdLibVersions.ktor}")
-                api("io.ktor:ktor-client-logging:${PupilIdLibVersions.ktor}")
-                api("io.ktor:ktor-client-serialization:${PupilIdLibVersions.ktor}")
-                api("io.ktor:ktor-client-content-negotiation:${PupilIdLibVersions.ktor}")
-                api("io.ktor:ktor-serialization-kotlinx-json:${PupilIdLibVersions.ktor}")
-                api("com.squareup.okio:okio:${PupilIdLibVersions.okio}")
-                api("at.asitplus.wallet:vclib:${PupilIdLibVersions.vclib}") {
+                commonDependencies().forEach { dep -> api(dep) }
+                api(serialization("cbor"))
+                api(ktor("client-core"))
+                api(ktor("client-logging"))
+                api(ktor("client-serialization"))
+                api(ktor("client-content-negotiation"))
+                api(ktor("serialization-kotlinx-json"))
+                api("at.asitplus.wallet:vclib:$vcLibVersion") {
                     layout.projectDirectory.dir("..").dir("vclib").dir("repo").asFile.let {
                         if (it.exists() && it.isDirectory && it.listFiles()!!.isNotEmpty()) {
                             logger.info("assuming VcLib maven artifact present")
@@ -99,23 +48,23 @@ kotlin {
                         }
                     }
                 }
-                api("at.asitplus:kmmresult:${PupilIdLibVersions.resultlib}")
+                api("at.asitplus:kmmresult:${VcLibVersions.resultlib}")
             }
         }
         val iosX64Main by getting
         val iosArm64Main by getting
         val iosMain by getting {
             dependencies {
-                api("io.ktor:ktor-client-darwin:${PupilIdLibVersions.ktor}")
+                api(ktor("client-darwin"))
             }
         }
         val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
         val nativeMain by creating
         val jvmMain by getting {
             dependencies {
-                api("org.bouncycastle:bcpkix-jdk18on:${PupilIdLibVersions.Jvm.bouncycastle}")
-                api("io.swagger.core.v3:swagger-annotations:${PupilIdLibVersions.Jvm.swagger}")
-                api("io.ktor:ktor-client-okhttp:${PupilIdLibVersions.ktor}")
+                api(bouncycastle("bcpkix"))
+                api("io.swagger.core.v3:swagger-annotations:$swagger")
+                api(ktor("client-okhttp"))
             }
         }
 
@@ -129,18 +78,14 @@ kotlin {
         /* Test source sets */
         val commonTest by getting {
             dependencies {
-                implementation("io.kotest:kotest-assertions-core:${PupilIdLibVersions.kotest}")
-                implementation("io.kotest:kotest-framework-engine:${PupilIdLibVersions.kotest}")
-                implementation("io.ktor:ktor-client-mock:${PupilIdLibVersions.ktor}")
+                implementation(ktor("client-mock"))
             }
         }
         val iosX64Test by getting
         val iosArm64Test by getting
         val jvmTest by getting {
             dependencies {
-                implementation("io.kotest:kotest-runner-junit5:${PupilIdLibVersions.kotest}")
-                implementation("com.nimbusds:nimbus-jose-jwt:${PupilIdLibVersions.Jvm.`nimbus-jose`}")
-                implementation("io.kotest:kotest-runner-junit5:${PupilIdLibVersions.kotest}")
+                implementation("com.nimbusds:nimbus-jose-jwt:${VcLibVersions.Jvm.`jose-jwt`}")
             }
         }
         val iosTest by getting
@@ -154,43 +99,21 @@ kotlin {
     }
 
 }
-Properties().apply {
-    kotlin.runCatching { load(FileInputStream(project.rootProject.file("local.properties"))) }
-    forEach { (k, v) -> extra.set(k as String, v) }
-}
 
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor(0, TimeUnit.SECONDS)
 
 }
 
-val gitLabPrivateToken: String? by extra
 val gitLabProjectId: String by extra
 val gitLabGroupId: String by extra
 
 repositories {
     maven(uri(layout.projectDirectory.dir("..").dir("vclib").dir("repo")))
     mavenLocal()
-    if (System.getenv("CI_JOB_TOKEN") != null || gitLabPrivateToken != null) {
-        maven {
-            name = "gitlab"
-            url = uri("https://gitlab.iaik.tugraz.at/api/v4/groups/$gitLabGroupId/-/packages/maven")
-            if (gitLabPrivateToken != null) {
-                credentials(HttpHeaderCredentials::class) {
-                    name = "Private-Token"
-                    value = gitLabPrivateToken
-                }
-            } else if (System.getenv("CI_JOB_TOKEN") != null) {
-                credentials(HttpHeaderCredentials::class) {
-                    name = "Job-Token"
-                    value = System.getenv("CI_JOB_TOKEN")
-                }
-            }
-            authentication {
-                create<HttpHeaderAuthentication>("header")
-            }
-        }
-    }
+
+    gitlab(groupId = gitLabGroupId.toInt()) accessTokenFrom extra
+
     mavenCentral()
 }
 
@@ -198,30 +121,21 @@ repositories {
 publishing {
     repositories {
         mavenLocal()
-        if (System.getenv("CI_JOB_TOKEN") != null) {
-            maven {
-                name = "gitlab"
-                url = uri("https://gitlab.iaik.tugraz.at/api/v4/projects/$gitLabProjectId/packages/maven")
-                credentials(HttpHeaderCredentials::class) {
-                    name = "Job-Token"
-                    value = System.getenv("CI_JOB_TOKEN")
-                }
-                authentication {
-                    create<HttpHeaderAuthentication>("header")
-                }
-            }
-        }
         maven {
             url = uri(layout.projectDirectory.dir("..").dir("repo"))
             name = "local"
         }
     }
+    gitLab(projectId = gitLabProjectId.toInt())
 }
-tasks.getByName("publishAllPublicationsToLocalRepository") {
-    doLast {
-        copy {
-            from(layout.projectDirectory.dir("..").dir("vclib").dir("repo"))
-            into(layout.projectDirectory.dir("..").dir("repo"))
+
+listOf("publishAllPublicationsToLocalRepository", "publishJvmPublicationToLocalRepository").forEach { taskName ->
+    tasks.getByName(taskName) {
+        doLast {
+            copy {
+                from(layout.projectDirectory.dir("..").dir("vclib").dir("repo"))
+                into(layout.projectDirectory.dir("..").dir("repo"))
+            }
         }
     }
 }

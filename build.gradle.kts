@@ -1,27 +1,5 @@
-buildscript {
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${PupilIdLibVersions.kotlin}")
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-tasks.register<Delete>("clean") {
-    doFirst { println("Cleaning all build files") }
-
-    delete(rootProject.buildDir)
-    delete(layout.projectDirectory.dir("repo"))
-    doLast { println("Clean done") }
+plugins {
+    id("at.asitplus.gradle.vclib-conventions")
 }
 
 task<Exec>("purge") {
