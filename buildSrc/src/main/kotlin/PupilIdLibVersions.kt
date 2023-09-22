@@ -1,5 +1,5 @@
 object PupilIdLibVersions {
-    const val kotlin = "1.8.0"
+    const val kotlin = "1.8.20"
     const val serialization = "1.4.1"
     const val datetime = "0.4.0"
     const val coroutines = "1.6.4"
