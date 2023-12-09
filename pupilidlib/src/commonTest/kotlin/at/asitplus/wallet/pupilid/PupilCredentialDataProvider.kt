@@ -13,7 +13,7 @@ class PupilCredentialDataProvider(
     private val defaultLifetime = 1.minutes
 
     override fun getClaim(subjectId: String, attributeName: String) =
-        KmmResult.failure(UnsupportedOperationException("no data"))
+        KmmResult.failure<IssuerCredentialDataProvider.CredentialToBeIssued>(UnsupportedOperationException("no data"))
 
     override fun getCredential(subjectId: String, attributeType: String) = when (attributeType) {
         at.asitplus.wallet.pupilid.ConstantIndex.PupilId.vcType -> KmmResult.success(
@@ -26,6 +26,25 @@ class PupilCredentialDataProvider(
         )
 
         else -> KmmResult.failure(UnsupportedOperationException("empty"))
+    }
+
+    override fun getCredentialWithType(
+        subjectId: String,
+        attributeTypes: Collection<String>
+    ): KmmResult<List<IssuerCredentialDataProvider.CredentialToBeIssued>> {
+        if (attributeTypes.contains(ConstantIndex.PupilId.vcType)) {
+            return KmmResult.success(
+                listOf(
+                    IssuerCredentialDataProvider.CredentialToBeIssued(
+                        subject = dummyCredential(subjectId),
+                        expiration = clock.now() + defaultLifetime,
+                        attributeType = ConstantIndex.PupilId.vcType,
+                        attachments = dummyAttachments()
+                    )
+                )
+            )
+        }
+        return KmmResult.success(listOf())
     }
 
     private fun dummyCredential(subjectId: String) = PupilIdCredential(

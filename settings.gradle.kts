@@ -1,14 +1,9 @@
 pluginManagement {
-    repositories {
-        google()
-        gradlePluginPortal()
-        mavenCentral()
-    }
     includeBuild("vclib/conventions-vclib")
 }
 includeBuild("vclib") {
     dependencySubstitution {
-        substitute(module("at.asitplus.wallet:vclib-aries")).using(project(":vclib-aries"))
+        substitute(module("at.asitplus.wallet:vclib")).using(project(":vclib"))
     }
 }
 

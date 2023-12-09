@@ -14,18 +14,19 @@ version = "$artifactVersion"
 val vcLibVersion: String by extra
 val swagger: String by extra
 
-exportIosFramework(
-    "PupilIdKMM",
-    "at.asitplus:kmmresult:${VcLibVersions.resultlib}",
-    "at.asitplus.wallet:vclib-aries:$vcLibVersion",
-    datetime(),
-    napier()
-)
-kotlin {
+val iosDisabled: String? by extra
 
+
+kotlin {
+    jvm()
+    if (iosDisabled != "true") {
+        iosArm64()
+        iosSimulatorArm64()
+        iosX64()
+    }
     sourceSets {
         /* Main source sets */
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 commonDependencies().forEach { dep -> api(dep) }
                 api(serialization("cbor"))
@@ -34,7 +35,7 @@ kotlin {
                 api(ktor("client-serialization"))
                 api(ktor("client-content-negotiation"))
                 api(ktor("serialization-kotlinx-json"))
-                api("at.asitplus.wallet:vclib:$vcLibVersion") {
+                api("at.asitplus.wallet:vclib:$vcLibVersion")/* {
                     layout.projectDirectory.dir("..").dir("vclib").dir("repo").asFile.let {
                         if (it.exists() && it.isDirectory && it.listFiles()!!.isNotEmpty()) {
                             logger.info("assuming VcLib maven artifact present")
@@ -47,20 +48,16 @@ kotlin {
                             }
                         }
                     }
-                }
-                api("at.asitplus:kmmresult:${VcLibVersions.resultlib}")
+                }*/
             }
         }
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosMain by getting {
+        if (iosDisabled != "true") iosMain {
             dependencies {
                 api(ktor("client-darwin"))
             }
         }
-        val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
-        val nativeMain by creating
-        val jvmMain by getting {
+
+        jvmMain {
             dependencies {
                 api(bouncycastle("bcpkix"))
                 api("io.swagger.core.v3:swagger-annotations:$swagger")
@@ -68,48 +65,40 @@ kotlin {
             }
         }
 
-        /* Main hierarchy */
-        iosMain.dependsOn(nativeMain)
-        iosX64Main.dependsOn(iosMain)
-        iosArm64Main.dependsOn(iosMain)
-        nativeMain.dependsOn(commonMain)
-        jvmMain.dependsOn(commonMain)
-
         /* Test source sets */
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(ktor("client-mock"))
             }
         }
-        val iosX64Test by getting
-        val iosArm64Test by getting
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
                 implementation("com.nimbusds:nimbus-jose-jwt:${VcLibVersions.Jvm.`jose-jwt`}")
             }
         }
-        val iosTest by getting
-        val nativeTest by creating
 
-        /* Test hierarchy */
-        iosTest.dependsOn(nativeTest)
-        iosX64Test.dependsOn(iosTest)
-        iosArm64Test.dependsOn(iosTest)
-        nativeTest.dependsOn(commonTest)
+
     }
-
 }
+
+if (iosDisabled != "true") exportIosFramework(
+    "PupilIdKMM",
+    "at.asitplus:kmmresult:${AspVersions.kmmresult}",
+    "at.asitplus.wallet:vclib:$vcLibVersion",
+    datetime(),
+    napier()
+)
+
 
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor(0, TimeUnit.SECONDS)
-
 }
 
 val gitLabProjectId: String by extra
 val gitLabGroupId: String by extra
 
 repositories {
-    maven(uri(layout.projectDirectory.dir("..").dir("vclib").dir("repo")))
+    //  maven(uri(layout.projectDirectory.dir("..").dir("vclib").dir("repo")))
     mavenLocal()
 
     gitlab(groupId = gitLabGroupId.toInt()) accessTokenFrom extra
@@ -120,22 +109,26 @@ repositories {
 
 publishing {
     repositories {
-        mavenLocal()
+        /*    mavenLocal()
         maven {
             url = uri(layout.projectDirectory.dir("..").dir("repo"))
             name = "local"
         }
+    }*/
+        gitLab(projectId = gitLabProjectId.toInt())
     }
-    gitLab(projectId = gitLabProjectId.toInt())
 }
-
-listOf("publishAllPublicationsToLocalRepository", "publishJvmPublicationToLocalRepository").forEach { taskName ->
-    tasks.getByName(taskName) {
-        doLast {
-            copy {
-                from(layout.projectDirectory.dir("..").dir("vclib").dir("repo"))
-                into(layout.projectDirectory.dir("..").dir("repo"))
+/*
+    listOf(
+        "publishAllPublicationsToLocalRepository",
+        "publishJvmPublicationToLocalRepository"
+    ).forEach { taskName ->
+        tasks.getByName(taskName) {
+            doLast {
+                copy {
+                    from(layout.projectDirectory.dir("..").dir("vclib").dir("repo"))
+                    into(layout.projectDirectory.dir("..").dir("repo"))
+                }
             }
         }
-    }
-}
+    }*/

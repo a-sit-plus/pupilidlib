@@ -230,7 +230,7 @@ object QrCodeContentService {
             map.forEach {
                 result.add(MapResult(it.key, it.value.size, it.value.expectedSize(prefixWithoutSemicolon)))
             }
-            KmmResult.success(result)
+            KmmResult.success<List<MapResult>>(result)
         }.getOrElse {
             KmmResult.success(listOf(MapResult(null, input.size, input.expectedSize(prefixWithoutSemicolon))))
         }
