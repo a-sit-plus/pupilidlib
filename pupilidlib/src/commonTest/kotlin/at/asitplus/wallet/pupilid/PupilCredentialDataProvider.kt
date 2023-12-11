@@ -28,25 +28,6 @@ class PupilCredentialDataProvider(
         else -> KmmResult.failure(UnsupportedOperationException("empty"))
     }
 
-    override fun getCredentialWithType(
-        subjectId: String,
-        attributeTypes: Collection<String>
-    ): KmmResult<List<IssuerCredentialDataProvider.CredentialToBeIssued>> {
-        if (attributeTypes.contains(ConstantIndex.PupilId.vcType)) {
-            return KmmResult.success(
-                listOf(
-                    IssuerCredentialDataProvider.CredentialToBeIssued(
-                        subject = dummyCredential(subjectId),
-                        expiration = clock.now() + defaultLifetime,
-                        attributeType = ConstantIndex.PupilId.vcType,
-                        attachments = dummyAttachments()
-                    )
-                )
-            )
-        }
-        return KmmResult.success(listOf())
-    }
-
     private fun dummyCredential(subjectId: String) = PupilIdCredential(
         id = subjectId,
         firstName = "Susanne",

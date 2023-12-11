@@ -1,6 +1,15 @@
 package at.asitplus.wallet.pupilid
 
-import at.asitplus.wallet.lib.agent.*
+import at.asitplus.wallet.lib.agent.CryptoService
+import at.asitplus.wallet.lib.agent.DefaultCryptoService
+import at.asitplus.wallet.lib.agent.Holder
+import at.asitplus.wallet.lib.agent.HolderAgent
+import at.asitplus.wallet.lib.agent.IssueCredentialMessenger
+import at.asitplus.wallet.lib.agent.IssueCredentialProtocolResult
+import at.asitplus.wallet.lib.agent.Issuer
+import at.asitplus.wallet.lib.agent.IssuerAgent
+import at.asitplus.wallet.lib.agent.MessageWrapper
+import at.asitplus.wallet.lib.agent.NextMessage
 import at.asitplus.wallet.lib.data.ConstantIndex
 import com.benasher44.uuid.uuid4
 import io.kotest.core.spec.style.FreeSpec
@@ -41,13 +50,14 @@ class IssueCredentialMessengerTest : FreeSpec() {
 
     private fun initHolderMessenger() = IssueCredentialMessenger.newHolderInstance(
         holder = holder,
+        keyId = holderCryptoService.keyId,
         messageWrapper = MessageWrapper(holderCryptoService),
-        credentialScheme = at.asitplus.wallet.pupilid.ConstantIndex.PupilId,
     )
 
     private fun initIssuerMessenger(scheme: ConstantIndex.CredentialScheme) =
         IssueCredentialMessenger.newIssuerInstance(
             issuer = issuer,
+            keyId = issuerCryptoService.keyId,
             messageWrapper = MessageWrapper(issuerCryptoService),
             serviceEndpoint = issuerServiceEndpoint,
             credentialScheme = scheme,
