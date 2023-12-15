@@ -1,6 +1,7 @@
 package at.asitplus.wallet.pupilid
 
 import at.asitplus.KmmResult
+import at.asitplus.wallet.pupilid.DeviceBindingService.AuthMethod
 import at.asitplus.wallet.utils.Asn1Service
 import at.asitplus.wallet.utils.HeaderNames
 import io.github.aakira.napier.Napier
@@ -16,15 +17,15 @@ import kotlinx.serialization.SerializationException
  * @see [DeviceBindingService]
  * @see [PupilIdIssuingService]
  */
-class DeviceBindingPupilIdIssuingService constructor(
+class DeviceBindingPupilIdIssuingService(
     /**
      * Base address of the server to contact, i.e. `https://wallet.a-sit.at/`
      */
     private val serverAddress: String,
     /**
-     * Nonce from scanned QR Code, used for authentication
+     * Authentication method at backend, see [AuthMethod]
      */
-    extAuthNonce: String,
+    authMethod: AuthMethod,
     /**
      * Needed to load information from native implementations
      */
@@ -40,7 +41,7 @@ class DeviceBindingPupilIdIssuingService constructor(
     /**
      * Path of the endpoint for issuing credentials, defaults to `listOf("pupilid", "issue")`
      */
-    private val serverIssuePath: List<String> = listOf("pupilid", "issue"),
+    private val serverIssuePath: List<String> = listOf("issue"),
     /**
      * Use this to configure an HTTP client once
      */
@@ -50,7 +51,7 @@ class DeviceBindingPupilIdIssuingService constructor(
     private val client = httpClientBuilder.client
     private val deviceBindingService = DeviceBindingService(
         serverAddress = serverAddress,
-        extAuthNonce = extAuthNonce,
+        authMethod = authMethod,
         deviceAdapter = deviceAdapter,
         cryptoAdapter = cryptoAdapter,
         httpClientBuilder = httpClientBuilder,
@@ -59,6 +60,7 @@ class DeviceBindingPupilIdIssuingService constructor(
     suspend fun createDeviceBindingAndIssueCredentials(): ServiceResult {
         try {
             val url = URLBuilder(serverAddress).appendPathSegments(serverIssuePath).buildString()
+            Napier.d("url = $url")
             val deviceBindingResponse = deviceBindingService.getDeviceBindingResponse()
             var xAuthToken = deviceBindingResponse.xAuthToken
             val bindingConfirmBody = deviceBindingResponse.body
