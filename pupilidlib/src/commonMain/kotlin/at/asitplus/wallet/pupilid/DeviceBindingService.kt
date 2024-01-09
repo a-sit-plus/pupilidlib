@@ -59,7 +59,12 @@ class DeviceBindingService(
 
     @Throws(ResponseException::class, Throwable::class)
     internal suspend fun getDeviceBindingResponse(): HttpSessionResponse {
+        Napier.d("getDeviceBindingResponse ...")
         val bindingParamsRequest = BindingParamsRequest(deviceAdapter.deviceName)
+        Napier.d("bindingParamsRequest = $bindingParamsRequest")
+        Napier.d("serverAddress = $serverAddress")
+        Napier.d("authMethod = $authMethod")
+
         val startResponse =
             client.post(URLBuilder(serverAddress).appendPathSegments("binding", "start").buildString()) {
                 contentType(ContentType.Application.Json)
@@ -72,28 +77,55 @@ class DeviceBindingService(
                 setBody(bindingParamsRequest)
                 expectSuccess = true
             }
+
+        Napier.d("startResponse = $startResponse")
+
         val bindingParamsResponse = startResponse.body<BindingParamsResponse>()
+        Napier.d("bindingParamsResponse = $bindingParamsResponse")
+
+        Napier.d("startResponse.headers = ${startResponse.headers}")
         var xAuthToken = startResponse.headers[HeaderNames.X_AUTH_TOKEN].toString()
+        Napier.d("xAuthToken = $xAuthToken")
+
         val challenge = bindingParamsResponse.challenge
         val subject = bindingParamsResponse.subject
         val keyType = KeyAlgorithm.parse(bindingParamsResponse.keyType)
         deviceAdapter.createKey(keyType, challenge)
         val publicKeyEncoded = deviceAdapter.getPublicKeyEncoded().getOrThrow()
+        Napier.d("publicKeyEncoded = $publicKeyEncoded")
+
         val csr = asn1Service.signAndCreateCsr(publicKeyEncoded, subject, keyType).getOrThrow()
+        Napier.d("csr = $csr")
+
         val attestationCerts = deviceAdapter.loadAttestationCerts(challenge, publicKeyEncoded).getOrThrow()
+        Napier.d("attestationCerts = $attestationCerts")
+
         val bindingCsrRequest = BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
+        Napier.d("bindingCsrRequest = $bindingCsrRequest")
+
         val createResponse =
             client.post(URLBuilder(serverAddress).appendPathSegments("binding", "create").buildString()) {
                 contentType(ContentType.Application.Json)
                 headers {
-                    append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
-                }
+                    when (authMethod) {
+                        is AuthMethod.ExternalNonce -> append(HeaderNames.X_AUTH_EXT_NONCE, authMethod.nonce)
+                        is AuthMethod.XAuthToken -> append(HeaderNames.X_AUTH_TOKEN, authMethod.token)
+                    }                }
                 setBody(bindingCsrRequest)
                 expectSuccess = true
 
             }
+
+        Napier.d("createResponse success")
+
         xAuthToken = createResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
+
+        Napier.d("xAuthToken = $xAuthToken")
+
         val bindingCsrResponse = createResponse.body<BindingCsrResponse>()
+
+        Napier.d("bindingCsrResponse = $bindingCsrResponse")
+
         deviceAdapter.storeCertificate(bindingCsrResponse.certificate, bindingCsrResponse.attestedPublicKey)
             .getOrThrow()
         val bindingConfirmRequest = BindingConfirmRequest(true)
@@ -101,13 +133,20 @@ class DeviceBindingService(
             client.post(URLBuilder(serverAddress).appendPathSegments("binding", "confirm").buildString()) {
                 contentType(ContentType.Application.Json)
                 headers {
-                    append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
+                    when (authMethod) {
+                        is AuthMethod.ExternalNonce -> append(HeaderNames.X_AUTH_EXT_NONCE, authMethod.nonce)
+                        is AuthMethod.XAuthToken -> append(HeaderNames.X_AUTH_TOKEN, authMethod.token)
+                    }
                 }
                 setBody(bindingConfirmRequest)
                 expectSuccess = true
             }
         xAuthToken = confirmResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
-        return HttpSessionResponse(confirmResponse.body(), xAuthToken)
+        return HttpSessionResponse(confirmResponse.body(),
+            when (authMethod) {
+                is AuthMethod.ExternalNonce -> authMethod.nonce
+                is AuthMethod.XAuthToken -> authMethod.token
+            })
     }
 
     suspend fun createDeviceBinding(): ServiceResult = try {

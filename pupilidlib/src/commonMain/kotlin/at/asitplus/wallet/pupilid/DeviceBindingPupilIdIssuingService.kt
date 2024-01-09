@@ -41,7 +41,7 @@ class DeviceBindingPupilIdIssuingService(
     /**
      * Path of the endpoint for issuing credentials, defaults to `listOf("pupilid", "issue")`
      */
-    private val serverIssuePath: List<String> = listOf("issue"),
+    private val serverIssuePath: List<String> = listOf("pupilid", "issue"),
     /**
      * Use this to configure an HTTP client once
      */
@@ -59,16 +59,26 @@ class DeviceBindingPupilIdIssuingService(
 
     suspend fun createDeviceBindingAndIssueCredentials(): ServiceResult {
         try {
-            val url = URLBuilder(serverAddress).appendPathSegments(serverIssuePath).buildString()
+            val url = URLBuilder(serverAddress).appendPathSegments(listOf("pupilid", "issue")).buildString()
+            Napier.d("Server Address = $serverAddress")
+            Napier.d("Server Issue Path = $serverIssuePath")
             Napier.d("url = $url")
+
             val deviceBindingResponse = deviceBindingService.getDeviceBindingResponse()
+            Napier.d("deviceBindingResponse = $deviceBindingResponse")
+
             var xAuthToken = deviceBindingResponse.xAuthToken
+            Napier.d("xAuthToken = $xAuthToken")
+
             val bindingConfirmBody = deviceBindingResponse.body
+            Napier.d("bindingConfirmBody = $bindingConfirmBody")
+
             if (!bindingConfirmBody.success) {
                 return ServiceResult.ErrorFromNetwork("No success for binding/confirm message")
             }
 
             val message = callback.loadMessage().getOrThrow()
+            Napier.d("message = $message")
 
             val issuePost = client.post(url) {
                 headers {
@@ -77,9 +87,18 @@ class DeviceBindingPupilIdIssuingService(
                 setBody(message)
                 expectSuccess = true
             }
+            Napier.d("issuePost = $issuePost")
+
             val response = issuePost.body<String>()
+
+            Napier.d("Response = $response")
+
             xAuthToken =
                 issuePost.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
+
+            Napier.d("xAuthToken = $xAuthToken")
+
+
             return ServiceResult.Success(response, xAuthToken)
         } catch (e: SerializationException) {
             return ServiceResult.ErrorFromNetwork(e.message ?: "Error")
