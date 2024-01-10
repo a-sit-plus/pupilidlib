@@ -79,10 +79,9 @@ class DeviceBindingService(
         Napier.d("bindingParamsResponse = $bindingParamsResponse")
 
         Napier.d("startResponse.headers = ${startResponse.headers}")
-        var xAuthToken = ""
-        when(authMethod) {
-            is AuthMethod.ExternalNonce -> xAuthToken = startResponse.headers[HeaderNames.X_AUTH_TOKEN].toString()
-            is AuthMethod.XAuthToken -> xAuthToken = authMethod.token
+        var xAuthToken = when(authMethod) {
+            is AuthMethod.ExternalNonce -> startResponse.headers[HeaderNames.X_AUTH_TOKEN].toString()
+            is AuthMethod.XAuthToken -> authMethod.token
         }
         Napier.d("xAuthToken = $xAuthToken")
 
@@ -107,9 +106,9 @@ class DeviceBindingService(
 
         Napier.d("createResponse success")
 
-        when(authMethod) {
-            is AuthMethod.ExternalNonce -> xAuthToken = createResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
-            is AuthMethod.XAuthToken -> xAuthToken = authMethod.token
+        xAuthToken = when(authMethod) {
+            is AuthMethod.ExternalNonce -> createResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
+            is AuthMethod.XAuthToken -> authMethod.token
         }
 
         Napier.d("xAuthToken = $xAuthToken")
@@ -131,9 +130,9 @@ class DeviceBindingService(
                 expectSuccess = true
             }
 
-        when(authMethod) {
-            is AuthMethod.ExternalNonce -> xAuthToken = confirmResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
-            is AuthMethod.XAuthToken -> xAuthToken = authMethod.token
+        xAuthToken = when(authMethod) {
+            is AuthMethod.ExternalNonce -> confirmResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
+            is AuthMethod.XAuthToken -> authMethod.token
         }
         return HttpSessionResponse(confirmResponse.body(), xAuthToken)
     }
