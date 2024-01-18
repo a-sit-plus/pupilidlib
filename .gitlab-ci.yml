@@ -6,7 +6,7 @@ variables:
   GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.console=plain -Dmaven.repo.local=${CI_PROJECT_DIR}/.m2/repository"
   SECURE_LOG_LEVEL: "debug"
-  SAST_JAVA_VERSION: "11"
+  SAST_JAVA_VERSION: "17"
   SECRET_DETECTION_EXCLUDED_PATHS: ".gradle,gradle,.m2"
   SAST_EXPERIMENTAL_FEATURES: "true"
   GIT_SUBMODULE_STRATEGY: recursive
@@ -19,7 +19,7 @@ include:
   - template: Secret-Detection.gitlab-ci.yml
 
 default:
-  image: gradle:jdk11
+  image: gradle:jdk17
   tags:
     - docker
 
@@ -35,8 +35,8 @@ workflow:
       when: never
     - if: '$CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development" || $CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/'
 
-assembleJdk11:
-  image: maven:3.6-jdk-11
+assembleJdk17:
+  image: maven:3.6-jdk-17
   script: |
     ./gradlew --continue clean jvmTest
   artifacts:
@@ -56,7 +56,7 @@ assembleIos:
 
 publish:
   needs:
-    - assembleJdk11
+    - assembleJdk17
     - assembleIos
   tags:
     - ios
