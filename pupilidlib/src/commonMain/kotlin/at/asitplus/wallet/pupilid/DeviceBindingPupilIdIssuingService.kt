@@ -57,6 +57,17 @@ class DeviceBindingPupilIdIssuingService(
         httpClientBuilder = httpClientBuilder,
     )
 
+    suspend fun getEcoRequest(xAuthToken: String): String {
+        val url = URLBuilder(serverAddress).appendPathSegments("pupilid", "schools", "retrieve").buildString()
+        val response = client.get(url) {
+            headers {
+                append(HeaderNames.X_AUTH_TOKEN, xAuthToken)
+            }
+            expectSuccess = true
+        }
+        return response.body<String>()
+    }
+
     suspend fun createDeviceBindingAndIssueCredentials(): ServiceResult {
         try {
             val url = URLBuilder(serverAddress).appendPathSegments(serverIssuePath).buildString()
