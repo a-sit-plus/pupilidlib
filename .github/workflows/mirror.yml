@@ -24,6 +24,8 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Configure git for user ${{ vars.MIRROR_USERNAME }} <${{ vars.MIRROR_EMAIL }}>
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         run: |
           git config --global user.email "${{ vars.MIRROR_EMAIL }}"
           git config --global user.name "${{ vars.MIRROR_USERNAME }}"
