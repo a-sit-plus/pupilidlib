@@ -36,13 +36,13 @@ jobs:
         run:  git commit -m "Prepare mirroring"
       - name: Set destination to ${{ vars.MIRROR_REMOTE }}
         run: |
-          git remote add mirror "https://${{ secrets.API_TOKEN_GITHUB }}@github.com/${{ vars.MIRROR_REMOTE }}.git"
+          git remote add mirror "https://x-access-token:${{ secrets.API_TOKEN_GITHUB }}@github.com/${{ vars.MIRROR_REMOTE }}.git"
           git fetch mirror
       - name: Mirror files locally to ${{ vars.MIRROR_REMOTE }}
         run: |
           SRC_BRANCH=`git rev-parse --abbrev-ref HEAD`
           git checkout -b forMirroring mirror/main
-          git git rm -rf .
+          git rm -rf .
           git checkout $SRC_BRANCH .
           git add .
           git commit -m "Mirror latest release"
