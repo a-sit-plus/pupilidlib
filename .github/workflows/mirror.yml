@@ -27,7 +27,7 @@ jobs:
         run: |
           git config --global user.email "${{ vars.MIRROR_EMAIL }}"
           git config --global user.name "${{ vars.MIRROR_USERNAME }}"
-          git config --local --unset-all "http.https://github.com/.extraheader"
+          # git config --local --unset-all "http.https://github.com/.extraheader"
           git config -l
       # Runs a set of commands using the runners shell
       - name: Remove unwanted files
@@ -39,7 +39,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
         run: |
-          git remote add mirror "https://$API_TOKEN_GITHUB@github.com/${{ vars.MIRROR_REMOTE }}.git"
+          git remote add mirror "https://x-access-token:$API_TOKEN_GITHUB@github.com/${{ vars.MIRROR_REMOTE }}.git"
           git fetch mirror
           git remote -v
       - name: Mirror files locally to ${{ vars.MIRROR_REMOTE }}
@@ -52,4 +52,4 @@ jobs:
           git add .
           git commit -m "Mirror latest release"
       - name: pushing to mirror
-        run:  git push mirror HEAD:main
+          run: git push mirror HEAD:main
