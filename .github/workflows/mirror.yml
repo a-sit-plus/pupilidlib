@@ -35,11 +35,11 @@ jobs:
       - name: Commit cleanup changes
         run:  git commit -m "Prepare mirroring"
       - name: Set destination to ${{ vars.MIRROR_REMOTE }}
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         run: |
           git remote add mirror "https://x-access-token:${API_TOKEN_GITHUB}@github.com/${{ vars.MIRROR_REMOTE }}.git"
           git fetch mirror
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
       - name: Mirror files locally to ${{ vars.MIRROR_REMOTE }}
         run: |
           SRC_REV=`git rev-parse HEAD`
