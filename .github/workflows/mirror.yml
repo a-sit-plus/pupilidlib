@@ -52,4 +52,4 @@ jobs:
           git add .
           git commit -m "Mirror latest release"
       - name: pushing to mirror
-          run: git push mirror HEAD:main
+        run: git push mirror HEAD:main
