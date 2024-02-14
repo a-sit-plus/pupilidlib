@@ -38,7 +38,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
         run: |
-          git remote add mirror "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ vars.MIRROR_REMOTE }}.git"
+          git remote add mirror "https://x-access-token:${{GITHUB_TOKEN}}@github.com/${{ vars.MIRROR_REMOTE }}.git"
           git fetch mirror
       - name: Mirror files locally to ${{ vars.MIRROR_REMOTE }}
         run: |
