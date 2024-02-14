@@ -28,7 +28,7 @@ jobs:
           git config --global user.email "${{ vars.MIRROR_EMAIL }}"
           git config --global user.name "${{ vars.MIRROR_USERNAME }}"
           git config --local --unset-all "http.https://github.com/.extraheader"
-          git config --local http.https://github.com/.extraheader AUTHORIZATION: basic $API_TOKEN_GITHUB
+          git config --local "http.https://github.com/.extraheader AUTHORIZATION: basic $API_TOKEN_GITHUB"
           git config -l
       # Runs a set of commands using the runners shell
       - name: Remove unwanted files
