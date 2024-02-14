@@ -36,7 +36,7 @@ jobs:
         run:  git commit -m "Prepare mirroring"
       - name: Set destination to ${{ vars.MIRROR_REMOTE }}
         run: |
-          git remote add mirror "https://x-access-token:${{ secrets.API_TOKEN_GITHUB }}@github.com/${{ vars.MIRROR_REMOTE }}.git"
+          git remote add mirror "https://${{ secrets.API_TOKEN_GITHUB }}@github.com/${{ vars.MIRROR_REMOTE }}.git"
           git fetch mirror
       - name: Mirror files locally to ${{ vars.MIRROR_REMOTE }}
         run: |
