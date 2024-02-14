@@ -20,12 +20,12 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
       - shell: bash
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
           
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
       - name: Configure git for user ${{ vars.MIRROR_USERNAME }} <${{ vars.MIRROR_EMAIL }}>
         run: |
           git config --global user.email "${{ vars.MIRROR_EMAIL }}"
