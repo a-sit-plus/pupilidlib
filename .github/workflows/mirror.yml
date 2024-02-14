@@ -41,7 +41,7 @@ jobs:
       - name: Mirror files locally to ${{ vars.MIRROR_REMOTE }}
         run: |
           SRC_REV=`git rev-parse HEAD`
-          echo source branch is $SRC_REV
+          echo source rev is $SRC_REV
           git checkout -b forMirroring mirror/main
           git rm -rf .
           git checkout $SRC_REV .
