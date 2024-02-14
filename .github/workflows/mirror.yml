@@ -20,14 +20,16 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - shell: bash
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+          
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-
       - name: Configure git for user ${{ vars.MIRROR_USERNAME }} <${{ vars.MIRROR_EMAIL }}>
         run: |
           git config --global user.email "${{ vars.MIRROR_EMAIL }}"
           git config --global user.name "${{ vars.MIRROR_USERNAME }}"
-
       # Runs a set of commands using the runners shell
       - name: Remove unwanted files
         run: |
@@ -36,10 +38,8 @@ jobs:
         run:  git commit -m "Prepare mirroring"
       - name: Set destination to ${{ vars.MIRROR_REMOTE }}
         run: |
-          git remote add mirror "https://x-access-token:${API_TOKEN_GITHUB}@github.com/${{ vars.MIRROR_REMOTE }}.git"
+          git remote add mirror "https://${API_TOKEN_GITHUB}@github.com/${{ vars.MIRROR_REMOTE }}.git"
           git fetch mirror
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
       - name: Mirror files locally to ${{ vars.MIRROR_REMOTE }}
         run: |
           SRC_REV=`git rev-parse HEAD`
