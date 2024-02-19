@@ -16,13 +16,12 @@ val swagger: String by extra
 
 
 kotlin {
-    jvm()
-    iosArm64()
+    ios()
     iosSimulatorArm64()
-    iosX64()
+    jvm()
     sourceSets {
         /* Main source sets */
-        commonMain {
+        val commonMain  by getting {
             dependencies {
                 commonDependencies().forEach { dep -> api(dep) }
                 api(serialization("cbor"))
@@ -49,13 +48,15 @@ kotlin {
             }
         }
 
-        iosMain {
+        val iosMain  by getting {
             dependencies {
                 api(ktor("client-darwin"))
             }
         }
+        val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
+        val iosTest by getting
 
-        jvmMain {
+        val jvmMain  by getting {
             dependencies {
                 api(bouncycastle("bcpkix"))
                 api("io.swagger.core.v3:swagger-annotations:$swagger")
@@ -65,13 +66,13 @@ kotlin {
 
 
         /* Test source sets */
-        commonTest {
+        val commonTest  by getting {
             dependencies {
                 implementation(ktor("client-mock"))
                 implementation(kotlin("reflect"))
             }
         }
-        jvmTest {
+        val jvmTest  by getting {
             dependencies {
                 implementation("com.nimbusds:nimbus-jose-jwt:${VcLibVersions.Jvm.`jose-jwt`}")
             }

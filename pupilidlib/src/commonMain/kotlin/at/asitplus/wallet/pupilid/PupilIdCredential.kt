@@ -5,6 +5,8 @@ import at.asitplus.wallet.pupilid.ConstantIndex.PupilId.AttributeNames
 import at.asitplus.wallet.pupilid.ConstantIndex.PupilId.VC_TYPE
 import at.asitplus.wallet.utils.ByteArrayBase64Serializer
 import io.matthewnelson.component.base64.encodeBase64
+import io.matthewnelson.encoding.base64.Base64
+import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -151,8 +153,8 @@ class PupilIdCredential : CredentialSubject {
                 " pupilZip='$pupilZip'," +
                 " cardId='$cardId'," +
                 " validUntil='$validUntil'," +
-                " pictureHash='${pictureHash.encodeBase64()}'" +
-                " scaledPictureHash='${scaledPictureHash.encodeBase64()}'" +
+                " pictureHash='${pictureHash.encodeToString(Base64())}'" +
+                " scaledPictureHash='${scaledPictureHash.encodeToString(Base64())}'" +
                 ")"
     }
 

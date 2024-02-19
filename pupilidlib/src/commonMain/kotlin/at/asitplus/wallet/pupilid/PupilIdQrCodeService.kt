@@ -67,7 +67,7 @@ class PupilIdQrCodeService(
     ) { input ->
         val jwsHeader = JwsHeader(algorithm = JwsAlgorithm.ES256)
         val jws = jwsService.createSignedJws(header = jwsHeader, payload = input.encodeToByteArray())
-        jws?.let { KmmResult.success(it.serialize()) } ?: KmmResult.failure(Throwable("Could not sign JWS"))
+        jws.map { it.serialize() }
     }
 
     /**

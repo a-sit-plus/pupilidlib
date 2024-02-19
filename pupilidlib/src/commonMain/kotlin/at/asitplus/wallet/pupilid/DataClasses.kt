@@ -5,6 +5,8 @@ package at.asitplus.wallet.pupilid
 import at.asitplus.wallet.utils.ByteArrayBase64Serializer
 import io.github.aakira.napier.Napier
 import io.matthewnelson.component.base64.encodeBase64
+import io.matthewnelson.encoding.base64.Base64
+import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 
@@ -62,7 +64,7 @@ open class BindingParamsResponse(
     }
 
     override fun toString(): String {
-        return "BindingParamsResponse(challenge=${challenge.encodeBase64()}, subject='$subject', keyType='$keyType')"
+        return "BindingParamsResponse(challenge=${challenge.encodeToString(Base64())}, subject='$subject', keyType='$keyType')"
     }
 
 }
@@ -98,8 +100,8 @@ open class BindingCsrRequest(
 
     override fun toString(): String {
         val attestationCertsString =
-            attestationCerts.joinToString(separator = ", ") { it.encodeBase64() }
-        return "BindingCsrRequest(challenge=${challenge.encodeBase64()}, csr=${csr.encodeBase64()}, deviceName='$deviceName', attestationCerts=[$attestationCertsString])"
+            attestationCerts.joinToString(separator = ", ") { it.encodeToString(Base64()) }
+        return "BindingCsrRequest(challenge=${challenge.encodeToString(Base64())}, csr=${csr.encodeToString(Base64())}, deviceName='$deviceName', attestationCerts=[$attestationCertsString])"
     }
 
 }
@@ -131,7 +133,7 @@ open class BindingCsrResponse(
     }
 
     override fun toString(): String {
-        return "BindingCsrResponse(certificate=${certificate.encodeBase64()}, attestedPublicKey=$attestedPublicKey)"
+        return "BindingCsrResponse(certificate=${certificate.encodeToString(Base64())}, attestedPublicKey=$attestedPublicKey)"
     }
 
 }
