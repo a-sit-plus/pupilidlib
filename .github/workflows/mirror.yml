@@ -1,5 +1,3 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Mirror
 
 # Controls when the workflow will run
@@ -34,7 +32,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Remove unwanted files
         run: |
-          git rm .github/workflows/mirror.yml
+          git rm -r .github/workflows
       - name: Commit cleanup changes
         run:  git commit -m "Prepare mirroring"
       - name: Set destination to ${{ vars.MIRROR_REMOTE }}
