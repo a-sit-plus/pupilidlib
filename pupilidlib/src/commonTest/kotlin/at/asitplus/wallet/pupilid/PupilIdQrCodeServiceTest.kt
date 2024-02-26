@@ -102,7 +102,7 @@ private suspend fun buildAttestedKey(
 ): String {
     val attestedKeyPayload =
         AttestedPublicKey(walletCryptoService.jsonWebKey.keyId!!).serialize().encodeToByteArray()
-    return DefaultJwsService(issuerCryptoService).createSignedJws(JwsHeader(algorithm = JwsAlgorithm.ES256), attestedKeyPayload)!!.serialize()
+    return DefaultJwsService(issuerCryptoService).createSignedJws(JwsHeader(algorithm = JwsAlgorithm.ES256), attestedKeyPayload).getOrThrow().serialize()
 }
 
 private fun randomCredentialContent(attestedKeyJws: String, pictureHash: ByteArray) = CredentialContent(

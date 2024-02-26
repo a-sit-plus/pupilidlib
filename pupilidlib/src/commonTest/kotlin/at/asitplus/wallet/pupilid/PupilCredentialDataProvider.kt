@@ -24,7 +24,7 @@ class PupilCredentialDataProvider(
             return KmmResult.success(
                 listOf(
                     CredentialToBeIssued.VcJwt(
-                        subject = dummyCredential(subjectPublicKey.keyId),
+                        subject = dummyCredential(subjectPublicKey.didEncoded),
                         expiration = clock.now() + defaultLifetime,
                         attachments = dummyAttachments()
                     )
