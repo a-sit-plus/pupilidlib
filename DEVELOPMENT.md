@@ -7,7 +7,6 @@ This is borked on the curren stable version of the KMP gradle plugin and might n
 Hence, `./gradlew init` builds the included `vclib` and publishes it to a local maven repo which is included in this project.
 Makes the build work without relying on composite builds, but does not support refactoring across modules.
 
-**DO ADD `iosDisabled=true`** into your `local.properties` if you are not building in a Mac!
 
 ## Publishing
 

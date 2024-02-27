@@ -14,16 +14,14 @@ version = "$artifactVersion"
 val vcLibVersion: String by extra
 val swagger: String by extra
 
-val iosDisabled: String? by extra
 
 
 kotlin {
     jvm()
-    if (iosDisabled != "true") {
-        iosArm64()
-        iosSimulatorArm64()
-        iosX64()
-    }
+    iosArm64()
+    iosSimulatorArm64()
+    iosX64()
+
     sourceSets {
         /* Main source sets */
         commonMain {
@@ -51,7 +49,7 @@ kotlin {
                 }*/
             }
         }
-        if (iosDisabled != "true") iosMain {
+        iosMain {
             dependencies {
                 api(ktor("client-darwin"))
             }
@@ -81,7 +79,7 @@ kotlin {
     }
 }
 
-if (iosDisabled != "true") exportIosFramework(
+exportIosFramework(
     "PupilIdKMM",
     "at.asitplus:kmmresult:${AspVersions.kmmresult}",
     "at.asitplus.wallet:vclib:$vcLibVersion",
