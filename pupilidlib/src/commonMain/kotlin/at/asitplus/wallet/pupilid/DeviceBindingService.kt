@@ -73,17 +73,12 @@ class DeviceBindingService(
                 expectSuccess = true
             }
 
-        Napier.d("startResponse = $startResponse")
-
         val bindingParamsResponse = startResponse.body<BindingParamsResponse>()
-        Napier.d("bindingParamsResponse = $bindingParamsResponse")
 
-        Napier.d("startResponse.headers = ${startResponse.headers}")
         var xAuthToken = when(authMethod) {
             is AuthMethod.ExternalNonce -> startResponse.headers[HeaderNames.X_AUTH_TOKEN].toString()
             is AuthMethod.XAuthToken -> authMethod.token
         }
-        Napier.d("xAuthToken = $xAuthToken")
 
         val challenge = bindingParamsResponse.challenge
         val subject = bindingParamsResponse.subject
@@ -93,6 +88,7 @@ class DeviceBindingService(
         val csr = asn1Service.signAndCreateCsr(publicKeyEncoded, subject, keyType).getOrThrow()
         val attestationCerts = deviceAdapter.loadAttestationCerts(challenge, publicKeyEncoded).getOrThrow()
         val bindingCsrRequest = BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
+
         val createResponse =
             client.post(URLBuilder(serverAddress).appendPathSegments("binding", "create").buildString()) {
                 contentType(ContentType.Application.Json)
@@ -104,19 +100,12 @@ class DeviceBindingService(
 
             }
 
-        Napier.d("createResponse success")
-
         xAuthToken = when(authMethod) {
             is AuthMethod.ExternalNonce -> createResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
             is AuthMethod.XAuthToken -> authMethod.token
         }
 
-        Napier.d("xAuthToken = $xAuthToken")
-
         val bindingCsrResponse = createResponse.body<BindingCsrResponse>()
-
-        Napier.d("bindingCsrResponse = $bindingCsrResponse")
-
         deviceAdapter.storeCertificate(bindingCsrResponse.certificate, bindingCsrResponse.attestedPublicKey)
             .getOrThrow()
         val bindingConfirmRequest = BindingConfirmRequest(true)
