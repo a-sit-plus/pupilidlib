@@ -5,6 +5,8 @@ Release 1.8.3
  - Add project-local maven repo to publish artifacts
  - Add new `purge` task to purge included vclib maven artifacts
  - Support getting device binding with `X-Auth-Token`, i.e. after successful OIDC authentication
+ - Rename `Initializer` to `PupilIdInitializer`, to prevent name shadowing under iOS
+ - Rename `ConstantIndex` to `PupilIdConstants`, to prevent name shadowing under iOS
  - Dependencies: Kotlin 1.9.20
 
 Release 1.8.0:

@@ -46,12 +46,12 @@ class IssueCredentialProtocolTest : FreeSpec({
             issuer = issuer,
             keyId = issuerCryptoService.keyId,
             serviceEndpoint = "https://example.com/issue?${uuid4()}",
-            credentialScheme = at.asitplus.wallet.pupilid.ConstantIndex.PupilId,
+            credentialScheme = at.asitplus.wallet.pupilid.PupilIdConstants.Scheme,
         )
         holderProtocol = IssueCredentialProtocol.newHolderInstance(
             holder = holder,
             keyId = holderCryptoService.keyId,
-            credentialScheme = at.asitplus.wallet.pupilid.ConstantIndex.PupilId,
+            credentialScheme = at.asitplus.wallet.pupilid.PupilIdConstants.Scheme,
         )
 
         val requestCredential = holderProtocol.startDirect()

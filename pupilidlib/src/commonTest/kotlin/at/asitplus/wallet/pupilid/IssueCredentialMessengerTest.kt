@@ -29,7 +29,7 @@ class IssueCredentialMessengerTest : FreeSpec() {
     lateinit var holderMessenger: IssueCredentialMessenger
 
     init {
-        Initializer
+        PupilIdInitializer
         beforeEach {
             issuerCryptoService = DefaultCryptoService()
             holderCryptoService = DefaultCryptoService()
@@ -40,7 +40,7 @@ class IssueCredentialMessengerTest : FreeSpec() {
         }
 
         "issueCredentialPupilId" {
-            issuerMessenger = initIssuerMessenger(at.asitplus.wallet.pupilid.ConstantIndex.PupilId)
+            issuerMessenger = initIssuerMessenger(at.asitplus.wallet.pupilid.PupilIdConstants.Scheme)
 
             val issuedCredential = runProtocolFlow()
 

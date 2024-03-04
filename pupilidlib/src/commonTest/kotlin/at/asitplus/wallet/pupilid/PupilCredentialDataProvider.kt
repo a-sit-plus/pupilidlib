@@ -16,7 +16,7 @@ class PupilCredentialDataProvider(
         KmmResult.failure<IssuerCredentialDataProvider.CredentialToBeIssued>(UnsupportedOperationException("no data"))
 
     override fun getCredential(subjectId: String, attributeType: String) = when (attributeType) {
-        at.asitplus.wallet.pupilid.ConstantIndex.PupilId.vcType -> KmmResult.success(
+        at.asitplus.wallet.pupilid.PupilIdConstants.Scheme.vcType -> KmmResult.success(
             IssuerCredentialDataProvider.CredentialToBeIssued(
                 subject = dummyCredential(subjectId),
                 expiration = clock.now() + defaultLifetime,
@@ -48,10 +48,10 @@ class PupilCredentialDataProvider(
 
     private fun dummyAttachments() = listOf(
         Issuer.Attachment(
-            at.asitplus.wallet.pupilid.ConstantIndex.PupilId.attachmentNamePicture, "image/webp", byteArrayOf(32)
+            at.asitplus.wallet.pupilid.PupilIdConstants.Scheme.attachmentNamePicture, "image/webp", byteArrayOf(32)
         ),
         Issuer.Attachment(
-            at.asitplus.wallet.pupilid.ConstantIndex.PupilId.attachmentNameScaledPicture, "image/webp", byteArrayOf(16)
+            at.asitplus.wallet.pupilid.PupilIdConstants.Scheme.attachmentNameScaledPicture, "image/webp", byteArrayOf(16)
         )
     )
 }

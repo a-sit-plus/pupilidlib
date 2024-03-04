@@ -41,13 +41,13 @@ class PresentProofProtocolTest : FreeSpec({
             holder,
             holderCryptoService.keyId,
             "https://example.com",
-            ConstantIndex.PupilId
+            PupilIdConstants.Scheme
         )
         verifierProtocol = PresentProofProtocol.newVerifierInstance(
             verifier,
             verifierCryptoService.keyId,
             "https://example.com",
-            ConstantIndex.PupilId
+            PupilIdConstants.Scheme
         )
 
         holder.storeCredentials(
@@ -56,7 +56,7 @@ class PresentProofProtocolTest : FreeSpec({
                 dataProvider = PupilCredentialDataProvider(),
             ).issueCredential(
                 holderCryptoService.keyId,
-                ConstantIndex.PupilId.vcType
+                PupilIdConstants.Scheme.vcType
             ).toStoreCredentialInput()
         )
 

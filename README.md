@@ -8,4 +8,6 @@ Previous code containing processes and network calls have been moved to PupilIdU
 Implemented features:
 
 - `PupilIdCredential` as a VC to store all properties
-- Initialization of needed classes wtih vclib (call `Initializer.initWithVcLib()` in your code)
+- Initialization of needed classes wtih vclib (call `PupilIdInitializer.initWithVcLib()` in your code)
+- Services to create a device binding and issue credentials, see `DeviceBindingService`, `PupilIdIssuingService` and `DeviceBindingPupilIdIssuingService`
+- Service to create QR codes for validation of credentials, see `QrCodeContentService` and `PupilIdQrCodeService`

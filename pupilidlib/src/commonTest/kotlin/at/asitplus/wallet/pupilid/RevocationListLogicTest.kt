@@ -34,7 +34,7 @@ class RevocationListLogicTest : FreeSpec() {
             "Adding a credential for the current year should have no impact in revocation lists" - {
                 val credential = issuer.issueCredential(
                     Random.nextLong().toString(),
-                    ConstantIndex.PupilId.vcType
+                    PupilIdConstants.Scheme.vcType
                 ).successful
                 issuer.compileCurrentRevocationLists().let {
                     it shouldHaveSize 1
@@ -214,7 +214,7 @@ class RevocationListLogicTest : FreeSpec() {
             "Adding a credential for the current year should have no impact in revocation lists" - {
                 val credential = issuer.issueCredential(
                     Random.nextLong().toString(),
-                    ConstantIndex.PupilId.vcType
+                    PupilIdConstants.Scheme.vcType
                 ).successful
                 issuer.compileCurrentRevocationLists().let {
                     it shouldHaveSize 3
@@ -247,7 +247,7 @@ suspend fun IssuerCredentialStore.createCredentialFortimePeriod(year: Int): Pair
 
     val credential = oldIssuer.issueCredential(
         Random.nextLong().toString(),
-        ConstantIndex.PupilId.vcType
+        PupilIdConstants.Scheme.vcType
     ).successful.map { it.vcJws }
 
     return oldIssuer to credential
