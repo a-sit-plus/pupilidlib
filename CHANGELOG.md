@@ -1,9 +1,11 @@
 # Changelog
 
 Release 1.8.3
- - depend on locally built vclib v 1.7.3
- - add project-local maven repo to publish artifacts
- - add new `purge` task to purge included vclib maven artifacts
+ - Upgrade to vclib 1.7.3
+ - Add project-local maven repo to publish artifacts
+ - Add new `purge` task to purge included vclib maven artifacts
+ - Support getting device binding with `X-Auth-Token`, i.e. after successful OIDC authentication
+ - Dependencies: Kotlin 1.9.20
 
 Release 1.8.0:
  - Move network processes to Umbrella lib
