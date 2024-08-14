@@ -23,3 +23,9 @@ Some bits and pieces are rather enterprise-y and read very much like traditional
 The plain and simple reason for this is the fact that the code is used in production, which is why breaking API and ABI changes are costly, hence the separation between KMM VC library and PupilIdLib.
 
 Check the testcases for examples on how to use it.
+
+## Contributing
+External contributions are greatly appreciated! Be sure to observe the contribution guidelines (see [CONTRIBUTING.md](CONTRIBUTING.md)).
+In particular, external contributions to this project are subject to the A-SIT Plus Contributor License Agreement (see also [CONTRIBUTING.md](CONTRIBUTING.md)).
+
+
