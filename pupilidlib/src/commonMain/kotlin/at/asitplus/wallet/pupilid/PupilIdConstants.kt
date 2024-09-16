@@ -2,9 +2,9 @@ package at.asitplus.wallet.pupilid
 
 import at.asitplus.wallet.lib.data.ConstantIndex
 
-object ConstantIndex {
+object PupilIdConstants {
 
-    object PupilId : ConstantIndex.CredentialScheme {
+    object Scheme : ConstantIndex.CredentialScheme {
         override val goalCodeIssue: String = "issue-vc-pupilid"
         override val goalCodeRequestProof: String = "request-proof-pupilid"
         override val credentialDefinitionName: String = "pupilid"

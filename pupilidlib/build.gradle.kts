@@ -14,44 +14,28 @@ version = "$artifactVersion"
 val vcLibVersion: String by extra
 val swagger: String by extra
 
-val iosDisabled: String? by extra
 
 
 kotlin {
     jvm()
-    if (iosDisabled != "true") {
-        iosArm64()
-        iosSimulatorArm64()
-        iosX64()
-    }
+    iosArm64()
+    iosSimulatorArm64()
+    iosX64()
+
     sourceSets {
         /* Main source sets */
         commonMain {
             dependencies {
-                commonDependencies().forEach { dep -> api(dep) }
-                api(serialization("cbor"))
+                commonImplementationAndApiDependencies()
                 api(ktor("client-core"))
                 api(ktor("client-logging"))
                 api(ktor("client-serialization"))
                 api(ktor("client-content-negotiation"))
                 api(ktor("serialization-kotlinx-json"))
-                api("at.asitplus.wallet:vclib:$vcLibVersion")/* {
-                    layout.projectDirectory.dir("..").dir("vclib").dir("repo").asFile.let {
-                        if (it.exists() && it.isDirectory && it.listFiles()!!.isNotEmpty()) {
-                            logger.info("assuming VcLib maven artifact present")
-                        } else {
-                            exec {
-                                workingDir = layout.projectDirectory.dir("..").dir("vclib").asFile
-                                println("descending into ${workingDir.absolutePath}")
-                                logger.lifecycle("Rebuilding VcLib maven artifacts")
-                                commandLine("./gradlew", "publishAllPublicationsToLocalRepository")
-                            }
-                        }
-                    }
-                }*/
+                api("at.asitplus.wallet:vclib:$vcLibVersion")
             }
         }
-        if (iosDisabled != "true") iosMain {
+        iosMain {
             dependencies {
                 api(ktor("client-darwin"))
             }
@@ -81,7 +65,7 @@ kotlin {
     }
 }
 
-if (iosDisabled != "true") exportIosFramework(
+exportIosFramework(
     "PupilIdKMM",
     "at.asitplus:kmmresult:${AspVersions.kmmresult}",
     "at.asitplus.wallet:vclib:$vcLibVersion",

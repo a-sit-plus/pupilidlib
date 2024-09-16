@@ -47,7 +47,7 @@ class DeviceBindingServiceTest : StringSpec({
     "success" {
         val service = DeviceBindingService(
             serverAddress = "http://localhost/",
-            extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
+            authMethod = DeviceBindingService.AuthMethod.ExternalNonce("ext-auth-nonce-" + Random.nextInt()),
             deviceAdapter = AssertKidDeviceAdapter(attestedPublicKeyKid),
             cryptoAdapter = NoopCryptoAdapter,
             httpClientBuilder = HttpClientBuilder(engine = successMockEngine),
@@ -65,8 +65,8 @@ class DeviceBindingServiceTest : StringSpec({
             respond(ByteReadChannel("""{"foo":"bar"}"""), HttpStatusCode.OK, jsonHeaders)
         }
         val service = DeviceBindingService(
-            extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
+            authMethod = DeviceBindingService.AuthMethod.ExternalNonce("ext-auth-nonce-" + Random.nextInt()),
             deviceAdapter = DummyDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
             httpClientBuilder = HttpClientBuilder(engine = mockEngine),
@@ -84,8 +84,8 @@ class DeviceBindingServiceTest : StringSpec({
             respond(ByteReadChannel("""{"foo":"bar"}"""), HttpStatusCode.InternalServerError, jsonHeaders)
         }
         val service = DeviceBindingService(
-            extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
+            authMethod = DeviceBindingService.AuthMethod.ExternalNonce("ext-auth-nonce-" + Random.nextInt()),
             deviceAdapter = DummyDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
             httpClientBuilder = HttpClientBuilder(engine = mockEngine),
@@ -115,8 +115,8 @@ class DeviceBindingServiceTest : StringSpec({
             )
         }
         val service = DeviceBindingService(
-            extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
+            authMethod = DeviceBindingService.AuthMethod.ExternalNonce("ext-auth-nonce-" + Random.nextInt()),
             deviceAdapter = DummyDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
             httpClientBuilder = HttpClientBuilder(engine = mockEngine),
@@ -135,8 +135,8 @@ class DeviceBindingServiceTest : StringSpec({
 
     "errorFromNativeCode" {
         val service = DeviceBindingService(
-            extAuthNonce = "ext-auth-nonce-" + Random.nextInt(),
             serverAddress = "http://localhost/",
+            authMethod = DeviceBindingService.AuthMethod.ExternalNonce("ext-auth-nonce-" + Random.nextInt()),
             deviceAdapter = ErrorThrowingDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
             httpClientBuilder = HttpClientBuilder(engine = successMockEngine),

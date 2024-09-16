@@ -36,7 +36,7 @@ workflow:
     - if: '$CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME == "development" || $CI_COMMIT_REF_NAME =~ /^release.*$/ || $CI_COMMIT_REF_NAME =~ /^feature.*$/'
 
 assembleJdk17:
-  image: maven:3.6-jdk-17
+  image: maven:3.9.6-eclipse-temurin-17
   script: |
     ./gradlew --continue clean jvmTest
   artifacts:

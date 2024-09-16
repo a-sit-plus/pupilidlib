@@ -31,7 +31,7 @@ class DeviceBindingPupilIdIssuingServiceTest : StringSpec({
     )
     val textHeaders = headersOf(HttpHeaders.ContentType, "application/text")
 
-    "success" {
+    "success with ext. nonce" {
         val mockEngine = MockEngine { request ->
             when {
                 request.url.encodedPath.endsWith("/binding/start") && request.headers[HeaderNames.X_AUTH_EXT_NONCE] == xAuthExtNonce -> {
@@ -58,7 +58,49 @@ class DeviceBindingPupilIdIssuingServiceTest : StringSpec({
         }
         val service = DeviceBindingPupilIdIssuingService(
             serverAddress = "http://localhost/",
-            extAuthNonce = xAuthExtNonce,
+            authMethod = DeviceBindingService.AuthMethod.ExternalNonce(xAuthExtNonce),
+            deviceAdapter = AssertKidDeviceAdapter(attestedPublicKeyKid),
+            cryptoAdapter = NoopCryptoAdapter,
+            callback = { KmmResult.success("foo") },
+            httpClientBuilder = HttpClientBuilder(engine = mockEngine),
+        )
+
+        runBlocking {
+            val result = service.createDeviceBindingAndIssueCredentials()
+
+            result.shouldBeInstanceOf<ServiceResult.Success>()
+            result.xAuthToken shouldBe xAuthToken
+        }
+    }
+
+    "success with x-auth-token" {
+        val mockEngine = MockEngine { request ->
+            when {
+                request.url.encodedPath.endsWith("/binding/start") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
+                    val content = Json.encodeToString(BindingParamsResponse(byteArrayOf(), "subject", "EC"))
+                    respond(content, HttpStatusCode.OK, jsonHeadersWithXAuthToken)
+                }
+                request.url.encodedPath.endsWith("/binding/create") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
+                    val csrResponse =
+                        BindingCsrResponse(byteArrayOf(), AttestedPublicKey(attestedPublicKeyKid).serialize())
+                    val content = Json.encodeToString(csrResponse)
+                    respond(content, HttpStatusCode.OK, jsonHeaders)
+                }
+                request.url.encodedPath.endsWith("/binding/confirm") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
+                    val content = Json.encodeToString(BindingConfirmResponse(true))
+                    respond(content, HttpStatusCode.OK, jsonHeaders)
+                }
+                request.url.encodedPath.endsWith("/pupilid/issue") && request.headers[HeaderNames.X_AUTH_TOKEN] == xAuthToken -> {
+                    respond(randomResponse, HttpStatusCode.OK, textHeaders)
+                }
+                else -> {
+                    error("Unhandled call")
+                }
+            }
+        }
+        val service = DeviceBindingPupilIdIssuingService(
+            serverAddress = "http://localhost/",
+            authMethod = DeviceBindingService.AuthMethod.XAuthToken(xAuthToken),
             deviceAdapter = AssertKidDeviceAdapter(attestedPublicKeyKid),
             cryptoAdapter = NoopCryptoAdapter,
             callback = { KmmResult.success("foo") },
@@ -98,7 +140,7 @@ class DeviceBindingPupilIdIssuingServiceTest : StringSpec({
         }
         val service = DeviceBindingPupilIdIssuingService(
             serverAddress = "http://localhost/",
-            extAuthNonce = xAuthExtNonce,
+            authMethod = DeviceBindingService.AuthMethod.ExternalNonce(xAuthExtNonce),
             deviceAdapter = DummyDeviceAdapter,
             cryptoAdapter = NoopCryptoAdapter,
             callback = { KmmResult.success("foo") },

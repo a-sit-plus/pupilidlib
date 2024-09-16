@@ -20,9 +20,9 @@ class DeviceBindingService(
      */
     private val serverAddress: String,
     /**
-     * Nonce from scanned QR Code, used for authentication
+     * Authentication method at backend, see [AuthMethod]
      */
-    private val extAuthNonce: String,
+    private val authMethod: AuthMethod,
     /**
      * Needed to load information from native implementations
      */
@@ -37,6 +37,23 @@ class DeviceBindingService(
     httpClientBuilder: HttpClientBuilder,
 ) {
 
+    /**
+     * Selects which auth method to use at the backend for the initial call.
+     */
+    sealed class AuthMethod {
+        /**
+         * Sends `nonce` as `X-Auth-ExtNonce` ([HeaderNames.X_AUTH_EXT_NONCE]) to the backend.
+         * Use this when initializing the Wallet App with a scanned QR Code.
+         */
+        data class ExternalNonce(val nonce: String) : AuthMethod()
+
+        /**
+         * Sends `token` as `X-Auth-Token` ([HeaderNames.X_AUTH_TOKEN]) to the backend.
+         * Use this when initializing the Wallet App after ID Austria authn, i.e. when a session at the backend exists.
+         */
+        data class XAuthToken(val token: String) : AuthMethod()
+    }
+
     private val asn1Service = Asn1Service(cryptoAdapter)
     private val client = httpClientBuilder.client
 
@@ -47,13 +64,22 @@ class DeviceBindingService(
             client.post(URLBuilder(serverAddress).appendPathSegments("binding", "start").buildString()) {
                 contentType(ContentType.Application.Json)
                 headers {
-                    append(HeaderNames.X_AUTH_EXT_NONCE, extAuthNonce)
+                    when (authMethod) {
+                        is AuthMethod.ExternalNonce -> append(HeaderNames.X_AUTH_EXT_NONCE, authMethod.nonce)
+                        is AuthMethod.XAuthToken -> append(HeaderNames.X_AUTH_TOKEN, authMethod.token)
+                    }
                 }
                 setBody(bindingParamsRequest)
                 expectSuccess = true
             }
+
         val bindingParamsResponse = startResponse.body<BindingParamsResponse>()
-        var xAuthToken = startResponse.headers[HeaderNames.X_AUTH_TOKEN].toString()
+
+        var xAuthToken = when(authMethod) {
+            is AuthMethod.ExternalNonce -> startResponse.headers[HeaderNames.X_AUTH_TOKEN].toString()
+            is AuthMethod.XAuthToken -> authMethod.token
+        }
+
         val challenge = bindingParamsResponse.challenge
         val subject = bindingParamsResponse.subject
         val keyType = KeyAlgorithm.parse(bindingParamsResponse.keyType)
@@ -62,6 +88,7 @@ class DeviceBindingService(
         val csr = asn1Service.signAndCreateCsr(publicKeyEncoded, subject, keyType).getOrThrow()
         val attestationCerts = deviceAdapter.loadAttestationCerts(challenge, publicKeyEncoded).getOrThrow()
         val bindingCsrRequest = BindingCsrRequest(challenge, csr, deviceAdapter.deviceName, attestationCerts)
+
         val createResponse =
             client.post(URLBuilder(serverAddress).appendPathSegments("binding", "create").buildString()) {
                 contentType(ContentType.Application.Json)
@@ -72,7 +99,12 @@ class DeviceBindingService(
                 expectSuccess = true
 
             }
-        xAuthToken = createResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
+
+        xAuthToken = when(authMethod) {
+            is AuthMethod.ExternalNonce -> createResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
+            is AuthMethod.XAuthToken -> authMethod.token
+        }
+
         val bindingCsrResponse = createResponse.body<BindingCsrResponse>()
         deviceAdapter.storeCertificate(bindingCsrResponse.certificate, bindingCsrResponse.attestedPublicKey)
             .getOrThrow()
@@ -86,7 +118,11 @@ class DeviceBindingService(
                 setBody(bindingConfirmRequest)
                 expectSuccess = true
             }
-        xAuthToken = confirmResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
+
+        xAuthToken = when(authMethod) {
+            is AuthMethod.ExternalNonce -> confirmResponse.headers[HeaderNames.X_AUTH_TOKEN]?.ifBlank { xAuthToken } ?: xAuthToken
+            is AuthMethod.XAuthToken -> authMethod.token
+        }
         return HttpSessionResponse(confirmResponse.body(), xAuthToken)
     }
 
