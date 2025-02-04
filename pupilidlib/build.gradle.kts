@@ -65,12 +65,13 @@ kotlin {
     }
 }
 
-exportIosFramework(
+exportXCFramework(
     "PupilIdKMM",
-    "at.asitplus:kmmresult:${AspVersions.kmmresult}",
+    transitiveExports=false,
+    additionalExports= arrayOf("at.asitplus:kmmresult:${AspVersions.kmmresult}",
     "at.asitplus.wallet:vclib:$vcLibVersion",
     datetime(),
-    napier()
+    napier())
 )
 
 
