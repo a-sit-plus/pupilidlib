@@ -2,15 +2,12 @@ package at.asitplus.wallet.pupilid
 
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
-import at.asitplus.wallet.lib.jws.DefaultJwsService
-import at.asitplus.wallet.lib.jws.JsonWebKey
-import at.asitplus.wallet.lib.jws.JwsAlgorithm
-import at.asitplus.wallet.lib.jws.JwsHeader
+import at.asitplus.wallet.lib.jws.*
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.matthewnelson.component.base64.encodeBase64
-import io.matthewnelson.component.encoding.base16.encodeBase16
+import io.matthewnelson.encoding.base16.Base16
+import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import okio.ByteString.Companion.toByteString
 import kotlin.random.Random
 
@@ -99,7 +96,8 @@ private suspend fun buildAttestedKey(
     walletCryptoService: DefaultCryptoService,
     issuerCryptoService: DefaultCryptoService
 ): String {
-    val attestedKeyPayload = AttestedPublicKey(walletCryptoService.toJsonWebKey().keyId!!).serialize().encodeToByteArray()
+    val attestedKeyPayload =
+        AttestedPublicKey(walletCryptoService.toJsonWebKey().keyId!!).serialize().encodeToByteArray()
     return DefaultJwsService(issuerCryptoService).createSignedJws(JwsHeader(JwsAlgorithm.ES256), attestedKeyPayload)!!
 }
 
@@ -114,4 +112,4 @@ private fun randomCredentialContent(attestedKeyJws: String, pictureHash: ByteArr
     pictureHash.encodeBase64()
 )
 
-fun randomString() = Random.nextBytes(32).encodeBase16()
+fun randomString() = Random.nextBytes(32).encodeToString(Base16)

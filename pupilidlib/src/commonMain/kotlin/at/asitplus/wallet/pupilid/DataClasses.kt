@@ -2,10 +2,12 @@
 
 package at.asitplus.wallet.pupilid
 
+import at.asitplus.wallet.lib.jws.encodeBase64
 import at.asitplus.wallet.utils.ByteArrayBase64Serializer
 import io.github.aakira.napier.Napier
-import io.matthewnelson.component.base64.encodeBase64
-import kotlinx.serialization.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.Json
 
 

@@ -2,7 +2,7 @@ package at.asitplus.wallet.pupilid
 
 import at.asitplus.wallet.lib.data.CredentialSubject
 import at.asitplus.wallet.lib.jws.ByteArrayBase64Serializer
-import io.matthewnelson.component.base64.encodeBase64
+import at.asitplus.wallet.lib.jws.encodeBase64
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

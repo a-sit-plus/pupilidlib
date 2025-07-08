@@ -10,7 +10,7 @@ import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.string.shouldEndWith
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlin.random.Random
 
 

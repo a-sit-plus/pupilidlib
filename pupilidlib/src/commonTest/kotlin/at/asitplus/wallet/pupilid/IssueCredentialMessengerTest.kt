@@ -11,7 +11,6 @@ import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.MessageWrapper
 import at.asitplus.wallet.lib.agent.NextMessage
 import at.asitplus.wallet.lib.data.ConstantIndex
-import com.benasher44.uuid.uuid4
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize

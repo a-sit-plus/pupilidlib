@@ -1,9 +1,13 @@
 package at.asitplus.wallet.pupilid
 
 import at.asitplus.wallet.lib.agent.FixedTimeClock
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.datetime.Month
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
+fun uuid4() = @OptIn(ExperimentalUuidApi::class) Uuid.random().toString()
 
 private var fixedClock =
     FixedTimeClock(Instant.parse("${TestTimeSource.timePeriod}-10-11T00:00:00.000Z").toEpochMilliseconds())

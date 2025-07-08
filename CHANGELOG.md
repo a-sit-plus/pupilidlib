@@ -1,5 +1,25 @@
 # Changelog
 
+NEXT
+- Dependency Updates
+  - VC-K 1.9.0-pupilidlib 
+  - kotlin 2.1.21
+  - kotest 6.0.0.M1
+  - serialization 1.8.1
+  - agp 8.9.2
+  - coroutines 1.10.2
+  - ktor 3.2.1
+  - nexus 1.3.0
+  - dokka 1.9.20
+  - datetime 0.7.1
+  - napier 2.7.1
+  - bouncycastle 1.81!!
+  - kmmresult 1.9.3
+
+Release 1.9.0
+- Dependency Updates
+- IDA Login
+
 Release 1.8.3
  - Upgrade to vclib 1.7.3
  - Add project-local maven repo to publish artifacts

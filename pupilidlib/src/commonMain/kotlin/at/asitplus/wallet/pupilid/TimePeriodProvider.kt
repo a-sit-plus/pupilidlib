@@ -1,8 +1,8 @@
 package at.asitplus.wallet.pupilid
 
 import at.asitplus.wallet.lib.agent.TimePeriodProvider
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -20,7 +20,7 @@ class SchoolyearBasedTimePeriodProvider(private val timePeriodStart: MonthAndDay
         val pointInTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
         return when {
             pointInTime.month == timePeriodStart.month ->
-                if (pointInTime.dayOfMonth >= timePeriodStart.day) pointInTime.year
+                if (pointInTime.day >= timePeriodStart.day) pointInTime.year
                 else pointInTime.year - 1
 
             pointInTime.month > timePeriodStart.month -> pointInTime.year

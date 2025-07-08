@@ -33,6 +33,7 @@ kotlin {
                 api(ktor("client-content-negotiation"))
                 api(ktor("serialization-kotlinx-json"))
                 api("at.asitplus.wallet:vclib:$vcLibVersion")
+                api(napier())
             }
         }
         iosMain {
@@ -67,11 +68,13 @@ kotlin {
 
 exportXCFramework(
     "PupilIdKMM",
-    transitiveExports=false,
-    additionalExports= arrayOf("at.asitplus:kmmresult:${AspVersions.kmmresult}",
-    "at.asitplus.wallet:vclib:$vcLibVersion",
-    datetime(),
-    napier())
+    transitiveExports = false,
+    additionalExports = arrayOf(
+        "at.asitplus:kmmresult:${AspVersions.kmmresult}",
+        "at.asitplus.wallet:vclib:$vcLibVersion",
+        datetime(),
+        napier()
+    )
 )
 
 
@@ -84,50 +87,14 @@ val gitLabGroupId: String by extra
 
 repositories {
     mavenLocal()
-
     gitlab(groupId = gitLabGroupId.toInt()) accessTokenFrom extra
-
     mavenCentral()
 }
 
 
 publishing {
     repositories {
-
-        maven {
-            url = uri(layout.projectDirectory.dir("..").dir("repo"))
-            name = "local"
-        }
-
+        mavenLocal()
         gitLab(projectId = gitLabProjectId.toInt())
-    }
-}
-
-listOf(
-    "publishAllPublicationsToLocalRepository",
-    "publishJvmPublicationToLocalRepository"
-).forEach { taskName ->
-    tasks.getByName(taskName) {
-        doFirst {
-            layout.projectDirectory.dir("..").dir("vclib").dir("repo").asFile.let {
-                if (it.exists() && it.isDirectory && it.listFiles()!!.isNotEmpty()) {
-                    logger.info("assuming VcLib maven artifact present")
-                } else {
-                    exec {
-                        workingDir = layout.projectDirectory.dir("..").dir("vclib").asFile
-                        println("descending into ${workingDir.absolutePath}")
-                        logger.lifecycle("Rebuilding VcLib maven artifacts")
-                        commandLine("./gradlew", "publishAllPublicationsToLocalRepository")
-                    }
-                }
-            }
-        }
-
-        doLast {
-            copy {
-                from(layout.projectDirectory.dir("..").dir("vclib").dir("repo"))
-                into(layout.projectDirectory.dir("..").dir("repo"))
-            }
-        }
     }
 }

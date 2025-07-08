@@ -3,7 +3,7 @@ package at.asitplus.wallet.pupilid
 import at.asitplus.KmmResult
 import at.asitplus.wallet.lib.agent.Issuer
 import at.asitplus.wallet.lib.agent.IssuerCredentialDataProvider
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
 class PupilCredentialDataProvider(

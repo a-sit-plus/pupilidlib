@@ -8,8 +8,8 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.matthewnelson.component.encoding.base16.encodeBase16
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -19,6 +19,7 @@ import kotlin.random.Random
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalStdlibApi::class)
 class PupilIdValidatorTest : ShouldSpec({
 
     val validCredential = CredentialContent(
@@ -146,7 +147,7 @@ class PupilIdValidatorTest : ShouldSpec({
 
         val clock = TestClock("2023-01-04T08:02")
         val timePeriodProvider = SchoolyearBasedTimePeriodProvider(Month.SEPTEMBER to 1u)
-        val vcId = Random.Default.nextBytes(16).encodeBase16()
+        val vcId = Random.Default.nextBytes(16).toHexString()
         val issuerCredentialStore = InMemoryIssuerCredentialStore()
         val issuerAgent = IssuerAgent.newDefaultInstance(
             cryptoService = DefaultCryptoService(),

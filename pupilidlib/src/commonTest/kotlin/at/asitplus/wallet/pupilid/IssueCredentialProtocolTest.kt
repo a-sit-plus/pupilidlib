@@ -10,7 +10,6 @@ import at.asitplus.wallet.lib.agent.Issuer
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.data.ConstantIndex
 import at.asitplus.wallet.lib.msg.IssueCredential
-import com.benasher44.uuid.uuid4
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.types.shouldBeInstanceOf
 
