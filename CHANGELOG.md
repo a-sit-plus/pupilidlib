@@ -1,6 +1,6 @@
 # Changelog
 
-NEXT
+Release 1.10.0:
 - Dependency Updates
   - VC-K 1.9.0-pupilidlib 
   - kotlin 2.1.21
