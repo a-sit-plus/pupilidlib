@@ -1,5 +1,11 @@
 # Changelog
 
+Release 1.10.1
+* Dependency Updates
+  - VC-K 1.9.1-pupilidlib
+  * Kotlin 2.2.21
+  * Gradle 9
+
 Release 1.10.0:
 - Dependency Updates
   - VC-K 1.9.0-pupilidlib 

@@ -1,3 +1,5 @@
+System.setProperty("TESTBALLOON_NO_ASP_HELPER", "true")
+
 pluginManagement {
     includeBuild("vclib/conventions-vclib")
     repositories {

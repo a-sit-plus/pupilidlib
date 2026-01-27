@@ -2,6 +2,8 @@ import at.asitplus.gradle.*
 
 plugins {
     kotlin("multiplatform")
+    id("com.google.devtools.ksp")
+    id("io.kotest")
     kotlin("plugin.serialization")
     id("at.asitplus.gradle.vclib-conventions")
 }
@@ -54,10 +56,12 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(ktor("client-mock"))
+                implementation(kotest("property"))
             }
         }
         jvmTest {
             dependencies {
+                implementation(kotest("runner-junit5", "jvm"))
                 implementation("com.nimbusds:nimbus-jose-jwt:${VcLibVersions.Jvm.`jose-jwt`}")
             }
         }
@@ -65,6 +69,11 @@ kotlin {
 
     }
 }
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
 
 exportXCFramework(
     "PupilIdKMM",
