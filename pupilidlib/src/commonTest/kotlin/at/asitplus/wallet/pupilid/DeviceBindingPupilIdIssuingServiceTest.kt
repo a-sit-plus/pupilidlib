@@ -5,7 +5,7 @@ import at.asitplus.wallet.pupilid.testmocks.AssertKidDeviceAdapter
 import at.asitplus.wallet.pupilid.testmocks.DummyDeviceAdapter
 import at.asitplus.wallet.pupilid.testmocks.NoopCryptoAdapter
 import at.asitplus.wallet.utils.HeaderNames
-import io.kotest.core.spec.style.StringSpec
+import at.asitplus.testballoon.matrix.matrixSuite
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
@@ -16,7 +16,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
-class DeviceBindingPupilIdIssuingServiceTest : StringSpec({
+val DeviceBindingPupilIdIssuingServiceTest by matrixSuite {
 
     val xAuthToken = Random.nextInt().toString(16)
     val xAuthExtNonce = Random.nextInt().toString(16)
@@ -154,4 +154,4 @@ class DeviceBindingPupilIdIssuingServiceTest : StringSpec({
         }
     }
 
-})
+}

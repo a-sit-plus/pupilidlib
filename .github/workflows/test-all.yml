@@ -1,0 +1,38 @@
+name: Test JVM and iOS
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools platforms;android-34 build-tools;36.0.0
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Run tests
+        run: >-
+          ./gradlew :pupilidlib:jvmTest :pupilidlib:iosSimulatorArm64Test
+          --no-daemon --stacktrace --console=plain
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jvm-ios-test-results
+          path: |
+            pupilidlib/build/reports/tests/
+            pupilidlib/build/test-results/

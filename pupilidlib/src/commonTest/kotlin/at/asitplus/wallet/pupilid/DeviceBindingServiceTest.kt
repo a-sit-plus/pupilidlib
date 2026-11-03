@@ -4,7 +4,7 @@ import at.asitplus.wallet.pupilid.testmocks.AssertKidDeviceAdapter
 import at.asitplus.wallet.pupilid.testmocks.DummyDeviceAdapter
 import at.asitplus.wallet.pupilid.testmocks.ErrorThrowingDeviceAdapter
 import at.asitplus.wallet.pupilid.testmocks.NoopCryptoAdapter
-import io.kotest.core.spec.style.StringSpec
+import at.asitplus.testballoon.matrix.matrixSuite
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -17,7 +17,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
-class DeviceBindingServiceTest : StringSpec({
+val DeviceBindingServiceTest by matrixSuite {
 
     val jsonHeaders = headersOf(HttpHeaders.ContentType, "application/json")
     val attestedPublicKeyKid = Random.nextBytes(32).encodeBase64()
@@ -149,4 +149,4 @@ class DeviceBindingServiceTest : StringSpec({
         }
     }
 
-})
+}

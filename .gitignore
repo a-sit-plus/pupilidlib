@@ -10,3 +10,4 @@ repo/
 .externalNativeBuild
 .cxx
 local.properties
+.kotlin/

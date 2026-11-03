@@ -1,7 +1,7 @@
 package at.asitplus.wallet.pupilid
 
 import at.asitplus.KmmResult
-import io.kotest.core.spec.style.StringSpec
+import at.asitplus.testballoon.matrix.matrixSuite
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -11,7 +11,7 @@ import io.ktor.util.encodeBase64
 import okio.ByteString.Companion.toByteString
 import kotlin.random.Random
 
-class QrCodeContentServiceTest : StringSpec({
+val QrCodeContentServiceTest by matrixSuite {
 
     fun randomString(): String {
         return Random.nextBytes(32).encodeBase64()
@@ -249,4 +249,4 @@ class QrCodeContentServiceTest : StringSpec({
         Unit
     }
 
-})
+}
