@@ -171,7 +171,7 @@ val QrCodeContentServiceTest by matrixSuite {
     "testPictureHashNotMatching" {
         val newPicture = Random.Default.nextBytes(Random.nextInt(900, 1800))
         val newPictureHash = newPicture.toByteString().sha256().toByteArray()
-        val input = validInput.copy(scaledPictureHash = newPictureHash.encodeBase64().reversed())
+        val input = validInput.copy(scaledPictureHash = newPictureHash.reversedArray().encodeBase64())
 
         val encoded = QrCodeContentService.encodeInQrCode(content = input, picture = newPicture) { KmmResult.success(it) }
             .getOrThrow()
