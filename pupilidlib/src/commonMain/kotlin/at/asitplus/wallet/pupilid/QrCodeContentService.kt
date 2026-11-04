@@ -12,7 +12,6 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import okio.ByteString.Companion.toByteString
 
 /**
  * Encode and decode [CredentialContent] into QR Codes, used by Wallet and Verifier Apps.
@@ -186,7 +185,7 @@ object QrCodeContentService {
             if (extendedContent.picture.isNotEmpty() && content.scaledPictureHash == null)
                 throw PictureNotMatchingError()
             content.scaledPictureHash?.let { includedHash ->
-                val computedHash = extendedContent.picture.toByteString().sha256().toByteArray()
+                val computedHash = sha256(extendedContent.picture)
                 if (!computedHash.contentEquals(includedHash.decodeBase64Bytes()))
                     throw PictureNotMatchingError()
             }

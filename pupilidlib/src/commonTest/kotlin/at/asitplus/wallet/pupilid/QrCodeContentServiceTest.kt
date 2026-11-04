@@ -8,7 +8,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.util.encodeBase64
-import okio.ByteString.Companion.toByteString
+import io.ktor.util.sha256
 import kotlin.random.Random
 
 val QrCodeContentServiceTest by matrixSuite {
@@ -29,7 +29,7 @@ val QrCodeContentServiceTest by matrixSuite {
 
     val validInput = createValidInput()
     val picture = Random.Default.nextBytes(Random.nextInt(900, 1800))
-    val pictureHash = picture.toByteString().sha256().toByteArray()
+    val pictureHash = sha256(picture)
 
     "testEncoding" {
         val input = validInput.copy(scaledPictureHash = pictureHash.encodeBase64())
@@ -170,7 +170,7 @@ val QrCodeContentServiceTest by matrixSuite {
 
     "testPictureHashNotMatching" {
         val newPicture = Random.Default.nextBytes(Random.nextInt(900, 1800))
-        val newPictureHash = newPicture.toByteString().sha256().toByteArray()
+        val newPictureHash = sha256(newPicture)
         val input = validInput.copy(scaledPictureHash = newPictureHash.reversedArray().encodeBase64())
 
         val encoded = QrCodeContentService.encodeInQrCode(content = input, picture = newPicture) { KmmResult.success(it) }

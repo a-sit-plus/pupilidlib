@@ -69,8 +69,14 @@ kotlin {
             dependencies {
                 api(bouncycastle("bcpkix"))
                 api(libs.swagger.annotations)
-                api(ktor("client-okhttp"))
             }
+        }
+
+        jvmMain.dependencies {
+            api(ktor("client-java"))
+        }
+        androidMain.dependencies {
+            api(ktor("client-cio"))
         }
 
         /* Test source sets */

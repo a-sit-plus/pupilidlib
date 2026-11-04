@@ -8,9 +8,9 @@ import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.aroundEachTest
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.util.sha256
 import io.matthewnelson.encoding.base16.Base16
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
-import okio.ByteString.Companion.toByteString
 import kotlin.random.Random
 
 val PupilIdQrCodeServiceTest by matrixSuite {
@@ -33,7 +33,7 @@ val PupilIdQrCodeServiceTest by matrixSuite {
         "walkthrough should be successful" {
             val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
             val picture = Random.nextBytes(64)
-            val content = randomCredentialContent(attestedKeyJws, picture.sha256())
+            val content = randomCredentialContent(attestedKeyJws, sha256(picture))
 
             val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
 
@@ -45,7 +45,7 @@ val PupilIdQrCodeServiceTest by matrixSuite {
         "no pinned keys should throw" {
             val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
             val picture = Random.nextBytes(64)
-            val content = randomCredentialContent(attestedKeyJws, picture.sha256())
+            val content = randomCredentialContent(attestedKeyJws, sha256(picture))
 
             val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
 
@@ -57,7 +57,7 @@ val PupilIdQrCodeServiceTest by matrixSuite {
         "wrong pinned key should throw" {
             val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
             val picture = Random.nextBytes(64)
-            val content = randomCredentialContent(attestedKeyJws, picture.sha256())
+            val content = randomCredentialContent(attestedKeyJws, sha256(picture))
 
             val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
 
@@ -68,7 +68,7 @@ val PupilIdQrCodeServiceTest by matrixSuite {
 
         "no attested key should throw" {
             val picture = Random.nextBytes(64)
-            val content = randomCredentialContent("", picture.sha256())
+            val content = randomCredentialContent("", sha256(picture))
 
             val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
 
@@ -80,7 +80,7 @@ val PupilIdQrCodeServiceTest by matrixSuite {
         "signed with wrong key should throw" {
             val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
             val picture = Random.nextBytes(64)
-            val content = randomCredentialContent(attestedKeyJws, picture.sha256())
+            val content = randomCredentialContent(attestedKeyJws, sha256(picture))
 
             val listOfQrCodes = PupilIdQrCodeService.newInstance(DefaultCryptoService())
                 .encodeInQrCode(content, picture).getOrThrow()
@@ -90,10 +90,6 @@ val PupilIdQrCodeServiceTest by matrixSuite {
             result.exceptionOrNull().shouldBeInstanceOf<JwsNotVerifiedError>()
         }
     }
-}
-
-private fun ByteArray.sha256(): ByteArray {
-    return this.toByteString().sha256().toByteArray()
 }
 
 private suspend fun buildAttestedKey(
