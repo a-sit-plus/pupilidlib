@@ -76,7 +76,7 @@ kotlin {
             api(ktor("client-java"))
         }
         androidMain.dependencies {
-            api(ktor("client-cio"))
+            api(ktor("client-android"))
         }
 
         /* Test source sets */
