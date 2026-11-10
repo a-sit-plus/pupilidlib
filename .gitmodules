@@ -1,3 +1,0 @@
-[submodule "vclib"]
-	path = vclib
-	url = https://github.com/a-sit-plus/kmm-vc-library.git

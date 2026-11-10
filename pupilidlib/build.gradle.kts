@@ -49,14 +49,14 @@ kotlin {
         /* Main source sets */
         commonMain {
             dependencies {
-                commonImplementationAndApiDependencies()
                 api(ktor("client-core"))
                 api(ktor("client-logging"))
                 api(ktor("client-serialization"))
                 api(ktor("client-content-negotiation"))
                 api(ktor("serialization-kotlinx-json"))
-                api(libs.vclib)
+                api(project(":vclib"))
                 api(napier())
+                api(datetime())
             }
         }
         iosMain {
@@ -101,7 +101,7 @@ exportXCFramework(
     transitiveExports = false,
     additionalExports = arrayOf(
         kmmresult(),
-        libs.vclib.get(),
+        libs.encoding.base16.get(),
         datetime(),
         napier()
     )

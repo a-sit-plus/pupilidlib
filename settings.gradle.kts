@@ -1,7 +1,5 @@
-System.setProperty("KOTEST_NO_ASP_HELPER", "true")
-
 pluginManagement {
-    includeBuild("vclib/conventions-vclib")
+    includeBuild("conventions-vclib")
     repositories {
         google()
         gradlePluginPortal()
@@ -9,11 +7,7 @@ pluginManagement {
         maven("https://raw.githubusercontent.com/a-sit-plus/gradle-conventions-plugin/mvn/repo")
     }
 }
-includeBuild("vclib") {
-    dependencySubstitution {
-        substitute(module("at.asitplus.wallet:vclib")).using(project(":vclib"))
-    }
-}
 
 rootProject.name = "pupilidlib"
 include(":pupilidlib")
+include(":vclib")
