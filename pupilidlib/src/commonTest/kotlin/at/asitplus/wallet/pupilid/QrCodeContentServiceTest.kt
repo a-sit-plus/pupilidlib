@@ -1,17 +1,17 @@
 package at.asitplus.wallet.pupilid
 
 import at.asitplus.KmmResult
-import io.kotest.core.spec.style.StringSpec
+import at.asitplus.testballoon.matrix.matrixSuite
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.util.encodeBase64
-import okio.ByteString.Companion.toByteString
+import io.ktor.util.sha256
 import kotlin.random.Random
 
-class QrCodeContentServiceTest : StringSpec({
+val QrCodeContentServiceTest by matrixSuite {
 
     fun randomString(): String {
         return Random.nextBytes(32).encodeBase64()
@@ -29,7 +29,7 @@ class QrCodeContentServiceTest : StringSpec({
 
     val validInput = createValidInput()
     val picture = Random.Default.nextBytes(Random.nextInt(900, 1800))
-    val pictureHash = picture.toByteString().sha256().toByteArray()
+    val pictureHash = sha256(picture)
 
     "testEncoding" {
         val input = validInput.copy(scaledPictureHash = pictureHash.encodeBase64())
@@ -170,8 +170,8 @@ class QrCodeContentServiceTest : StringSpec({
 
     "testPictureHashNotMatching" {
         val newPicture = Random.Default.nextBytes(Random.nextInt(900, 1800))
-        val newPictureHash = newPicture.toByteString().sha256().toByteArray()
-        val input = validInput.copy(scaledPictureHash = newPictureHash.encodeBase64().reversed())
+        val newPictureHash = sha256(newPicture)
+        val input = validInput.copy(scaledPictureHash = newPictureHash.reversedArray().encodeBase64())
 
         val encoded = QrCodeContentService.encodeInQrCode(content = input, picture = newPicture) { KmmResult.success(it) }
             .getOrThrow()
@@ -249,4 +249,4 @@ class QrCodeContentServiceTest : StringSpec({
         Unit
     }
 
-})
+}

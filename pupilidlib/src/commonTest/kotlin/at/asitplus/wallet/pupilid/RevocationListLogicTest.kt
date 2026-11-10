@@ -5,7 +5,7 @@ import at.asitplus.wallet.lib.agent.FixedTimeClock
 import at.asitplus.wallet.lib.agent.InMemoryIssuerCredentialStore
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.IssuerCredentialStore
-import io.kotest.core.spec.style.FreeSpec
+import at.asitplus.testballoon.matrix.matrixSuite
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotBeEmpty
@@ -14,225 +14,224 @@ import kotlin.time.Instant
 import kotlin.random.Random
 
 
-class RevocationListLogicTest : FreeSpec() {
+val RevocationListLogicTest by matrixSuite {
 
-    init {
-        "Start with an empty credential store:" - {
-            val store = InMemoryIssuerCredentialStore()
-            val issuer = IssuerAgent.newDefaultInstance(
-                clock = TestTimeSource,
-                cryptoService = DefaultCryptoService(),
-                timePeriodProvider = SchoolyearBasedTimePeriodProvider(TestTimeSource.timePeriodStart),
-                issuerCredentialStore = store,
-                dataProvider = PupilCredentialDataProvider(),
-            )
+
+    "Start with an empty credential store:" {
+        val store = InMemoryIssuerCredentialStore()
+        val issuer = IssuerAgent.newDefaultInstance(
+            clock = TestTimeSource,
+            cryptoService = DefaultCryptoService(),
+            timePeriodProvider = SchoolyearBasedTimePeriodProvider(TestTimeSource.timePeriodStart),
+            issuerCredentialStore = store,
+            dataProvider = PupilCredentialDataProvider(),
+        )
+        issuer.compileCurrentRevocationLists().let {
+            it shouldHaveSize 1
+            it.first() shouldEndWith TestTimeSource.timePeriod.toString()
+        }
+
+        run { // Adding a credential for the current year should have no impact in revocation lists
+            val credential = issuer.issueCredential(
+                Random.nextLong().toString(),
+                PupilIdConstants.Scheme.vcType
+            ).successful
             issuer.compileCurrentRevocationLists().let {
                 it shouldHaveSize 1
                 it.first() shouldEndWith TestTimeSource.timePeriod.toString()
             }
 
-            "Adding a credential for the current year should have no impact in revocation lists" - {
-                val credential = issuer.issueCredential(
-                    Random.nextLong().toString(),
-                    PupilIdConstants.Scheme.vcType
-                ).successful
+            run { // and neither should revoking it
+                issuer.revokeCredentials(credential.map { it.vcJws })
                 issuer.compileCurrentRevocationLists().let {
                     it shouldHaveSize 1
                     it.first() shouldEndWith TestTimeSource.timePeriod.toString()
                 }
-
-                "and neither should revoking it" {
-                    issuer.revokeCredentials(credential.map { it.vcJws })
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 1
-                        it.first() shouldEndWith TestTimeSource.timePeriod.toString()
-                    }
-                }
-
-
-            }
-
-            "Adding a credential from the previous school year" - {
-                val (oldIssuer, credential) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod - 1)
-
-                "should not have an impact" {
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 1
-                        it.first() shouldEndWith TestTimeSource.timePeriod.toString()
-                    }
-                }
-                "but revoking it should add a revocation list from the past year." {
-                    oldIssuer.revokeCredentials(credential)
-
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 2
-                        it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
-                    }
-                }
             }
 
 
-            "Adding a credential from the next school year" - {
-                val (oldIssuer, credential) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod + 1)
+        }
 
-                "should not have an impact" {
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 2
-                        it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
-                    }
-                }
-                "but revoking it should add a revocation list from the next year." {
-                    oldIssuer.revokeCredentials(credential)
+        run { // Adding a credential from the previous school year
+            val (oldIssuer, credential) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod - 1)
 
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 3
-                        it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
-                    }
+            run { // should not have an impact
+                issuer.compileCurrentRevocationLists().let {
+                    it shouldHaveSize 1
+                    it.first() shouldEndWith TestTimeSource.timePeriod.toString()
                 }
             }
+            run { // but revoking it should add a revocation list from the past year.
+                oldIssuer.revokeCredentials(credential)
 
-
-            "Adding a credential from two years in the past and future" - {
-                val (oldIssuerPast, credentialPast) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod - 2)
-                val (oldIssuerFuture, credentialFuture) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod + 2)
-
-                "should not have an impact" {
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 3
-                        it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
-                    }
-                }
-                "and neither should revoking it." {
-                    oldIssuerPast.revokeCredentials(credentialPast)
-                    oldIssuerFuture.revokeCredentials(credentialFuture)
-
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 3
-                        it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
-                    }
+                issuer.compileCurrentRevocationLists().let {
+                    it shouldHaveSize 2
+                    it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
                 }
             }
         }
 
 
-        "Doing everything in different orders, starting empty" - {
+        run { // Adding a credential from the next school year
+            val (oldIssuer, credential) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod + 1)
 
-            val store = InMemoryIssuerCredentialStore()
-            val issuer = IssuerAgent.newDefaultInstance(
-                clock = TestTimeSource,
-                cryptoService = DefaultCryptoService(),
-                timePeriodProvider = SchoolyearBasedTimePeriodProvider(TestTimeSource.timePeriodStart),
-                issuerCredentialStore = store,
-                dataProvider = PupilCredentialDataProvider(),
-            )
+            run { // should not have an impact
+                issuer.compileCurrentRevocationLists().let {
+                    it shouldHaveSize 2
+                    it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
+                }
+            }
+            run { // but revoking it should add a revocation list from the next year.
+                oldIssuer.revokeCredentials(credential)
 
-            "initially only the current list should be present" {
+                issuer.compileCurrentRevocationLists().let {
+                    it shouldHaveSize 3
+                    it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
+                }
+            }
+        }
+
+
+        run { // Adding a credential from two years in the past and future
+            val (oldIssuerPast, credentialPast) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod - 2)
+            val (oldIssuerFuture, credentialFuture) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod + 2)
+
+            run { // should not have an impact
+                issuer.compileCurrentRevocationLists().let {
+                    it shouldHaveSize 3
+                    it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
+                }
+            }
+            run { // and neither should revoking it.
+                oldIssuerPast.revokeCredentials(credentialPast)
+                oldIssuerFuture.revokeCredentials(credentialFuture)
+
+                issuer.compileCurrentRevocationLists().let {
+                    it shouldHaveSize 3
+                    it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
+                }
+            }
+        }
+    }
+
+
+    "Doing everything in different orders, starting empty" {
+
+        val store = InMemoryIssuerCredentialStore()
+        val issuer = IssuerAgent.newDefaultInstance(
+            clock = TestTimeSource,
+            cryptoService = DefaultCryptoService(),
+            timePeriodProvider = SchoolyearBasedTimePeriodProvider(TestTimeSource.timePeriodStart),
+            issuerCredentialStore = store,
+            dataProvider = PupilCredentialDataProvider(),
+        )
+
+        run { // initially only the current list should be present
+            issuer.compileCurrentRevocationLists().let {
+                it shouldHaveSize 1
+                it.first() shouldEndWith TestTimeSource.timePeriod.toString()
+            }
+        }
+
+        run { // Adding a credential from the previous school year
+            val (oldIssuer, credential) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod - 1)
+
+            run { // should not have an impact
                 issuer.compileCurrentRevocationLists().let {
                     it shouldHaveSize 1
                     it.first() shouldEndWith TestTimeSource.timePeriod.toString()
                 }
             }
+            run { // but revoking it should add a revocation list from the past year.
+                oldIssuer.revokeCredentials(credential)
 
-            "Adding a credential from the previous school year" - {
-                val (oldIssuer, credential) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod - 1)
-
-                "should not have an impact" {
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 1
-                        it.first() shouldEndWith TestTimeSource.timePeriod.toString()
-                    }
-                }
-                "but revoking it should add a revocation list from the past year." {
-                    oldIssuer.revokeCredentials(credential)
-
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 2
-                        it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
-                    }
+                issuer.compileCurrentRevocationLists().let {
+                    it shouldHaveSize 2
+                    it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
                 }
             }
+        }
 
 
-            "Adding a credential from the next school year" - {
-                val (oldIssuer, credential) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod + 1)
+        run { // Adding a credential from the next school year
+            val (oldIssuer, credential) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod + 1)
 
-                "should not have an impact" {
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 2
-                        it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
-                    }
-                }
-                "but revoking it should add a revocation list from the next year." {
-                    oldIssuer.revokeCredentials(credential)
-
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 3
-                        it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
-                    }
+            run { // should not have an impact
+                issuer.compileCurrentRevocationLists().let {
+                    it shouldHaveSize 2
+                    it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
                 }
             }
+            run { // but revoking it should add a revocation list from the next year.
+                oldIssuer.revokeCredentials(credential)
 
-
-            "Adding a credential from two years in the past and future" - {
-                val (oldIssuerPast, credentialPast) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod - 2)
-                val (oldIssuerFuture, credentialFuture) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod + 2)
-
-                "should not have an impact" {
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 3
-                        it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
-                    }
-                }
-                "and neither should revoking it." {
-                    oldIssuerPast.revokeCredentials(credentialPast)
-                    oldIssuerFuture.revokeCredentials(credentialFuture)
-
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 3
-                        it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
-                        it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
-                    }
+                issuer.compileCurrentRevocationLists().let {
+                    it shouldHaveSize 3
+                    it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
                 }
             }
+        }
 
 
-            "Adding a credential for the current year should have no impact in revocation lists" - {
-                val credential = issuer.issueCredential(
-                    Random.nextLong().toString(),
-                    PupilIdConstants.Scheme.vcType
-                ).successful
+        run { // Adding a credential from two years in the past and future
+            val (oldIssuerPast, credentialPast) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod - 2)
+            val (oldIssuerFuture, credentialFuture) = store.createCredentialFortimePeriod(TestTimeSource.timePeriod + 2)
+
+            run { // should not have an impact
+                issuer.compileCurrentRevocationLists().let {
+                    it shouldHaveSize 3
+                    it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
+                }
+            }
+            run { // and neither should revoking it.
+                oldIssuerPast.revokeCredentials(credentialPast)
+                oldIssuerFuture.revokeCredentials(credentialFuture)
+
+                issuer.compileCurrentRevocationLists().let {
+                    it shouldHaveSize 3
+                    it.filter { it.endsWith(("/2020")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2021")) }.shouldNotBeEmpty()
+                    it.filter { it.endsWith(("/2022")) }.shouldNotBeEmpty()
+                }
+            }
+        }
+
+
+        run { // Adding a credential for the current year should have no impact in revocation lists
+            val credential = issuer.issueCredential(
+                Random.nextLong().toString(),
+                PupilIdConstants.Scheme.vcType
+            ).successful
+            issuer.compileCurrentRevocationLists().let {
+                it shouldHaveSize 3
+                it.any { it.endsWith(TestTimeSource.timePeriod.toString()) }.shouldBeTrue()
+            }
+
+            run { // and neither should revoking it
+                issuer.revokeCredentials(credential.map { it.vcJws })
                 issuer.compileCurrentRevocationLists().let {
                     it shouldHaveSize 3
                     it.any { it.endsWith(TestTimeSource.timePeriod.toString()) }.shouldBeTrue()
                 }
-
-                "and neither should revoking it" {
-                    issuer.revokeCredentials(credential.map { it.vcJws })
-                    issuer.compileCurrentRevocationLists().let {
-                        it shouldHaveSize 3
-                        it.any { it.endsWith(TestTimeSource.timePeriod.toString()) }.shouldBeTrue()
-                    }
-                }
-
-
             }
 
+
         }
+
     }
 }
 

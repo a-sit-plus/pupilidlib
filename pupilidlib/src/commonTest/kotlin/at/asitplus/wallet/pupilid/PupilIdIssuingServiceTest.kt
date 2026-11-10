@@ -3,14 +3,14 @@ package at.asitplus.wallet.pupilid
 import at.asitplus.KmmResult
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
-import io.kotest.core.spec.style.StringSpec
+import at.asitplus.testballoon.matrix.matrixSuite
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
-class PupilIdIssuingServiceTest : StringSpec({
+val PupilIdIssuingServiceTest by matrixSuite {
 
     val randomChallenge = Random.nextInt().toString(16)
     val randomResponse = Random.nextInt().toString(16)
@@ -76,4 +76,4 @@ class PupilIdIssuingServiceTest : StringSpec({
         }
     }
 
-})
+}
