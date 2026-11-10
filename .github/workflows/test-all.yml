@@ -26,13 +26,15 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
       - name: Run tests
         run: >-
-          ./gradlew :pupilidlib:jvmTest :pupilidlib:iosSimulatorArm64Test
+          ./gradlew allTests
           --no-daemon --stacktrace --console=plain
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: jvm-ios-test-results
+          name: test-results
           path: |
+            vclib/build/reports/tests/
             pupilidlib/build/reports/tests/
             pupilidlib/build/test-results/
+            vclib/build/test-results/
