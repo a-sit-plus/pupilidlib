@@ -25,7 +25,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
       - name: Publish to GitHub Packages
         run: >-
-          ./gradlew :pupilidlib:publishAllPublicationsToGitHubPackagesRepository
+          ./gradlew :pupilidlib:publishAllPublicationsToGitHubPackagesRepository :vclib:publishAllPublicationsToGitHubPackagesRepository
           --no-daemon --stacktrace --console=plain
         env:
           GITHUB_ACTOR: ${{ github.actor }}

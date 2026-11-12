@@ -1,0 +1,22 @@
+[versions]
+ktor = "3.6.1"
+serialization = "1.12.0"
+kotlin ="2.4.21"
+testballoon = "1.2.0"
+kotest = "6.2.6"
+androidTestRunner = "1.7.0"
+asp = "20260918"
+agp = "9.5.0"
+encoding = "2.6.0"
+nimbus-jose-jwt = "10.10"
+
+[libraries]
+asp = { module = "at.asitplus.gradle:k2", version.ref = "asp" }
+agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+encoding-base16 = { module = "io.matthewnelson.encoding:base16", version.ref = "encoding" }
+encoding-base64 = { module = "io.matthewnelson.encoding:base64", version.ref = "encoding" }
+nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus-jose-jwt" }
+json = { module = "org.json:json", version.ref = "json" }
+
+[plugins]
+asp = { id = "at.asitplus.gradle.conventions", version.ref = "asp" }
