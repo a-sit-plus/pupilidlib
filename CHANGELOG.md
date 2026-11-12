@@ -1,5 +1,24 @@
 # Changelog
 
+Release 1.11.1:
+* Integrated VC-K sources as a local module, removing the Git submodule dependency.
+* Updated Kotlin, Gradle, Android tooling and library dependencies.
+* Replaced OkHttp with platform-specific Ktor engines for JVM and Android.
+* Migrated tests to TestBalloon and added Android emulator testing.
+* Added GitHub Packages publishing and CI workflows for JVM, Android and iOS.
+* Dependency Updates:
+    - Kotlin: 2.4.21 
+    - Gradle: 9.7.1
+    - Ktor: 3.6.1
+    - Kotest: 6.2.6
+    - TestBalloon: 1.2.0
+    - kotlinx.serialization: 1.12.0
+    - kotlinx.datetime: 0.8.0-0.6.x-compat
+    - Base16/Base64 encoding: 2.6.0
+    - Swagger annotations: 2.2.55
+    - Nimbus JOSE JWT: 10.10
+    - org.json: 20260814
+
 Release 1.10.1
 * Dependency Updates
   - VC-K 1.9.1-pupilidlib
