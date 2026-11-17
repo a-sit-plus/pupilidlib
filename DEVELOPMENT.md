@@ -3,9 +3,19 @@
 This is a Kotlin Multiplatform Library implementing features to use the PupilId in Apps and on the Backend.
 
 ## Note on Composite KMM Builds
-This is borked on the curren stable version of the KMP gradle plugin and might not even work correctly once 1.8.20 is release.
-Hence, `./gradlew init` builds the included `vclib` and publishes it to a local maven repo which is included in this project.
-Makes the build work without relying on composite builds, but does not support refactoring across modules.
+The build includes `vclib` as a composite and substitutes `at.asitplus.wallet:vclib` with its local project.
+Initialize the submodule with `git submodule update --init --recursive`; no local Maven publication is needed.
+Both builds use Gradle 9.7.1, Kotlin 2.4.10, AGP 9.1.1, and ASP conventions 20260918.
+
+Run tests with `./gradlew :pupilidlib:jvmTest`, `:pupilidlib:iosSimulatorArm64Test`, or
+`:pupilidlib:pixelAVDAndroidDeviceTest` (managed Pixel 4, API 35).
+
+## GitHub Packages
+
+The manual [Publish workflow](.github/workflows/publish.yml) publishes only to GitHub Packages using the workflow's
+`GITHUB_TOKEN`. Android, JVM/iOS tests, and test reports have workflows under `.github/workflows/`.
+
+The legacy GitLab publishing integration below remains available.
 
 
 ## Publishing

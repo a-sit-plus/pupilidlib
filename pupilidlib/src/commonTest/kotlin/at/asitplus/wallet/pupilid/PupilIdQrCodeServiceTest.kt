@@ -3,15 +3,17 @@ package at.asitplus.wallet.pupilid
 import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.DefaultVerifierCryptoService
 import at.asitplus.wallet.lib.jws.*
-import io.kotest.core.spec.style.StringSpec
+import at.asitplus.testballoon.matrix.matrixSuite
+import de.infix.testBalloon.framework.core.TestConfig
+import de.infix.testBalloon.framework.core.aroundEachTest
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.ktor.util.sha256
 import io.matthewnelson.encoding.base16.Base16
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
-import okio.ByteString.Companion.toByteString
 import kotlin.random.Random
 
-class PupilIdQrCodeServiceTest : StringSpec({
+val PupilIdQrCodeServiceTest by matrixSuite {
 
     lateinit var walletCryptoService: DefaultCryptoService
     lateinit var wallet: PupilIdQrCodeService
@@ -19,77 +21,75 @@ class PupilIdQrCodeServiceTest : StringSpec({
     lateinit var verifier: PupilIdQrCodeService
     lateinit var pinnedAttestedKeyIssuers: List<JsonWebKey>
 
-    beforeTest {
+
+    testSuite("tests", testConfig = TestConfig.aroundEachTest { action ->
         walletCryptoService = DefaultCryptoService()
         wallet = PupilIdQrCodeService.newInstance(walletCryptoService)
         issuerCryptoService = DefaultCryptoService()
         verifier = PupilIdQrCodeService.newInstance(DefaultVerifierCryptoService())
         pinnedAttestedKeyIssuers = listOf(issuerCryptoService.toJsonWebKey())
+        action()
+    }) {
+        "walkthrough should be successful" {
+            val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
+            val picture = Random.nextBytes(64)
+            val content = randomCredentialContent(attestedKeyJws, sha256(picture))
+
+            val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
+
+            val result = verifier.decodeQrCode(listOfQrCodes, "PI1:", true, pinnedAttestedKeyIssuers).getOrThrow()
+            result.content shouldBe content
+            result.picture shouldBe picture
+        }
+
+        "no pinned keys should throw" {
+            val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
+            val picture = Random.nextBytes(64)
+            val content = randomCredentialContent(attestedKeyJws, sha256(picture))
+
+            val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
+
+            val result = verifier.decodeQrCode(listOfQrCodes, "PI1:", true, listOf())
+            result.isFailure shouldBe true
+            result.exceptionOrNull().shouldBeInstanceOf<AttestedKeyNotVerifiedError>()
+        }
+
+        "wrong pinned key should throw" {
+            val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
+            val picture = Random.nextBytes(64)
+            val content = randomCredentialContent(attestedKeyJws, sha256(picture))
+
+            val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
+
+            val result = verifier.decodeQrCode(listOfQrCodes, "PI1:", true, listOf(walletCryptoService.toJsonWebKey()))
+            result.isFailure shouldBe true
+            result.exceptionOrNull().shouldBeInstanceOf<AttestedKeyNotVerifiedError>()
+        }
+
+        "no attested key should throw" {
+            val picture = Random.nextBytes(64)
+            val content = randomCredentialContent("", sha256(picture))
+
+            val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
+
+            val result = verifier.decodeQrCode(listOfQrCodes, "PI1:", true, pinnedAttestedKeyIssuers)
+            result.isFailure shouldBe true
+            result.exceptionOrNull().shouldBeInstanceOf<QrCodeDecodeError>()
+        }
+
+        "signed with wrong key should throw" {
+            val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
+            val picture = Random.nextBytes(64)
+            val content = randomCredentialContent(attestedKeyJws, sha256(picture))
+
+            val listOfQrCodes = PupilIdQrCodeService.newInstance(DefaultCryptoService())
+                .encodeInQrCode(content, picture).getOrThrow()
+
+            val result = verifier.decodeQrCode(listOfQrCodes, "PI1:", true, pinnedAttestedKeyIssuers)
+            result.isFailure shouldBe true
+            result.exceptionOrNull().shouldBeInstanceOf<JwsNotVerifiedError>()
+        }
     }
-
-    "walkthrough should be successful" {
-        val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
-        val picture = Random.nextBytes(64)
-        val content = randomCredentialContent(attestedKeyJws, picture.sha256())
-
-        val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
-
-        val result = verifier.decodeQrCode(listOfQrCodes, "PI1:", true, pinnedAttestedKeyIssuers).getOrThrow()
-        result.content shouldBe content
-        result.picture shouldBe picture
-    }
-
-    "no pinned keys should throw" {
-        val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
-        val picture = Random.nextBytes(64)
-        val content = randomCredentialContent(attestedKeyJws, picture.sha256())
-
-        val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
-
-        val result = verifier.decodeQrCode(listOfQrCodes, "PI1:", true, listOf())
-        result.isFailure shouldBe true
-        result.exceptionOrNull().shouldBeInstanceOf<AttestedKeyNotVerifiedError>()
-    }
-
-    "wrong pinned key should throw" {
-        val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
-        val picture = Random.nextBytes(64)
-        val content = randomCredentialContent(attestedKeyJws, picture.sha256())
-
-        val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
-
-        val result = verifier.decodeQrCode(listOfQrCodes, "PI1:", true, listOf(walletCryptoService.toJsonWebKey()))
-        result.isFailure shouldBe true
-        result.exceptionOrNull().shouldBeInstanceOf<AttestedKeyNotVerifiedError>()
-    }
-
-    "no attested key should throw" {
-        val picture = Random.nextBytes(64)
-        val content = randomCredentialContent("", picture.sha256())
-
-        val listOfQrCodes = wallet.encodeInQrCode(content, picture).getOrThrow()
-
-        val result = verifier.decodeQrCode(listOfQrCodes, "PI1:", true, pinnedAttestedKeyIssuers)
-        result.isFailure shouldBe true
-        result.exceptionOrNull().shouldBeInstanceOf<QrCodeDecodeError>()
-    }
-
-    "signed with wrong key should throw" {
-        val attestedKeyJws = buildAttestedKey(walletCryptoService, issuerCryptoService)
-        val picture = Random.nextBytes(64)
-        val content = randomCredentialContent(attestedKeyJws, picture.sha256())
-
-        val listOfQrCodes = PupilIdQrCodeService.newInstance(DefaultCryptoService())
-            .encodeInQrCode(content, picture).getOrThrow()
-
-        val result = verifier.decodeQrCode(listOfQrCodes, "PI1:", true, pinnedAttestedKeyIssuers)
-        result.isFailure shouldBe true
-        result.exceptionOrNull().shouldBeInstanceOf<JwsNotVerifiedError>()
-    }
-})
-
-private fun ByteArray.sha256(): ByteArray {
-    return this.toByteString().sha256().toByteArray()
 }
 
 private suspend fun buildAttestedKey(

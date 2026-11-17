@@ -1,5 +1,22 @@
 [versions]
-ktor = "3.2.2"
-kotest="6.1.1"
-kotlin ="2.2.21"
-testballoon = "0.7.1-K2.2.21"
+ktor = "3.6.1"
+serialization = "1.12.0"
+kotlin = "2.4.21"
+testballoon = "1.2.0"
+kotest = "6.2.6"
+androidTestRunner = "1.7.0"
+asp = "20260918"
+agp = "9.5.0"
+vclib = "1.9.2-pupilid"
+swagger = "2.2.55"
+nimbus-jose-jwt = "10.10"
+
+[libraries]
+asp = { module = "at.asitplus.gradle:k2", version.ref = "asp" }
+agp = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+vclib = { module = "at.asitplus.wallet:vclib", version.ref = "vclib" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version.ref = "swagger" }
+nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus-jose-jwt" }
+
+[plugins]
+asp = { id = "at.asitplus.gradle.conventions", version.ref = "asp" }

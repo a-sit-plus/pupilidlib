@@ -1,6 +1,12 @@
 plugins {
-    id("com.google.devtools.ksp") version libs.versions.kotlin.get()+"-2.0.4"
-    id("io.kotest") version libs.versions.kotest
-    id("at.asitplus.gradle.vclib-conventions")  version libs.versions.kotlin
-    kotlin("plugin.serialization") version libs.versions.kotlin
+    kotlin("multiplatform") version libs.versions.kotlin apply false
+    kotlin("plugin.serialization") version libs.versions.kotlin apply false
+    id("com.android.kotlin.multiplatform.library") version libs.versions.agp apply false
+    id("de.infix.testBalloon") version libs.versions.testballoon apply false
+    alias(libs.plugins.asp)
+    id("at.asitplus.gradle.vclib-conventions") apply false
 }
+
+val artifactVersion = extra["artifactVersion"] as String
+group = "at.asitplus.wallet"
+version = artifactVersion

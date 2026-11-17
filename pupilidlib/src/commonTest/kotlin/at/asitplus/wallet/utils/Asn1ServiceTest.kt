@@ -2,11 +2,11 @@ package at.asitplus.wallet.utils
 
 import at.asitplus.wallet.pupilid.KeyAlgorithm
 import at.asitplus.wallet.pupilid.testmocks.NoopCryptoAdapter
-import io.kotest.core.spec.style.StringSpec
+import at.asitplus.testballoon.matrix.matrixSuite
 import io.kotest.matchers.shouldBe
 
 
-class Asn1ServiceTest : StringSpec({
+val Asn1ServiceTest by matrixSuite {
 
     "wrapRawPublicKeyEc" {
         val rawPublicKey = byteArrayOfInts(
@@ -121,4 +121,4 @@ class Asn1ServiceTest : StringSpec({
         wrappedKey shouldBe encodedWrappedKey
     }
 
-})
+}

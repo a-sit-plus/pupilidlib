@@ -11,13 +11,15 @@ import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.MessageWrapper
 import at.asitplus.wallet.lib.agent.NextMessage
 import at.asitplus.wallet.lib.data.ConstantIndex
-import io.kotest.core.spec.style.FreeSpec
+import at.asitplus.testballoon.matrix.matrixSuite
+import de.infix.testBalloon.framework.core.TestConfig
+import de.infix.testBalloon.framework.core.aroundEachTest
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 
-class IssueCredentialMessengerTest : FreeSpec() {
+val IssueCredentialMessengerTest by matrixSuite {
 
     lateinit var issuerCryptoService: CryptoService
     lateinit var holderCryptoService: CryptoService
@@ -27,33 +29,17 @@ class IssueCredentialMessengerTest : FreeSpec() {
     lateinit var issuerMessenger: IssueCredentialMessenger
     lateinit var holderMessenger: IssueCredentialMessenger
 
-    init {
-        PupilIdInitializer
-        beforeEach {
-            issuerCryptoService = DefaultCryptoService()
-            holderCryptoService = DefaultCryptoService()
-            issuer = IssuerAgent.newDefaultInstance(issuerCryptoService, dataProvider = PupilCredentialDataProvider())
-            holder = HolderAgent.newDefaultInstance(holderCryptoService)
-            issuerServiceEndpoint = "https://example.com/issue?${uuid4()}"
-            holderMessenger = initHolderMessenger()
-        }
 
-        "issueCredentialPupilId" {
-            issuerMessenger = initIssuerMessenger(at.asitplus.wallet.pupilid.PupilIdConstants.Scheme)
+    PupilIdInitializer
 
-            val issuedCredential = runProtocolFlow()
 
-            assertPupilIdVc(issuedCredential)
-        }
-    }
-
-    private fun initHolderMessenger() = IssueCredentialMessenger.newHolderInstance(
+    fun initHolderMessenger() = IssueCredentialMessenger.newHolderInstance(
         holder = holder,
         keyId = holderCryptoService.keyId,
         messageWrapper = MessageWrapper(holderCryptoService),
     )
 
-    private fun initIssuerMessenger(scheme: ConstantIndex.CredentialScheme) =
+    fun initIssuerMessenger(scheme: ConstantIndex.CredentialScheme) =
         IssueCredentialMessenger.newIssuerInstance(
             issuer = issuer,
             keyId = issuerCryptoService.keyId,
@@ -62,7 +48,7 @@ class IssueCredentialMessengerTest : FreeSpec() {
             credentialScheme = scheme,
         )
 
-    private suspend fun runProtocolFlow(): IssueCredentialProtocolResult {
+    suspend fun runProtocolFlow(): IssueCredentialProtocolResult {
         val oobInvitation = issuerMessenger.startCreatingInvitation()
         oobInvitation.shouldBeInstanceOf<NextMessage.Send>()
         val invitationMessage = oobInvitation.message
@@ -84,10 +70,28 @@ class IssueCredentialMessengerTest : FreeSpec() {
         return issuedCredential
     }
 
-    private fun assertPupilIdVc(issuedCredentials: IssueCredentialProtocolResult) {
+    fun assertPupilIdVc(issuedCredentials: IssueCredentialProtocolResult) {
         issuedCredentials.accepted shouldHaveSize 1
         issuedCredentials.accepted.map { it.vc.credentialSubject }
             .forEach { it.shouldBeInstanceOf<PupilIdCredential>() }
         issuedCredentials.rejected.shouldBeEmpty()
+    }
+
+    testSuite("tests", testConfig = TestConfig.aroundEachTest { action ->
+        issuerCryptoService = DefaultCryptoService()
+        holderCryptoService = DefaultCryptoService()
+        issuer = IssuerAgent.newDefaultInstance(issuerCryptoService, dataProvider = PupilCredentialDataProvider())
+        holder = HolderAgent.newDefaultInstance(holderCryptoService)
+        issuerServiceEndpoint = "https://example.com/issue?${uuid4()}"
+        holderMessenger = initHolderMessenger()
+        action()
+    }) {
+        "issueCredentialPupilId" {
+            issuerMessenger = initIssuerMessenger(at.asitplus.wallet.pupilid.PupilIdConstants.Scheme)
+
+            val issuedCredential = runProtocolFlow()
+
+            assertPupilIdVc(issuedCredential)
+        }
     }
 }

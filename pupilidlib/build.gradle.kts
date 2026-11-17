@@ -1,25 +1,46 @@
 import at.asitplus.gradle.*
+import at.asitplus.gradle.at.asitplus.gradle.addTestExtensions
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 
 plugins {
     kotlin("multiplatform")
-    id("com.google.devtools.ksp")
-    id("io.kotest")
+    id("com.android.kotlin.multiplatform.library")
+    id("de.infix.testBalloon")
     kotlin("plugin.serialization")
     id("at.asitplus.gradle.vclib-conventions")
 }
 
 /* required for maven publication */
-val artifactVersion: String by extra
+val artifactVersion = extra["artifactVersion"] as String
 group = "at.asitplus.wallet"
-version = "$artifactVersion"
-
-val vcLibVersion: String by extra
-val swagger: String by extra
-
-
+version = artifactVersion
 
 kotlin {
     jvm()
+    targets.withType<KotlinMultiplatformAndroidLibraryTarget>().configureEach {
+        namespace = "at.asitplus.wallet.pupilidlib"
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }.configure {
+            instrumentationRunnerArguments["timeout_msec"] = "2400000"
+            instrumentationRunnerArguments["TESTBALLOON_REPORTING_PATH_LIMIT"] = "400"
+            managedDevices {
+                localDevices {
+                    create("pixelAVD").apply {
+                        device = "Pixel 4"
+                        apiLevel = 35
+                        systemImageSource = "aosp-atd"
+                    }
+                }
+            }
+        }
+        packaging.resources.excludes += listOf(
+            "/META-INF/{AL2.0,LGPL2.1}",
+            "META-INF/licenses/*",
+            "META-INF/LICENSE.*",
+            "META-INF/versions/9/OSGI-INF/MANIFEST.MF",
+        )
+    }
     iosArm64()
     iosSimulatorArm64()
     iosX64()
@@ -34,7 +55,7 @@ kotlin {
                 api(ktor("client-serialization"))
                 api(ktor("client-content-negotiation"))
                 api(ktor("serialization-kotlinx-json"))
-                api("at.asitplus.wallet:vclib:$vcLibVersion")
+                api(libs.vclib)
                 api(napier())
             }
         }
@@ -44,25 +65,30 @@ kotlin {
             }
         }
 
-        jvmMain {
+        androidJvmMain {
             dependencies {
                 api(bouncycastle("bcpkix"))
-                api("io.swagger.core.v3:swagger-annotations:$swagger")
-                api(ktor("client-okhttp"))
+                api(libs.swagger.annotations)
             }
+        }
+
+        jvmMain.dependencies {
+            api(ktor("client-java"))
+        }
+        androidMain.dependencies {
+            api(ktor("client-android"))
         }
 
         /* Test source sets */
         commonTest {
             dependencies {
                 implementation(ktor("client-mock"))
-                implementation(kotest("property"))
+                addTestExtensions()
             }
         }
         jvmTest {
             dependencies {
-                implementation(kotest("runner-junit5", "jvm"))
-                implementation("com.nimbusds:nimbus-jose-jwt:${VcLibVersions.Jvm.`jose-jwt`}")
+                implementation(libs.nimbus.jose.jwt)
             }
         }
 
@@ -70,29 +96,19 @@ kotlin {
     }
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
-
 exportXCFramework(
     "PupilIdKMM",
     transitiveExports = false,
     additionalExports = arrayOf(
-        "at.asitplus:kmmresult:${AspVersions.kmmresult}",
-        "at.asitplus.wallet:vclib:$vcLibVersion",
+        kmmresult(),
+        libs.vclib.get(),
         datetime(),
         napier()
     )
 )
 
-
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor(0, TimeUnit.SECONDS)
-}
-
-val gitLabProjectId: String by extra
-val gitLabGroupId: String by extra
+val gitLabProjectId = extra["gitLabProjectId"] as String
+val gitLabGroupId = extra["gitLabGroupId"] as String
 
 repositories {
     mavenLocal()
@@ -105,5 +121,16 @@ publishing {
     repositories {
         mavenLocal()
         gitLab(projectId = gitLabProjectId.toInt())
+        maven {
+            name = "GitHubPackages"
+            url = uri(
+                "https://maven.pkg.github.com/" +
+                    providers.environmentVariable("GITHUB_REPOSITORY").orElse("a-sit-plus/pupilidlib").get().lowercase()
+            )
+            credentials {
+                username = providers.environmentVariable("GITHUB_ACTOR").orNull
+                password = providers.environmentVariable("GITHUB_TOKEN").orNull
+            }
+        }
     }
 }

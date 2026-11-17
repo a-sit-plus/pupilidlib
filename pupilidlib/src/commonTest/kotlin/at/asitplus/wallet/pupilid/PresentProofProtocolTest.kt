@@ -10,10 +10,12 @@ import at.asitplus.wallet.lib.agent.PresentProofProtocol
 import at.asitplus.wallet.lib.agent.Verifier
 import at.asitplus.wallet.lib.agent.VerifierAgent
 import at.asitplus.wallet.lib.msg.Presentation
-import io.kotest.core.spec.style.FreeSpec
+import at.asitplus.testballoon.matrix.matrixSuite
+import de.infix.testBalloon.framework.core.TestConfig
+import de.infix.testBalloon.framework.core.aroundEachTest
 import io.kotest.matchers.types.shouldBeInstanceOf
 
-class PresentProofProtocolTest : FreeSpec({
+val PresentProofProtocolTest by matrixSuite {
 
     lateinit var holderCryptoService: CryptoService
     lateinit var verifierCryptoService: CryptoService
@@ -22,7 +24,8 @@ class PresentProofProtocolTest : FreeSpec({
     lateinit var holderProtocol: PresentProofProtocol
     lateinit var verifierProtocol: PresentProofProtocol
 
-    beforeEach {
+
+    testSuite("tests", testConfig = TestConfig.aroundEachTest { action ->
         holderCryptoService = DefaultCryptoService()
         verifierCryptoService = DefaultCryptoService()
         holder = HolderAgent.newDefaultInstance(holderCryptoService)
@@ -34,48 +37,48 @@ class PresentProofProtocolTest : FreeSpec({
         )
         verifierProtocol =
             PresentProofProtocol.newVerifierInstance(verifier, verifierCryptoService.keyId)
-    }
-
-    "presentProofPupilIdDirect" {
-        holderProtocol = PresentProofProtocol.newHolderInstance(
-            holder,
-            holderCryptoService.keyId,
-            "https://example.com",
-            PupilIdConstants.Scheme
-        )
-        verifierProtocol = PresentProofProtocol.newVerifierInstance(
-            verifier,
-            verifierCryptoService.keyId,
-            "https://example.com",
-            PupilIdConstants.Scheme
-        )
-
-        holder.storeCredentials(
-            IssuerAgent.newDefaultInstance(
-                DefaultCryptoService(),
-                dataProvider = PupilCredentialDataProvider(),
-            ).issueCredential(
+        action()
+    }) {
+        "presentProofPupilIdDirect" {
+            holderProtocol = PresentProofProtocol.newHolderInstance(
+                holder,
                 holderCryptoService.keyId,
-                PupilIdConstants.Scheme.vcType
-            ).toStoreCredentialInput()
-        )
+                "https://example.com",
+                PupilIdConstants.Scheme
+            )
+            verifierProtocol = PresentProofProtocol.newVerifierInstance(
+                verifier,
+                verifierCryptoService.keyId,
+                "https://example.com",
+                PupilIdConstants.Scheme
+            )
 
-        val requestPresentation = verifierProtocol.startDirect()
-        requestPresentation.shouldBeInstanceOf<InternalNextMessage.SendAndWrap>()
+            holder.storeCredentials(
+                IssuerAgent.newDefaultInstance(
+                    DefaultCryptoService(),
+                    dataProvider = PupilCredentialDataProvider(),
+                ).issueCredential(
+                    holderCryptoService.keyId,
+                    PupilIdConstants.Scheme.vcType
+                ).toStoreCredentialInput()
+            )
 
-        val parsedRequestPresentation = holderProtocol.parseMessage(
-            requestPresentation.message,
-            verifierCryptoService.keyId
-        )
-        parsedRequestPresentation.shouldBeInstanceOf<InternalNextMessage.SendAndWrap>()
-        val presentation = parsedRequestPresentation.message
+            val requestPresentation = verifierProtocol.startDirect()
+            requestPresentation.shouldBeInstanceOf<InternalNextMessage.SendAndWrap>()
 
-        val parsedPresentation =
-            verifierProtocol.parseMessage(presentation, holderCryptoService.keyId)
-        parsedPresentation.shouldBeInstanceOf<InternalNextMessage.Finished>()
+            val parsedRequestPresentation = holderProtocol.parseMessage(
+                requestPresentation.message,
+                verifierCryptoService.keyId
+            )
+            parsedRequestPresentation.shouldBeInstanceOf<InternalNextMessage.SendAndWrap>()
+            val presentation = parsedRequestPresentation.message
 
-        val receivedPresentation = parsedPresentation.lastMessage
-        receivedPresentation.shouldBeInstanceOf<Presentation>()
+            val parsedPresentation =
+                verifierProtocol.parseMessage(presentation, holderCryptoService.keyId)
+            parsedPresentation.shouldBeInstanceOf<InternalNextMessage.Finished>()
+
+            val receivedPresentation = parsedPresentation.lastMessage
+            receivedPresentation.shouldBeInstanceOf<Presentation>()
+        }
     }
-
-})
+}

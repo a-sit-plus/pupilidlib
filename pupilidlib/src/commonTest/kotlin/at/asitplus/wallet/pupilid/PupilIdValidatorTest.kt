@@ -4,10 +4,10 @@ import at.asitplus.wallet.lib.agent.DefaultCryptoService
 import at.asitplus.wallet.lib.agent.InMemoryIssuerCredentialStore
 import at.asitplus.wallet.lib.agent.IssuerAgent
 import at.asitplus.wallet.lib.agent.Validator
-import io.kotest.core.spec.style.ShouldSpec
+import at.asitplus.testballoon.matrix.matrixSuite
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.matthewnelson.component.encoding.base16.encodeBase16
+import kotlinx.coroutines.runBlocking
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.datetime.Month
@@ -20,7 +20,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalStdlibApi::class)
-class PupilIdValidatorTest : ShouldSpec({
+val PupilIdValidatorTest by matrixSuite {
 
     val validCredential = CredentialContent(
         type = "type",
@@ -35,7 +35,7 @@ class PupilIdValidatorTest : ShouldSpec({
     val revocationListHardValidityHours = 48
     val timeLeewaySeconds = 30
 
-    context("with clock at 2023-01-04T08:02 and no revocation list") {
+    "with clock at 2023-01-04T08:02 and no revocation list" - {
 
         val nullRevocationList = PupilIdValidator.Callback { null }
         val clock = TestClock("2023-01-04T08:02")
@@ -48,7 +48,7 @@ class PupilIdValidatorTest : ShouldSpec({
             nullRevocationList
         )
 
-        should("time valid") {
+        "time valid" {
             val credential = validCredential.copy()
 
             val result = validator.validate(credential)
@@ -56,7 +56,7 @@ class PupilIdValidatorTest : ShouldSpec({
             result.timeValidity.shouldBeInstanceOf<TimeValidity.CurrentlyValid>()
         }
 
-        should("time valid with expiration inside leeway") {
+        "time valid with expiration inside leeway" {
             val credential =
                 validCredential.copy(qrCodeExpiration = (clock.now() - (timeLeewaySeconds - 1).seconds).toUnixTimestamp())
 
@@ -65,7 +65,7 @@ class PupilIdValidatorTest : ShouldSpec({
             result.timeValidity.shouldBeInstanceOf<TimeValidity.CurrentlyValid>()
         }
 
-        should("time invalid with expiration outside leeway") {
+        "time invalid with expiration outside leeway" {
             val credential =
                 validCredential.copy(qrCodeExpiration = (clock.now() - (timeLeewaySeconds + 1).seconds).toUnixTimestamp())
 
@@ -75,7 +75,7 @@ class PupilIdValidatorTest : ShouldSpec({
             timeValidity.shouldBeInstanceOf<TimeValidity.QrExpired>()
         }
 
-        should("time valid with notBefore inside leeway") {
+        "time valid with notBefore inside leeway" {
             val credential =
                 validCredential.copy(qrCodeNotBefore = (clock.now() + (timeLeewaySeconds - 1).seconds).toUnixTimestamp())
 
@@ -84,7 +84,7 @@ class PupilIdValidatorTest : ShouldSpec({
             result.timeValidity.shouldBeInstanceOf<TimeValidity.CurrentlyValid>()
         }
 
-        should("time invalid with notBefore outside leeway") {
+        "time invalid with notBefore outside leeway" {
             val credential =
                 validCredential.copy(qrCodeNotBefore = (clock.now() + (timeLeewaySeconds + 1).seconds).toUnixTimestamp())
 
@@ -94,7 +94,7 @@ class PupilIdValidatorTest : ShouldSpec({
             timeValidity.shouldBeInstanceOf<TimeValidity.QrNotYetValid>()
         }
 
-        should("revocation list unknown") {
+        "revocation list unknown" {
             val credential = validCredential.copy()
 
             val result = validator.validate(credential)
@@ -102,7 +102,7 @@ class PupilIdValidatorTest : ShouldSpec({
             result.revocationValidity.shouldBeInstanceOf<RevocationValidity.UnknownNoCrl>()
         }
 
-        should("qr code not yet valid with qrCodeNotBefore at 08:03") {
+        "qr code not yet valid with qrCodeNotBefore at 08:03" {
             val credential = validCredential.copy(qrCodeNotBefore = "2023-01-04T08:03".toUnixTimestamp())
 
             val result = validator.validate(credential)
@@ -112,7 +112,7 @@ class PupilIdValidatorTest : ShouldSpec({
             timeValidity.notBefore shouldBe "2023-01-04T08:03".toLocalInstant()
         }
 
-        should("qr code expired with qrCodeExpiration at 08:01") {
+        "qr code expired with qrCodeExpiration at 08:01" {
             val credential = validCredential.copy(qrCodeExpiration = "2023-01-04T08:01".toUnixTimestamp())
 
             val result = validator.validate(credential)
@@ -122,7 +122,7 @@ class PupilIdValidatorTest : ShouldSpec({
             timeValidity.notAfter shouldBe "2023-01-04T08:01".toLocalInstant()
         }
 
-        should("in grace period with validUntil at 2023-01-02") {
+        "in grace period with validUntil at 2023-01-02" {
             val credential = validCredential.copy(validUntil = "2023-01-02")
 
             val result = validator.validate(credential)
@@ -132,7 +132,7 @@ class PupilIdValidatorTest : ShouldSpec({
             timeValidity.expiration shouldBe "2023-01-02".toLocalDate()
         }
 
-        should("expired after grace period with expiration at 2023-01-03") {
+        "expired after grace period with expiration at 2023-01-03" {
             val credential = validCredential.copy(validUntil = "2023-01-02", expiration = "2023-01-03")
 
             val result = validator.validate(credential)
@@ -143,7 +143,7 @@ class PupilIdValidatorTest : ShouldSpec({
         }
     }
 
-    context("with revocation list where index 1 is revoked") {
+    "with revocation list where index 1 is revoked" - {
 
         val clock = TestClock("2023-01-04T08:02")
         val timePeriodProvider = SchoolyearBasedTimePeriodProvider(Month.SEPTEMBER to 1u)
@@ -174,7 +174,7 @@ class PupilIdValidatorTest : ShouldSpec({
         val credentialIndex =
             issuerCredentialStore.storeGetNextIndex(vcId, cred, clock.now(), clock.now(), clock.now().localYear)
         issuerCredentialStore.revoke(vcId, clock.now().localYear)
-        val revocationListCredential = issuerAgent.issueRevocationListCredential(clock.now().localYear)!!
+        val revocationListCredential = runBlocking { issuerAgent.issueRevocationListCredential(clock.now().localYear)!! }
         val latestRevocationList = PupilIdValidator.Callback {
             PupilIdValidator.Callback.RevocationList(
                 revocationList = revocationListCredential,
@@ -190,7 +190,7 @@ class PupilIdValidatorTest : ShouldSpec({
             latestRevocationList
         )
 
-        should("revoked") {
+        "revoked" {
             val credential = validCredential.copy(id = "https://example.com/revocationList/#${credentialIndex}")
 
             val result = validator.validate(credential)
@@ -198,7 +198,7 @@ class PupilIdValidatorTest : ShouldSpec({
             result.revocationValidity.shouldBeInstanceOf<RevocationValidity.Revoked>()
         }
 
-        should("not revoked") {
+        "not revoked" {
             val credential = validCredential.copy(id = "https://example.com/revocationList/#${credentialIndex + 1}")
 
             val result = validator.validate(credential)
@@ -206,7 +206,7 @@ class PupilIdValidatorTest : ShouldSpec({
             result.revocationValidity.shouldBeInstanceOf<RevocationValidity.NotRevoked>()
         }
 
-        context("outdated revocation list") {
+        "outdated revocation list" - {
             val outdatedRevocationList = PupilIdValidator.Callback {
                 PupilIdValidator.Callback.RevocationList(
                     revocationList = revocationListCredential,
@@ -221,7 +221,7 @@ class PupilIdValidatorTest : ShouldSpec({
                 outdatedRevocationList
             )
 
-            should("be marked as outdated") {
+            "be marked as outdated" {
                 val credential = validCredential.copy(id = "https://example.com/revocationList/#${credentialIndex + 1}")
 
                 val result = validator.validate(credential)
@@ -232,7 +232,7 @@ class PupilIdValidatorTest : ShouldSpec({
         }
     }
 
-})
+}
 
 class TestClock(localDate: String) : Clock {
     private val now: Instant = localDate.toLocalInstant()
